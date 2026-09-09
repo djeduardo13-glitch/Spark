@@ -29,13 +29,7 @@
         </span>
         <span data-i18n="nav_home">Home</span>
       </button>
-      <button class="nav-item" data-view="legend">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.9-2.4 3.5"/><path d="M12 17h.01"/></svg>
-        </span>
-        <span data-i18n="nav_legend">Leggenda Menu</span>
-      </button>
-      <button class="nav-item" data-view="simulator">
+      <button class="nav-item" data-view="simulator" id="navSimulator">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M9 21h6M12 17v4"/></svg>
         </span>
@@ -103,15 +97,10 @@
         </div>
 
         <div class="module-grid">
-          <button class="module-card" data-goto="legend">
-            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.9-2.4 3.5"/><path d="M12 17h.01"/></svg></span>
-            <h3 data-i18n="nav_legend">Leggenda Menu</h3>
-            <p>Voci del menu del prodotto: tocca per vedere il significato e fare pratica.</p>
-          </button>
-          <button class="module-card" data-goto="simulator">
+          <button class="module-card" data-goto="simulator" id="cardSimulator">
             <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M9 21h6M12 17v4"/></svg></span>
             <h3 data-i18n="nav_simulator">Simulatore</h3>
-            <p>Naviga il pannello Spark come sul dispositivo reale e fai pratica.</p>
+            <p data-i18n="sim_card_desc">Naviga il pannello Spark come sul dispositivo reale e fai pratica.</p>
           </button>
           <button class="module-card" data-goto="checklist">
             <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12 2.3 2.3L15.5 9.5"/></svg></span>
@@ -131,20 +120,6 @@
         </div>
       </section>
 
-      <!-- LEGGENDA MENU -->
-      <section class="view" id="view-legend">
-        <div class="view-header">
-          <h2 data-i18n="nav_legend">Leggenda Menu</h2>
-          <p class="eyebrow-free-intro" data-i18n="legend_intro">Seleziona una voce del menu Spark per vederne il significato. Usa questa sezione per esercitarti a riconoscere le voci prima di usare il prodotto.</p>
-        </div>
-        <div class="access-card" id="accessLevels"></div>
-        <div class="search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="text" id="legendSearch" data-i18n-placeholder="search_placeholder" placeholder="Cerca una voce…">
-        </div>
-        <div class="legend-list" id="legendList"></div>
-      </section>
-
       <!-- SIMULATORE -->
       <section class="view" id="view-simulator">
         <div class="view-header">
@@ -152,7 +127,13 @@
           <p data-i18n="simulator_intro">Naviga tra le schermate come sul dispositivo reale. Tocca una voce per vederne il significato.</p>
         </div>
 
-        <div class="device-wrap">
+        <div class="access-card" id="accessLevels"></div>
+
+        <div class="sim-fw-lock" id="simFwLock">
+          <p data-i18n="sim_locked_msg">Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.</p>
+        </div>
+
+        <div class="device-wrap" id="simDeviceWrap">
           <div class="device-frame">
             <div class="device-notch">Spark</div>
             <div class="device-screen" id="deviceScreen"></div>

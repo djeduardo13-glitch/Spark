@@ -87,7 +87,7 @@ function renderFwSwitch() {
     btn.addEventListener("click", () => {
       state.fw = fw.id;
       renderFwSwitch();
-      renderLegend();
+      updateSimulatorAvailability();
       renderChecklists();
       renderCollaudo();
       renderDocuments();
@@ -102,7 +102,7 @@ function matchesFw(entryFw) {
 }
 
 /* ---------------------------------------------------------------------
-   LEGGENDA MENU
+   LIVELLI DI ACCESSO (mostrati in cima al Simulatore)
    ------------------------------------------------------------------- */
 function renderAccessLevels() {
   const el = document.getElementById("accessLevels");
@@ -120,60 +120,6 @@ function renderAccessLevels() {
     <table class="access-table"><tbody>${rows}</tbody></table>
   `;
 }
-
-function renderLegend(filterText) {
-  const list = document.getElementById("legendList");
-  const query = (filterText || "").trim().toLowerCase();
-
-  const catMap = {};
-  LEGEND_CATEGORIES.forEach(c => catMap[c.id] = []);
-
-  MENU_LEGEND.filter(item => matchesFw(item.fw)).forEach(item => {
-    const haystack = (item.label + " " + item.meaning + " " + (item.unit || "")).toLowerCase();
-    if (query === "" || haystack.includes(query)) {
-      if (!catMap[item.category]) catMap[item.category] = [];
-      catMap[item.category].push(item);
-    }
-  });
-
-  const nonEmptyCats = LEGEND_CATEGORIES.filter(c => catMap[c.id] && catMap[c.id].length > 0);
-
-  if (nonEmptyCats.length === 0) {
-    list.innerHTML = `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
-    return;
-  }
-
-  list.innerHTML = "";
-  nonEmptyCats.forEach(cat => {
-    const heading = document.createElement("div");
-    heading.className = "legend-category-heading";
-    heading.textContent = cat.label;
-    list.appendChild(heading);
-
-    catMap[cat.id].forEach(item => {
-      const row = document.createElement("div");
-      row.className = "legend-item";
-      row.innerHTML = `
-        <button class="legend-question">
-          <span class="legend-q-text">
-            <span class="legend-code">${item.label}</span>
-            ${item.unit ? `<span class="legend-unit">${item.unit}</span>` : ""}
-          </span>
-          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-        <div class="legend-answer"><div class="legend-answer-inner">${item.meaning}</div></div>
-      `;
-      row.querySelector(".legend-question").addEventListener("click", () => {
-        row.classList.toggle("open");
-      });
-      list.appendChild(row);
-    });
-  });
-}
-
-document.getElementById("legendSearch").addEventListener("input", (e) => {
-  renderLegend(e.target.value);
-});
 
 /* ---------------------------------------------------------------------
    CHECKLIST
@@ -305,9 +251,45 @@ function pseudoValue(id, unit) {
   }
 }
 
+function simIconMarkup(iconKey) {
+  const imgSrc = (typeof SIMULATOR_ICON_IMAGES !== "undefined") ? SIMULATOR_ICON_IMAGES[iconKey] : null;
+  if (imgSrc) return `<img src="${imgSrc}" alt="" class="sim-icon-img">`;
+  return SIM_ICONS[iconKey] || "";
+}
+
 function simIconButton(item) {
-  const svg = SIM_ICONS[item.icon] || "";
-  return `<button class="sim-icon-btn" data-sim-action="${item.id}" title="${item.label}">${svg}</button>`;
+  const imgSrc = (typeof SIMULATOR_ICON_IMAGES !== "undefined") ? SIMULATOR_ICON_IMAGES[item.icon] : null;
+  const cls = "sim-icon-btn" + (imgSrc ? " has-img" : "");
+  return `<button class="${cls}" data-sim-action="${item.id}" title="${item.label}">${simIconMarkup(item.icon)}</button>`;
+}
+
+/* ---------------------------------------------------------------------
+   DISPONIBILITÀ SIMULATORE — solo FW 8.2.x.x
+   ------------------------------------------------------------------- */
+const SIMULATOR_FW = "8.2";
+
+function isSimulatorAvailable() {
+  return state.fw === SIMULATOR_FW;
+}
+
+function updateSimulatorAvailability() {
+  const available = isSimulatorAvailable();
+  const navBtn = document.getElementById("navSimulator");
+  const card = document.getElementById("cardSimulator");
+  const lockMsg = document.getElementById("simFwLock");
+  const deviceWrap = document.getElementById("simDeviceWrap");
+
+  [navBtn, card].forEach(el => {
+    if (!el) return;
+    el.classList.toggle("is-disabled", !available);
+  });
+
+  if (lockMsg) lockMsg.style.display = available ? "none" : "block";
+  if (deviceWrap) deviceWrap.style.display = available ? "flex" : "none";
+
+  if (!available && state.view === "simulator") {
+    goToView("home");
+  }
 }
 
 function renderDevice() {
@@ -368,7 +350,7 @@ function renderDevice() {
       <div class="sim-screen-title">${entry ? entry.label : ""}</div>
       <div class="sim-info"><p>${entry ? entry.meaning : ""}</p></div>
       <div class="sim-single-back">
-        <button class="sim-icon-btn" data-sim-action="menu">${SIM_ICONS.back}</button>
+        <button class="sim-icon-btn${SIMULATOR_ICON_IMAGES && SIMULATOR_ICON_IMAGES.back ? " has-img" : ""}" data-sim-action="menu">${simIconMarkup("back")}</button>
       </div>
     `;
     bindSimIcons();
@@ -406,7 +388,7 @@ function renderSimCategory(categoryId, isMotors) {
     ${sideSwitch}
     <div class="sim-data-list">${rows || `<div class="sim-info"><p>${dict.empty_state}</p></div>`}</div>
     <div class="sim-single-back">
-      <button class="sim-icon-btn" data-sim-action="menu">${SIM_ICONS.back}</button>
+      <button class="sim-icon-btn${SIMULATOR_ICON_IMAGES && SIMULATOR_ICON_IMAGES.back ? " has-img" : ""}" data-sim-action="menu">${simIconMarkup("back")}</button>
     </div>
   `;
 
@@ -455,7 +437,7 @@ function init() {
   applyI18n();
   renderFwSwitch();
   renderAccessLevels();
-  renderLegend();
+  updateSimulatorAvailability();
   renderChecklists();
   renderCollaudo();
   renderDocuments();

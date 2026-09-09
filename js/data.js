@@ -189,6 +189,18 @@ const SIMULATOR_BOOT_INFO = [
   { label: "ECU MT RIGHT", value: "v.4.1.0.3" },
   { label: "BLE", value: "v.2.5" }
 ];
+
+/* ---------------------------------------------------------------------
+   ICONE REALI DEL PRODOTTO
+   Man mano che mi mandi le icone vere (foto/screenshot del pulsante),
+   le salvo in assets/icons/ e aggiungo una riga qui con la stessa chiave
+   usata in SIMULATOR_MENU (icon: "..."). Finché una chiave non è presente
+   qui, il simulatore usa l'icona SVG generica di riserva.
+   ------------------------------------------------------------------- */
+const SIMULATOR_ICON_IMAGES = {
+  back: "assets/icons/back.png",
+  workpanel: "assets/icons/workpanel.png"
+};
 const CHECKLISTS = [
   {
     id: "checklist-esempio",
@@ -239,15 +251,15 @@ const I18N = {
     appName: "Spark Doc Hub",
     tagline: "Centro documentazione, checklist e collaudo",
     nav_home: "Home",
-    nav_legend: "Leggenda Menu",
     nav_simulator: "Simulatore",
     nav_checklist: "Checklist",
     nav_collaudo: "Collaudo",
     nav_documents: "Documenti",
     fw_label: "Versione firmware",
     home_intro: "Tutto quello che serve per configurare, controllare e collaudare Spark, organizzato per versione firmware.",
-    legend_intro: "Seleziona una voce del menu Spark per vederne il significato. Usa questa sezione per esercitarti a riconoscere le voci prima di usare il prodotto.",
     simulator_intro: "Naviga tra le schermate come sul dispositivo reale. Tocca una voce per vederne il significato.",
+    sim_card_desc: "Naviga il pannello Spark come sul dispositivo reale e fai pratica.",
+    sim_locked_msg: "Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.",
     sim_tap_to_start: "Tocca lo schermo per iniziare",
     sim_back_to_menu: "Menu",
     sim_side_left: "SX",
@@ -256,7 +268,6 @@ const I18N = {
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",
     empty_state: "Contenuti in arrivo per questa sezione.",
-    search_placeholder: "Cerca una voce…",
     access_title: "Livelli di accesso",
     lang_it: "Italiano",
     lang_fr: "Français",
