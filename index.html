@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Doc Hub — STEM</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<div class="app-shell" id="appShell">
+
+  <!-- SIDEBAR (desktop) / DRAWER (mobile) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <img src="assets/logo-stem.png" alt="STEM">
+      <div class="brand-text">
+        <strong data-i18n="appName">Spark Doc Hub</strong>
+        <span data-i18n="tagline">Centro documentazione, checklist e collaudo</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <button class="nav-item active" data-view="home">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        </span>
+        <span data-i18n="nav_home">Home</span>
+      </button>
+      <button class="nav-item" data-view="legend">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.9-2.4 3.5"/><path d="M12 17h.01"/></svg>
+        </span>
+        <span data-i18n="nav_legend">Leggenda Menu</span>
+      </button>
+      <button class="nav-item" data-view="simulator">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M9 21h6M12 17v4"/></svg>
+        </span>
+        <span data-i18n="nav_simulator">Simulatore</span>
+      </button>
+      <button class="nav-item" data-view="checklist">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12 2.3 2.3L15.5 9.5"/></svg>
+        </span>
+        <span data-i18n="nav_checklist">Checklist</span>
+      </button>
+      <button class="nav-item" data-view="collaudo">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.4 6.4 2.8 2.8"/><path d="M2 13h4"/><path d="m6.4 19.6 2.8-2.8"/><circle cx="12" cy="13" r="4"/></svg>
+        </span>
+        <span data-i18n="nav_collaudo">Collaudo</span>
+      </button>
+      <button class="nav-item" data-view="documents">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+        </span>
+        <span data-i18n="nav_documents">Documenti</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="lang-switch" id="langSwitch">
+        <button class="lang-pill active" data-lang="it">IT</button>
+        <button class="lang-pill" data-lang="fr" disabled title="Presto disponibile">FR</button>
+        <button class="lang-pill" data-lang="es" disabled title="Presto disponibile">ES</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="topbar">
+      <button class="icon-btn" id="menuToggle" aria-label="Apri menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="topbar-brand">
+        <img src="assets/logo-stem.png" alt="STEM">
+        <strong data-i18n="appName">Spark Doc Hub</strong>
+      </div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div class="fw-bar">
+      <span class="fw-label" data-i18n="fw_label">Versione firmware</span>
+      <div class="fw-switch" id="fwSwitch"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- HOME -->
+      <section class="view active" id="view-home">
+        <div class="hero">
+          <svg class="hero-orbit" viewBox="0 0 200 200" fill="none">
+            <ellipse cx="100" cy="100" rx="95" ry="38" stroke="rgba(255,255,255,0.35)" stroke-width="2" transform="rotate(-20 100 100)"/>
+            <circle cx="100" cy="100" r="55" fill="rgba(255,255,255,0.06)"/>
+          </svg>
+          <h1>SPARK</h1>
+          <p data-i18n="home_intro">Tutto quello che serve per configurare, controllare e collaudare Spark, organizzato per versione firmware.</p>
+        </div>
+
+        <div class="module-grid">
+          <button class="module-card" data-goto="legend">
+            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.9-2.4 3.5"/><path d="M12 17h.01"/></svg></span>
+            <h3 data-i18n="nav_legend">Leggenda Menu</h3>
+            <p>Voci del menu del prodotto: tocca per vedere il significato e fare pratica.</p>
+          </button>
+          <button class="module-card" data-goto="simulator">
+            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M9 21h6M12 17v4"/></svg></span>
+            <h3 data-i18n="nav_simulator">Simulatore</h3>
+            <p>Naviga il pannello Spark come sul dispositivo reale e fai pratica.</p>
+          </button>
+          <button class="module-card" data-goto="checklist">
+            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12 2.3 2.3L15.5 9.5"/></svg></span>
+            <h3 data-i18n="nav_checklist">Checklist</h3>
+            <p>Le checklist operative da seguire passo passo.</p>
+          </button>
+          <button class="module-card" data-goto="collaudo">
+            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.4 6.4 2.8 2.8"/><path d="M2 13h4"/><path d="m6.4 19.6 2.8-2.8"/><circle cx="12" cy="13" r="4"/></svg></span>
+            <h3 data-i18n="nav_collaudo">Collaudo</h3>
+            <p>La procedura guidata di collaudo del prodotto.</p>
+          </button>
+          <button class="module-card" data-goto="documents">
+            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+            <h3 data-i18n="nav_documents">Documenti</h3>
+            <p>Manuali e documenti per la versione firmware selezionata.</p>
+          </button>
+        </div>
+      </section>
+
+      <!-- LEGGENDA MENU -->
+      <section class="view" id="view-legend">
+        <div class="view-header">
+          <h2 data-i18n="nav_legend">Leggenda Menu</h2>
+          <p class="eyebrow-free-intro" data-i18n="legend_intro">Seleziona una voce del menu Spark per vederne il significato. Usa questa sezione per esercitarti a riconoscere le voci prima di usare il prodotto.</p>
+        </div>
+        <div class="access-card" id="accessLevels"></div>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="legendSearch" data-i18n-placeholder="search_placeholder" placeholder="Cerca una voce…">
+        </div>
+        <div class="legend-list" id="legendList"></div>
+      </section>
+
+      <!-- SIMULATORE -->
+      <section class="view" id="view-simulator">
+        <div class="view-header">
+          <h2 data-i18n="nav_simulator">Simulatore</h2>
+          <p data-i18n="simulator_intro">Naviga tra le schermate come sul dispositivo reale. Tocca una voce per vederne il significato.</p>
+        </div>
+
+        <div class="device-wrap">
+          <div class="device-frame">
+            <div class="device-notch">Spark</div>
+            <div class="device-screen" id="deviceScreen"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHECKLIST -->
+      <section class="view" id="view-checklist">
+        <div class="view-header">
+          <h2 data-i18n="nav_checklist">Checklist</h2>
+          <p data-i18n="checklist_intro">Le checklist operative da seguire passo passo.</p>
+        </div>
+        <div id="checklistContainer"></div>
+      </section>
+
+      <!-- COLLAUDO -->
+      <section class="view" id="view-collaudo">
+        <div class="view-header">
+          <h2 data-i18n="nav_collaudo">Collaudo</h2>
+          <p data-i18n="collaudo_intro">La procedura di collaudo del prodotto.</p>
+        </div>
+        <div id="collaudoContainer"></div>
+      </section>
+
+      <!-- DOCUMENTI -->
+      <section class="view" id="view-documents">
+        <div class="view-header">
+          <h2 data-i18n="nav_documents">Documenti</h2>
+          <p data-i18n="documents_intro">Documentazione disponibile per la versione firmware selezionata.</p>
+        </div>
+        <div id="documentsContainer"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
