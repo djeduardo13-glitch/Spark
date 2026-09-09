@@ -199,7 +199,14 @@ const SIMULATOR_BOOT_INFO = [
    ------------------------------------------------------------------- */
 const SIMULATOR_ICON_IMAGES = {
   back: "assets/icons/back.png",
-  workpanel: "assets/icons/workpanel.png"
+  workpanel: "assets/icons/workpanel.png",
+  params: "assets/icons/params.png",
+  faults: "assets/icons/faults.png",
+  power: "assets/icons/power.png",
+  compass: "assets/icons/calibration.png",
+  motor: "assets/icons/motor.png",
+  rostro: "assets/icons/rostro.png",
+  hmi: "assets/icons/hmi.png"
 };
 const CHECKLISTS = [
   {
