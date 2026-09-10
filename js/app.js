@@ -235,22 +235,6 @@ const SIM_ICONS = {
   power: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="M6.3 6.3a9 9 0 1 0 11.4 0"/></svg>'
 };
 
-function pseudoValue(id, unit) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  switch (unit) {
-    case "cnt": case "Cnt": return String(h % 4096);
-    case "%": return ((h % 1000) / 10).toFixed(1);
-    case "A": return ((h % 200) / 1000).toFixed(3);
-    case "°C": return String(15 + (h % 20));
-    case "mm": return ((h % 454) / 10).toFixed(2);
-    case "Deg": return ((h % 700) / 10).toFixed(1);
-    case "Bar": return ((h % 500) / 100).toFixed(2);
-    case "On/off": return (h % 2 === 0) ? "ON" : "OFF";
-    default: return "";
-  }
-}
-
 function simIconMarkup(iconKey) {
   const imgSrc = (typeof SIMULATOR_ICON_IMAGES !== "undefined") ? SIMULATOR_ICON_IMAGES[iconKey] : null;
   if (imgSrc) return `<img src="${imgSrc}" alt="" class="sim-icon-img">`;
@@ -377,9 +361,16 @@ function renderSimCategory(categoryId, isMotors) {
           <span class="sim-row-code">${item.label}</span>
           ${item.unit ? `<span class="sim-row-unit">${item.unit}</span>` : ""}
         </div>
-        <span class="sim-row-fake-value">${pseudoValue(item.id, item.unit)}</span>
+        <svg class="sim-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </div>
-      <div class="sim-row-answer">${item.meaning}</div>
+      <div class="sim-row-answer">
+        <div class="sim-row-meaning">${item.meaning}</div>
+        <div class="sim-row-specs">
+          <div class="sim-spec"><span class="spec-label">Unità</span><span class="spec-value">${item.unit || "—"}</span></div>
+          <div class="sim-spec"><span class="spec-label">Min</span><span class="spec-value">${item.min !== null && item.min !== undefined ? item.min : "—"}</span></div>
+          <div class="sim-spec"><span class="spec-label">Max</span><span class="spec-value">${item.max !== null && item.max !== undefined ? item.max : "—"}</span></div>
+        </div>
+      </div>
     </div>
   `).join("");
 

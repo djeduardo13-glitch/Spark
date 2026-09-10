@@ -863,20 +863,61 @@ button {
   font-size: 10.5px;
 }
 
-.sim-row-fake-value {
-  color: #6fe38a;
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: nowrap;
+.sim-row-chev {
+  width: 15px;
+  height: 15px;
+  color: #4a5a67;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.sim-row.open .sim-row-chev {
+  transform: rotate(180deg);
+  color: #7fd6ff;
 }
 
 .sim-row-answer {
   display: none;
   font-size: 12px;
   color: #b9c6cf;
-  padding: 0 2px 10px;
+  padding: 0 2px 12px;
   font-family: 'Poppins', sans-serif;
   line-height: 1.5;
+}
+
+.sim-row-meaning {
+  margin-bottom: 10px;
+}
+
+.sim-row-specs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.sim-spec {
+  background: #131a21;
+  border: 1px solid #232d36;
+  border-radius: 7px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sim-spec .spec-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6f8290;
+}
+
+.sim-spec .spec-value {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f2c94c;
+  font-family: 'Courier New', monospace;
 }
 
 .sim-row.open .sim-row-answer { display: block; }
