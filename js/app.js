@@ -342,19 +342,19 @@ function renderDevice() {
   }
 }
 
-function renderSimCategory(categoryId, isMotors) {
-  const screen = document.getElementById("deviceScreen");
-  const dict = I18N[state.lang] || I18N.it;
-  const cat = LEGEND_CATEGORIES.find(c => c.id === categoryId);
-  const items = MENU_LEGEND.filter(e => e.category === categoryId && matchesFw(e.fw));
+function bindAccordion(container) {
+  const rows = container.querySelectorAll(".sim-row");
+  rows.forEach(row => {
+    row.querySelector(".sim-row-main").addEventListener("click", () => {
+      const wasOpen = row.classList.contains("open");
+      rows.forEach(r => r.classList.remove("open"));
+      if (!wasOpen) row.classList.add("open");
+    });
+  });
+}
 
-  const sideSwitch = isMotors ? `
-    <div class="sim-side-switch">
-      <button class="sim-side-pill ${state.simMotorSide === "motori-sx" ? "active" : ""}" data-sim-side="motori-sx">${(dict.sim_side_left || "SX")}</button>
-      <button class="sim-side-pill ${state.simMotorSide === "motori-dx" ? "active" : ""}" data-sim-side="motori-dx">${(dict.sim_side_right || "DX")}</button>
-    </div>` : "";
-
-  const rows = items.map(item => `
+function simRowHtml(item) {
+  return `
     <div class="sim-row" data-sim-row="${item.id}">
       <div class="sim-row-main">
         <div class="sim-row-left">
@@ -372,21 +372,48 @@ function renderSimCategory(categoryId, isMotors) {
         </div>
       </div>
     </div>
-  `).join("");
+  `;
+}
+
+function renderSimCategory(categoryId, isMotors) {
+  const screen = document.getElementById("deviceScreen");
+  const dict = I18N[state.lang] || I18N.it;
+  const cat = LEGEND_CATEGORIES.find(c => c.id === categoryId);
+  const items = MENU_LEGEND.filter(e => e.category === categoryId && matchesFw(e.fw));
+
+  const sideSwitch = isMotors ? `
+    <div class="sim-side-switch">
+      <button class="sim-side-pill ${state.simMotorSide === "motori-sx" ? "active" : ""}" data-sim-side="motori-sx">${(dict.sim_side_left || "SX")}</button>
+      <button class="sim-side-pill ${state.simMotorSide === "motori-dx" ? "active" : ""}" data-sim-side="motori-dx">${(dict.sim_side_right || "DX")}</button>
+    </div>` : "";
+
+  let listHtml;
+  if (cat && cat.splitAfter && items.length) {
+    const splitIdx = items.findIndex(it => it.id === cat.splitAfter);
+    const leftItems = splitIdx >= 0 ? items.slice(0, splitIdx + 1) : items;
+    const rightItems = splitIdx >= 0 ? items.slice(splitIdx + 1) : [];
+    listHtml = `
+      <div class="sim-data-columns">
+        <div class="sim-data-col">${leftItems.map(simRowHtml).join("")}</div>
+        <div class="sim-data-col">${rightItems.map(simRowHtml).join("")}</div>
+      </div>
+    `;
+  } else if (items.length) {
+    listHtml = `<div class="sim-data-list">${items.map(simRowHtml).join("")}</div>`;
+  } else {
+    listHtml = `<div class="sim-info"><p>${dict.empty_state}</p></div>`;
+  }
 
   screen.innerHTML = `
     <div class="sim-screen-title">${cat ? cat.label : ""}</div>
     ${sideSwitch}
-    <div class="sim-data-list">${rows || `<div class="sim-info"><p>${dict.empty_state}</p></div>`}</div>
+    ${listHtml}
     <div class="sim-single-back">
       <button class="sim-icon-btn${SIMULATOR_ICON_IMAGES && SIMULATOR_ICON_IMAGES.back ? " has-img" : ""}" data-sim-action="menu">${simIconMarkup("back")}</button>
     </div>
   `;
 
-  screen.querySelectorAll(".sim-row").forEach(row => {
-    row.querySelector(".sim-row-main").addEventListener("click", () => row.classList.toggle("open"));
-  });
-
+  bindAccordion(screen);
   bindSimIcons();
   if (isMotors) {
     screen.querySelectorAll("[data-sim-side]").forEach(btn => {
