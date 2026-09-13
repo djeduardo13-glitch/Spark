@@ -88,7 +88,7 @@ function renderFwSwitch() {
       state.fw = fw.id;
       renderFwSwitch();
       updateSimulatorAvailability();
-      renderChecklists();
+      renderMaintenance();
       renderCollaudo();
       renderDocuments();
       renderDevice();
@@ -122,36 +122,35 @@ function renderAccessLevels() {
 }
 
 /* ---------------------------------------------------------------------
-   CHECKLIST
+   MANUTENZIONE — cronologia per SN
    ------------------------------------------------------------------- */
-function renderChecklists() {
+function renderMaintenance() {
   const container = document.getElementById("checklistContainer");
-  const lists = CHECKLISTS.filter(c => matchesFw(c.fw));
+  const dict = I18N[state.lang] || I18N.it;
+  const sns = Object.keys(MAINTENANCE_RECORDS);
 
-  if (lists.length === 0) {
-    container.innerHTML = `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
+  if (sns.length === 0) {
+    container.innerHTML = `<div class="empty-state">${dict.maint_empty || dict.empty_state}</div>`;
     return;
   }
 
   container.innerHTML = "";
-  lists.forEach(list => {
+  sns.forEach(sn => {
+    const records = MAINTENANCE_RECORDS[sn].slice().sort((a, b) => (a.date < b.date ? 1 : -1));
     const card = document.createElement("div");
-    card.className = "checklist-card";
-    const rows = list.items.map((text, i) => `
-      <div class="check-row">
-        <input type="checkbox" id="${list.id}-${i}">
-        <label for="${list.id}-${i}">${text}</label>
-      </div>
+    card.className = "sn-card";
+    const rows = records.map(rec => `
+      <a class="doc-row" href="${rec.url}" target="_blank" rel="noopener" style="text-decoration:none;">
+        <span class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg></span>
+        <span class="doc-meta">
+          <span class="doc-title">${rec.title}</span><br>
+          <span class="doc-type">${rec.date}</span>
+        </span>
+        <span class="doc-action">Apri</span>
+      </a>
     `).join("");
-    card.innerHTML = `<h3>${list.title}</h3>${rows}`;
+    card.innerHTML = `<h3 class="sn-card-title">SN ${sn}</h3>${rows}`;
     container.appendChild(card);
-  });
-
-  container.querySelectorAll('.check-row input[type="checkbox"]').forEach(cb => {
-    cb.addEventListener("change", () => {
-      const label = cb.nextElementSibling;
-      label.classList.toggle("done", cb.checked);
-    });
   });
 }
 
@@ -456,7 +455,7 @@ function init() {
   renderFwSwitch();
   renderAccessLevels();
   updateSimulatorAvailability();
-  renderChecklists();
+  renderMaintenance();
   renderCollaudo();
   renderDocuments();
   renderDevice();

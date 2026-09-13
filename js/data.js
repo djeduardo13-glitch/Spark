@@ -208,18 +208,19 @@ const SIMULATOR_ICON_IMAGES = {
   rostro: "assets/icons/rostro.png",
   hmi: "assets/icons/hmi.png"
 };
-const CHECKLISTS = [
-  {
-    id: "checklist-esempio",
-    title: "Checklist di esempio",
-    fw: null,
-    items: [
-      "Primo punto di controllo",
-      "Secondo punto di controllo",
-      "Terzo punto di controllo"
-    ]
-  }
-];
+/* ---------------------------------------------------------------------
+   MANUTENZIONE — cronologia per numero di serie (SN)
+   Ogni chiave è un SN (matricola Spark). Il valore è l'elenco delle
+   manutenzioni già fatte per quell'unità: data + file scaricabile.
+   Il modulo vuoto da compilare è in manutenzione-form.html (fuori da qui):
+   quando lo esporti in PDF, il file scaricato è già nominato con l'SN
+   che hai inserito — mandamelo e lo aggiungo qui, nella cartella giusta.
+   ------------------------------------------------------------------- */
+const MAINTENANCE_RECORDS = {
+  // "SN12345": [
+  //   { date: "2026-09-13", title: "Manutenzione ordinaria", url: "manutenzione/SN12345/manutenzione_SN12345_2026-09-13.pdf" }
+  // ]
+};
 
 /* ---------------------------------------------------------------------
    COLLAUDO
@@ -256,10 +257,10 @@ const DOCUMENTS = {
 const I18N = {
   it: {
     appName: "Spark Doc Hub",
-    tagline: "Centro documentazione, checklist e collaudo",
+    tagline: "Centro documentazione, manutenzione e collaudo",
     nav_home: "Home",
     nav_simulator: "Simulatore",
-    nav_checklist: "Checklist",
+    nav_checklist: "Manutenzione",
     nav_collaudo: "Collaudo",
     nav_documents: "Documenti",
     fw_label: "Versione firmware",
@@ -271,7 +272,10 @@ const I18N = {
     sim_back_to_menu: "Menu",
     sim_side_left: "SX",
     sim_side_right: "DX",
-    checklist_intro: "Le checklist operative da seguire passo passo.",
+    checklist_intro: "Cronologia delle manutenzioni già effettuate, organizzata per numero di serie (SN).",
+    maint_card_desc: "Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.",
+    new_maint_btn: "Nuova manutenzione",
+    maint_empty: "Nessuna manutenzione caricata ancora. Compila una nuova checklist e mandamela: la aggiungo qui, organizzata per SN.",
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",
     empty_state: "Contenuti in arrivo per questa sezione.",

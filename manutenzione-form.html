@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Checklist Manutenzione SPARK</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary: #004682;
+    --primary-dark: #003463;
+    --primary-light: #e7eff7;
+    --primary-lighter: #f4f8fb;
+    --border: #d7e2ec;
+    --ok: #1e9e5a;
+    --ok-bg: #e7f7ef;
+    --nok: #d64545;
+    --nok-bg: #fceaea;
+    --nv: #909fac;
+    --nv-bg: #eef1f4;
+    --text: #1c2b3a;
+    --text-mute: #6b7f91;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: #eef3f8;
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #ffffff;
+    min-height: 100vh;
+    box-shadow: 0 0 40px rgba(0,70,130,0.08);
+  }
+
+  /* HEADER */
+  header.top {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 20px 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  header.top .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  header.top .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header.top .brand img {
+    height: 26px;
+    filter: brightness(0) invert(1);
+  }
+  header.top h1 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 10px 0 2px;
+    letter-spacing: 0.2px;
+  }
+  header.top .rev {
+    font-size: 0.72rem;
+    opacity: 0.85;
+    font-weight: 500;
+  }
+  header.top .back-to-site {
+    display: inline-block;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-decoration: none;
+    margin-top: 2px;
+  }
+  header.top .back-to-site:hover { color: #fff; text-decoration: underline; }
+
+  /* TABS */
+  nav.tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 12px 12px 0;
+    background: var(--primary-dark);
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  .product-tab {
+    flex: 0 0 auto;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: rgba(255,255,255,0.75);
+    padding: 10px 16px 12px;
+    border-radius: 10px 10px 0 0;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 108px;
+    transition: background .2s ease, color .2s ease;
+  }
+  .product-tab .tab-name { font-size: 0.82rem; font-weight: 600; }
+  .product-tab .tab-desc { font-size: 0.65rem; opacity: 0.8; margin-top: 1px; }
+  .product-tab.active {
+    background: #fff;
+    color: var(--primary);
+  }
+  .product-tab.active .tab-desc { color: var(--text-mute); }
+
+  /* MAIN */
+  main { padding: 18px 16px 8px; }
+  .tab-wrapper { display: none; }
+  .tab-wrapper.active { display: block; }
+  .print-product-title { display: none; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: stretch;
+  }
+  .info-field {
+    background: var(--primary-lighter);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+  }
+  .info-field label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    color: var(--primary);
+    white-space: normal;
+    line-height: 1.2;
+  }
+  .info-field input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    font-size: 0.88rem;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    padding: 2px 0 1px;
+  }
+  .info-field:focus-within { border-color: var(--primary); }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 18px; }
+  .section-title {
+    background: var(--primary);
+    color: #fff;
+    padding: 8px 8px 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 9px;
+    margin-bottom: 6px;
+  }
+
+  .item-list {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .check-item {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    padding: 10px 12px 10px 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .item-list .check-item:nth-child(even) { background: #f6f9fc; }
+  .item-list .check-item:last-child { border-bottom: none; }
+  .check-item.state-ok { background: var(--ok-bg) !important; border-left-color: var(--ok); }
+  .check-item.state-nok { background: var(--nok-bg) !important; border-left-color: var(--nok); }
+  .check-item.state-nv { border-left-color: transparent; }
+
+  .item-desc {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .option-group {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .option {
+    text-align: center;
+    padding: 6px 7px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-mute);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: all .15s ease;
+  }
+  .option input { display: none; }
+  .option.opt-ok.selected { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .option.opt-nok.selected { background: var(--nok); border-color: var(--nok); color: #fff; }
+  .option.opt-nv.selected { background: var(--nv); border-color: var(--nv); color: #fff; }
+  .option:active { transform: scale(0.96); }
+
+  /* NOTES */
+  .notes-section {
+    background: var(--primary-lighter);
+    border: 1px solid var(--border);
+    border-left: 4px solid #e08b1f;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 4px 0 18px;
+  }
+  .notes-section label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .notes-section textarea {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+    outline: none;
+  }
+  .notes-section textarea:focus { border-color: var(--primary); }
+
+  /* SIGNATURE */
+  .signature-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 4px 16px 18px;
+  }
+  .signature-block-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 10px;
+  }
+  .signature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sig-firma { grid-column: 1 / -1; }
+  .sig-field label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: 4px;
+  }
+  .sig-field input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  .sig-field input:focus { border-color: var(--primary); }
+
+  .firma-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 1.5px dashed var(--border);
+    border-radius: 7px;
+    height: 48px;
+    background: var(--primary-lighter);
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .firma-btn:hover { border-color: var(--primary); }
+  .firma-btn-placeholder {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-mute);
+  }
+  .firma-btn.signed {
+    border: 1px solid var(--ok);
+    background: #fff;
+    cursor: pointer;
+  }
+  .firma-preview {
+    max-height: 42px;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  /* PARAMETRI TAB */
+  .param-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .item-list .param-item:nth-child(even) { background: #f6f9fc; }
+  .item-list .param-item:last-child { border-bottom: none; }
+  .param-info { flex: 1; min-width: 0; }
+  .param-code {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+  .param-desc {
+    font-size: 0.68rem;
+    color: var(--text-mute);
+    margin-top: 1px;
+  }
+  .param-values {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .param-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .param-field label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .param-field input {
+    width: 64px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 4px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--text);
+    outline: none;
+  }
+  .param-field input:focus { border-color: var(--primary); }
+
+  /* EXTRA BLOCK (vehicle/client + additional elements) */
+  .extra-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 0 16px 14px;
+  }
+  .extra-block-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 10px;
+  }
+  .extra-block-title-sub { margin-top: 14px; }
+  .extra-block .info-grid { margin-bottom: 12px; }
+  .extra-block .info-grid:last-child { margin-bottom: 0; }
+
+  .toggle-pill-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toggle-pill {
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    padding: 10px 8px;
+    border-radius: 9px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-mute);
+    cursor: pointer;
+    user-select: none;
+    transition: all .15s ease;
+  }
+  .toggle-pill input { display: none; }
+  .toggle-pill.selected { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  .simple-check-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px 10px 11px;
+    border-bottom: 1px solid var(--border);
+  }
+  .item-list .simple-check-item:nth-child(even) { background: #f6f9fc; }
+  .item-list .simple-check-item:last-child { border-bottom: none; }
+  .simple-check-item .item-desc { margin-bottom: 0; flex: 1; }
+  .simple-check {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .simple-check input { display: none; }
+  .simple-check .box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--primary);
+    border-radius: 6px;
+    background: #fff;
+    display: block;
+    position: relative;
+    transition: all .15s ease;
+  }
+  .simple-check input:checked + .box { background: var(--ok); border-color: var(--ok); }
+  .simple-check input:checked + .box::after {
+    content: '';
+    position: absolute;
+    left: 6px; top: 2px;
+    width: 6px; height: 11px;
+    border: solid #fff;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+
+  /* FIRMA MODAL */
+  .firma-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 30, 45, 0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .firma-modal-overlay.open { display: flex; }
+  .firma-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .firma-modal-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 10px;
+  }
+  .firma-canvas-wrap {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    touch-action: none;
+  }
+  .firma-canvas {
+    display: block;
+    width: 100%;
+    height: 220px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .firma-modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-firma-action {
+    flex: 1;
+    border: none;
+    border-radius: 9px;
+    padding: 11px 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-firma-cancel { background: #f1f4f7; color: var(--text-mute); }
+  .btn-firma-clear { background: var(--nv-bg); color: #7a5a10; }
+  .btn-firma-confirm { background: var(--primary); color: #fff; }
+
+  /* ACTION BAR */
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    display: flex;
+    gap: 10px;
+    z-index: 30;
+  }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-pdf {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    flex: 2;
+    box-shadow: 0 4px 10px rgba(0,70,130,0.25);
+  }
+  .btn-reset {
+    background: #f1f4f7;
+    color: var(--text-mute);
+  }
+
+  .save-note {
+    text-align: center;
+    font-size: 0.68rem;
+    color: var(--text-mute);
+    padding: 6px 0 2px;
+  }
+
+  /* PRINT / PDF EXPORT */
+  @media print {
+    @page { size: A4; margin: 6mm 8mm; }
+    header.top { position: static; padding: 0 0 4px; background: none !important; color: var(--primary) !important; border-bottom: 2px solid var(--primary); border-radius: 0; }
+    header.top .brand img { filter: none; height: 18px; }
+    header.top h1 { font-size: 0.76rem; margin: 2px 0 0; color: var(--primary); }
+    header.top .rev { color: var(--primary); font-size: 0.56rem; }
+    header.top .back-to-site { display: none !important; }
+    nav.tabs { display: none !important; }
+    .action-bar { display: none !important; }
+    .save-note { display: none !important; }
+    .tab-wrapper { display: block !important; margin-top: 3px; }
+    .print-product-title {
+      display: block !important;
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-top: 1.5px solid var(--primary);
+      padding-top: 3px;
+      margin-bottom: 2px;
+    }
+    .app { box-shadow: none; max-width: 100%; }
+    body { background: #fff; }
+    main { padding: 2px 0 0; }
+
+    .info-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 3px; }
+    .info-field { padding: 3px 8px; border-radius: 4px; gap: 1px; }
+    .info-field label { font-size: 0.48rem; }
+    .info-field input { font-size: 0.6rem; padding: 0; }
+
+    .section { margin-bottom: 2px; }
+    .section-title { padding: 2.5px 6px 2.5px 8px; font-size: 0.6rem; border-radius: 4px; margin-bottom: 2px; break-after: avoid; break-inside: avoid; }
+
+    .item-list { border-radius: 4px; }
+    .check-item { padding: 1.5px 6px 1.5px 8px; gap: 6px; break-inside: avoid; }
+    .item-desc { font-size: 0.63rem; line-height: 1.15; }
+    .option-group { gap: 3px; }
+    .option { padding: 2px 5px; font-size: 0.53rem; border-radius: 4px; min-width: 34px; }
+
+    .notes-section { padding: 4px 8px; margin: 2px 0 3px; break-inside: avoid; }
+    .notes-section label { font-size: 0.58rem; margin-bottom: 2px; }
+    .notes-section textarea { min-height: 22px; font-size: 0.58rem; padding: 3px; }
+    .notes-section.print-hide { display: none !important; }
+
+    .signature-block { padding: 4px 8px; margin: 2px 0 0; break-inside: avoid; }
+    .signature-block-title { font-size: 0.62rem; margin-bottom: 2px; }
+    .signature-grid { grid-template-columns: 1.1fr 1fr 0.8fr 1.3fr; gap: 8px; align-items: end; }
+    .sig-firma { grid-column: auto; }
+    .sig-field label { font-size: 0.48rem; margin-bottom: 1px; }
+    .sig-field input { font-size: 0.6rem; padding: 2px 5px; }
+    .firma-btn { height: 16px; border-radius: 4px; }
+    .firma-btn-placeholder { font-size: 0.5rem; }
+    .firma-preview { max-height: 15px; }
+    .firma-modal-overlay { display: none !important; }
+
+    .extra-block { margin: 0 0 3px; padding: 4px 8px; break-inside: avoid; }
+    .extra-block-title { font-size: 0.62rem; margin-bottom: 2px; }
+    .extra-block-title-sub { margin-top: 4px; }
+    .extra-block .info-grid { margin-bottom: 2px; }
+    .toggle-pill-group { gap: 4px; }
+    .toggle-pill { padding: 2px 6px; font-size: 0.56rem; border-radius: 4px; min-width: 0; }
+    .extra-elements-list { column-count: 2; column-gap: 18px; }
+    .extra-elements-list.item-list { display: block; }
+    .simple-check-item { padding: 1.5px 6px 1.5px 8px; break-inside: avoid; }
+    .simple-check-item .item-desc { font-size: 0.6rem; }
+    .simple-check .box { width: 11px; height: 11px; border-width: 1.3px; border-radius: 3px; }
+    .simple-check input:checked + .box::after { left: 3px; top: 1px; width: 3px; height: 5.5px; border-width: 0 1.3px 1.3px 0; }
+
+    .param-item { padding: 2px 6px 2px 8px; gap: 6px; break-inside: avoid; }
+    .param-code { font-size: 0.6rem; }
+    .param-desc { font-size: 0.52rem; }
+    .param-field label { font-size: 0.42rem; }
+    .param-field input { width: 38px; font-size: 0.55rem; padding: 1px 2px; }
+  }
+
+  @media (max-width: 380px) {
+    .signature-grid { grid-template-columns: 1fr; }
+    .check-item { flex-wrap: wrap; }
+    .option-group { width: 100%; justify-content: stretch; }
+    .option { flex: 1; font-size: 0.6rem; padding: 6px 3px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <img src="data:image/png;base64,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" alt="STEM">
+      </div>
+      <div class="rev" style="text-align:right">Rev. 05<br>25-06-2026</div>
+    </div>
+    <a href="index.html" class="back-to-site">&larr; Torna al sito</a>
+    <h1>Manutenzione SPARK&#8209;UC &nbsp;/&nbsp; SPARK&#8209;FS &nbsp;/&nbsp; STR&#8209;000</h1>
+  </header>
+
+  <nav class="tabs">
+    
+        <button class="product-tab active" data-tab="spark-uc">
+          <span class="tab-name">SPARK-UC</span>
+          <span class="tab-desc">Undercarriage</span>
+        </button>
+        <button class="product-tab" data-tab="spark-fs">
+          <span class="tab-name">SPARK-FS</span>
+          <span class="tab-desc">Fastening System</span>
+        </button>
+        <button class="product-tab" data-tab="str-000">
+          <span class="tab-name">STR-000</span>
+          <span class="tab-desc">Barellino</span>
+        </button>
+        <button class="product-tab" data-tab="parametri-uc">
+          <span class="tab-name">Parametri</span>
+          <span class="tab-desc">SPARK-UC</span>
+        </button>
+  </nav>
+
+  <main>
+    <div class="tab-wrapper active" data-wrapper="spark-uc">
+    <div class="product-content" id="tab-spark-uc">
+      <div class="info-grid">
+        
+        <div class="info-field">
+          <label for="matricola-spark-uc">Matricola SPARK-UC</label>
+          <input type="text" id="matricola-spark-uc" data-store="matricola-spark-uc">
+        </div>
+        <div class="info-field">
+          <label for="versione-fw-uc">Versione FW</label>
+          <input type="text" id="versione-fw-uc" data-store="versione-fw-uc">
+        </div>
+        <div class="info-field">
+          <label for="matricola-power-uc">Matricola Power-Pack189</label>
+          <input type="text" id="matricola-power-uc" data-store="matricola-power-uc">
+        </div>
+        <div class="info-field">
+          <label for="numero-cicli-uc">N° Cicli</label>
+          <input type="text" id="numero-cicli-uc" data-store="numero-cicli-uc">
+        </div>
+        <div class="info-field">
+          <label for="sn-charger-uc">SN B-Charger230AC</label>
+          <input type="text" id="sn-charger-uc" data-store="sn-charger-uc">
+        </div>
+        <div class="info-field">
+          <label for="udi-uc">Codice UDI</label>
+          <input type="text" id="udi-uc" data-store="udi-uc">
+        </div>
+      </div>
+
+      
+      <div class="section">
+        <div class="section-title"><span>Verifiche Funzioni Manuali</span></div>
+        <div class="item-list">
+          
+        <div class="check-item" data-item="spark-uc-item1">
+          <div class="item-desc">Leva sgancio 10G</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item1" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item1" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item1" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item2">
+          <div class="item-desc">Leva sgancio emergenza rostro</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item2" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item2" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item2" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item3">
+          <div class="item-desc">Leva sgancio barellino</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item3" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item3" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item3" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item4">
+          <div class="item-desc">Pulsante sblocco Gambe lato Testa</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item4" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item4" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item4" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item5">
+          <div class="item-desc">Pulsante sblocco Gambe lato Piedi</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item5" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item5" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item5" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item6">
+          <div class="item-desc">Blocco e sblocco delle 4 Caviglie</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item6" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item6" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item6" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item7">
+          <div class="item-desc">Leva sblocco manuale dei 4 Piedi</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item7" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item7" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item7" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item8">
+          <div class="item-desc">Freno delle 2 ruote lato Piedi</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item8" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item8" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item8" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title"><span>Verifiche Segnali</span></div>
+        <div class="item-list">
+          
+        <div class="check-item" data-item="spark-uc-item9">
+          <div class="item-desc">Coste sensibili (Schermata HMI)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item9" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item9" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item9" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item10">
+          <div class="item-desc">Thumbwheel (Schermata HMI)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item10" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item10" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item10" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item11">
+          <div class="item-desc">Pulsante IN/OUT (Schermata HMI)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item11" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item11" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item11" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item12">
+          <div class="item-desc">Sensore magnetico sfera rostro (R_1)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item12" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item12" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item12" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item13">
+          <div class="item-desc">Sensori magnetici gancio 10G (R_2)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item13" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item13" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item13" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item14">
+          <div class="item-desc">Finecorsa meccanici rostro (FC_1 e FC_2)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item14" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item14" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item14" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item15">
+          <div class="item-desc">Laser Rostro (L_1, L_3 e L_4)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item15" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item15" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item15" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item16">
+          <div class="item-desc">Corretto funzionamento L_2</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item16" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item16" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item16" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item17">
+          <div class="item-desc">Lucchetto verde per barellino agganciato (R_3)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item17" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item17" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item17" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item18">
+          <div class="item-desc">Tag RFID (Riconoscimento tipo barellino)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item18" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item18" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item18" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item19">
+          <div class="item-desc">Verifica Telecamera</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item19" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item19" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item19" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title"><span>Verifiche Funzioni Elettroniche</span></div>
+        <div class="item-list">
+          
+        <div class="check-item" data-item="spark-uc-item20">
+          <div class="item-desc">Movimentazione SU / GIÙ in orizzontale</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item20" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item20" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item20" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item21">
+          <div class="item-desc">Inclinazione Trendelenburg e Anti-Trendelenburg</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item21" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item21" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item21" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item22">
+          <div class="item-desc">Verifica funzione tornare in orizzontale</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item22" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item22" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item22" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item23">
+          <div class="item-desc">Accensioni e spegnimento luci</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item23" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item23" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item23" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item24">
+          <div class="item-desc">Funzione peso</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item24" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item24" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item24" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item25">
+          <div class="item-desc">Carico su slitta completo</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item25" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item25" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item25" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item26">
+          <div class="item-desc">Scarico su slitta completo</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item26" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item26" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item26" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item28">
+          <div class="item-desc">Touch display</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item28" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item28" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item28" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item29">
+          <div class="item-desc">Caricamento batteria quando inserito nella slitta</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item29" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item29" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item29" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title"><span>Verifiche Generiche</span></div>
+        <div class="item-list">
+          
+        <div class="check-item" data-item="spark-uc-item30">
+          <div class="item-desc">Serraggio viti</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item30" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item30" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item30" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item31">
+          <div class="item-desc">Manopole in gomma</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item31" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item31" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item31" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item32">
+          <div class="item-desc">Carter rostro</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item32" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item32" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item32" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item33">
+          <div class="item-desc">Plastiche centraggio gambe su slitta</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item33" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item33" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item33" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item34">
+          <div class="item-desc">Adesivi di sicurezza</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item34" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item34" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item34" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-uc-item35">
+          <div class="item-desc">Adesivo display</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-uc-item35" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-uc-item35" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-uc-item35" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        </div>
+      </div>
+      
+      <div class="notes-section">
+        <label for="notes-spark-uc">Note</label>
+        <textarea id="notes-spark-uc" data-store="notes-spark-uc" placeholder="Inserisci eventuali note o osservazioni..."></textarea>
+      </div>
+    </div></div><div class="tab-wrapper" data-wrapper="spark-fs"><div class="print-product-title">Manutenzione SPARK-FS</div>
+    <div class="product-content" id="tab-spark-fs">
+      <div class="info-grid">
+        
+        <div class="info-field">
+          <label for="matricola-spark-fs">Matricola SPARK-FS</label>
+          <input type="text" id="matricola-spark-fs" data-store="matricola-spark-fs">
+        </div>
+        <div class="info-field">
+          <label for="nome-supporto-fs">Tipo Supporto</label>
+          <input type="text" id="nome-supporto-fs" data-store="nome-supporto-fs">
+        </div>
+        <div class="info-field">
+          <label for="matricola-supporto-fs">Matricola Supporto</label>
+          <input type="text" id="matricola-supporto-fs" data-store="matricola-supporto-fs">
+        </div>
+        <div class="info-field">
+          <label for="targa-veicolo-fs">Targa Veicolo</label>
+          <input type="text" id="targa-veicolo-fs" data-store="targa-veicolo-fs">
+        </div>
+        <div class="info-field">
+          <label for="udi-fs">Codice UDI</label>
+          <input type="text" id="udi-fs" data-store="udi-fs">
+        </div>
+      </div>
+
+      
+      <div class="section">
+        <div class="section-title"><span>Verifiche Funzioni Manuali</span></div>
+        <div class="item-list">
+          
+        <div class="check-item" data-item="spark-fs-item1">
+          <div class="item-desc">Serraggio viti</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item1" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item1" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item1" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item2">
+          <div class="item-desc">Movimentazione slitta intermedia</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item2" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item2" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item2" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item3">
+          <div class="item-desc">Movimentazione slitta superiore</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item3" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item3" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item3" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item4">
+          <div class="item-desc">Funzionamento ganci</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item4" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item4" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item4" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item5">
+          <div class="item-desc">Funzionamento caricabatterie</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item5" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item5" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item5" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item6">
+          <div class="item-desc">Integrità striscia catarifrangente</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item6" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item6" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item6" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item7">
+          <div class="item-desc">Adesivi laterali</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item7" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item7" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item7" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="spark-fs-item8">
+          <div class="item-desc">Pulizia generale</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="spark-fs-item8" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="spark-fs-item8" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="spark-fs-item8" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        </div>
+      </div>
+      
+      <div class="notes-section">
+        <label for="notes-spark-fs">Note</label>
+        <textarea id="notes-spark-fs" data-store="notes-spark-fs" placeholder="Inserisci eventuali note o osservazioni..."></textarea>
+      </div>
+    </div></div><div class="tab-wrapper" data-wrapper="str-000"><div class="print-product-title">Manutenzione STR-000</div>
+    <div class="product-content" id="tab-str-000">
+      <div class="info-grid">
+        
+        <div class="info-field">
+          <label for="matricola-str-000">Matricola STR-000</label>
+          <input type="text" id="matricola-str-000" data-store="matricola-str-000">
+        </div>
+        <div class="info-field">
+          <label for="tipo-barellino-str">Tipo Barellino</label>
+          <input type="text" id="tipo-barellino-str" data-store="tipo-barellino-str">
+        </div>
+        <div class="info-field">
+          <label for="udi-str">Codice UDI</label>
+          <input type="text" id="udi-str" data-store="udi-str">
+        </div>
+      </div>
+
+      
+      <div class="section">
+        <div class="section-title"><span>Verifiche Funzioni Manuali</span></div>
+        <div class="item-list">
+          
+        <div class="check-item" data-item="str-000-item1">
+          <div class="item-desc">Serraggio viti</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item1" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item1" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item1" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item2">
+          <div class="item-desc">Integrità materasso</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item2" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item2" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item2" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item3">
+          <div class="item-desc">Sponde</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item3" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item3" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item3" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item4">
+          <div class="item-desc">Verifica movimentazione schienale</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item4" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item4" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item4" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item5">
+          <div class="item-desc">Verifica molla a gas schienale mantiene la posizione</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item5" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item5" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item5" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item6">
+          <div class="item-desc">Verifica movimentazione poggiapiedi</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item6" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item6" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item6" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item7">
+          <div class="item-desc">Verifica cinture di sicurezza (conformità e posizione)</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item7" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item7" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item7" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        <div class="check-item" data-item="str-000-item8">
+          <div class="item-desc">Pulizia generale</div>
+          <div class="option-group" role="radiogroup">
+            <label class="option opt-nv">
+              <input type="radio" name="str-000-item8" value="nv" checked><span>N.V.</span>
+            </label>
+            <label class="option opt-ok">
+              <input type="radio" name="str-000-item8" value="ok"><span>OK</span>
+            </label>
+            <label class="option opt-nok">
+              <input type="radio" name="str-000-item8" value="nok"><span>Non OK</span>
+            </label>
+          </div>
+        </div>
+        </div>
+      </div>
+      
+      <div class="notes-section">
+        <label for="notes-str-000">Note</label>
+        <textarea id="notes-str-000" data-store="notes-str-000" placeholder="Inserisci eventuali note o osservazioni..."></textarea>
+      </div>
+    </div></div><div class="tab-wrapper" data-wrapper="parametri-uc"><div class="print-product-title">Parametri SPARK-UC</div>
+    <div class="product-content" id="tab-parametri-uc">
+      <div class="section">
+        <div class="section-title"><span>Parametri Firmware SPARK-UC</span></div>
+        <div class="item-list">
+          
+        <div class="param-item" data-item="param-fw">
+          <div class="param-info">
+            <div class="param-code">Versione FIRMWARE</div>
+            
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-fw-prima" data-store="param-fw-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-fw-dopo" data-store="param-fw-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-maxspeed">
+          <div class="param-info">
+            <div class="param-code">MAX SPEED</div>
+            <div class="param-desc">Velocità di salita (RPM)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-maxspeed-prima" data-store="param-maxspeed-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-maxspeed-dopo" data-store="param-maxspeed-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-maxspeedmtheadup">
+          <div class="param-info">
+            <div class="param-code">MAX SPEED MT HEAD UP</div>
+            <div class="param-desc">Velocità di salita gambe testa in carico (RPM)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-maxspeedmtheadup-prima" data-store="param-maxspeedmtheadup-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-maxspeedmtheadup-dopo" data-store="param-maxspeedmtheadup-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-maxspeedmtheaddwn">
+          <div class="param-info">
+            <div class="param-code">MAX SPEED MT HEAD DWN</div>
+            <div class="param-desc">Velocità di discesa gambe testa in scarico (RPM)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-maxspeedmtheaddwn-prima" data-store="param-maxspeedmtheaddwn-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-maxspeedmtheaddwn-dopo" data-store="param-maxspeedmtheaddwn-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-maxspeedmtfeetup">
+          <div class="param-info">
+            <div class="param-code">MAX SPEED MT FEET UP</div>
+            <div class="param-desc">Velocità di salita gambe piedi in carico (RPM)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-maxspeedmtfeetup-prima" data-store="param-maxspeedmtfeetup-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-maxspeedmtfeetup-dopo" data-store="param-maxspeedmtfeetup-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-maxspeedmtfeetdwn">
+          <div class="param-info">
+            <div class="param-code">MAX SPEED MT FEET DWN</div>
+            <div class="param-desc">Velocità di discesa gambe piedi in scarico (RPM)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-maxspeedmtfeetdwn-prima" data-store="param-maxspeedmtfeetdwn-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-maxspeedmtfeetdwn-dopo" data-store="param-maxspeedmtfeetdwn-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-startstepplanedwn">
+          <div class="param-info">
+            <div class="param-code">START STEP PLANE DWN</div>
+            <div class="param-desc">Rampa inizio discesa</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-startstepplanedwn-prima" data-store="param-startstepplanedwn-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-startstepplanedwn-dopo" data-store="param-startstepplanedwn-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-stopstepplanedwn">
+          <div class="param-info">
+            <div class="param-code">STOP STEP PLANE DWN</div>
+            <div class="param-desc">Rampa fine discesa</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-stopstepplanedwn-prima" data-store="param-stopstepplanedwn-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-stopstepplanedwn-dopo" data-store="param-stopstepplanedwn-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-startstepplaneup">
+          <div class="param-info">
+            <div class="param-code">START STEP PLANE UP</div>
+            <div class="param-desc">Rampa inizio salita</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-startstepplaneup-prima" data-store="param-startstepplaneup-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-startstepplaneup-dopo" data-store="param-startstepplaneup-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-stopstepplaneup">
+          <div class="param-info">
+            <div class="param-code">STOP STEP PLANE UP</div>
+            <div class="param-desc">Rampa fine salita</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-stopstepplaneup-prima" data-store="param-stopstepplaneup-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-stopstepplaneup-dopo" data-store="param-stopstepplaneup-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-heavyloadspeed">
+          <div class="param-info">
+            <div class="param-code">HEAVY LOAD SPEED</div>
+            <div class="param-desc">Velocità di riferimento con carico massimo (RPM)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-heavyloadspeed-prima" data-store="param-heavyloadspeed-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-heavyloadspeed-dopo" data-store="param-heavyloadspeed-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-heavyloadpress">
+          <div class="param-info">
+            <div class="param-code">HEAVY LOAD PRESS</div>
+            <div class="param-desc">Pressione di riferimento per taglio velocità (bar)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-heavyloadpress-prima" data-store="param-heavyloadpress-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-heavyloadpress-dopo" data-store="param-heavyloadpress-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-actverworkpos">
+          <div class="param-info">
+            <div class="param-code">ACT VER WORK POS</div>
+            <div class="param-desc">Posizione di lavoro AT_1</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-actverworkpos-prima" data-store="param-actverworkpos-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-actverworkpos-dopo" data-store="param-actverworkpos-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-actveridlepos">
+          <div class="param-info">
+            <div class="param-code">ACT VER IDLE POS</div>
+            <div class="param-desc">Posizione di riposo AT_1</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-actveridlepos-prima" data-store="param-actveridlepos-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-actveridlepos-dopo" data-store="param-actveridlepos-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-acthorworkpos">
+          <div class="param-info">
+            <div class="param-code">ACT HOR WORK POS</div>
+            <div class="param-desc">Posizione di lavoro AT_2</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-acthorworkpos-prima" data-store="param-acthorworkpos-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-acthorworkpos-dopo" data-store="param-acthorworkpos-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-acthoridlepos">
+          <div class="param-info">
+            <div class="param-code">ACT HOR IDLE POS</div>
+            <div class="param-desc">Posizione di riposo AT_2</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-acthoridlepos-prima" data-store="param-acthoridlepos-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-acthoridlepos-dopo" data-store="param-acthoridlepos-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-laserposref">
+          <div class="param-info">
+            <div class="param-code">LASER POS REF</div>
+            <div class="param-desc">Distanza L_3 in posizione orizzontale</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-laserposref-prima" data-store="param-laserposref-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-laserposref-dopo" data-store="param-laserposref-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-laserunloaddelta">
+          <div class="param-info">
+            <div class="param-code">LASER UNLOAD DELTA</div>
+            <div class="param-desc">Valore di incremento L_3 per allineamento in scarico</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-laserunloaddelta-prima" data-store="param-laserunloaddelta-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-laserunloaddelta-dopo" data-store="param-laserunloaddelta-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-horizzallingwindow">
+          <div class="param-info">
+            <div class="param-code">HORIZZ ALLING WINDOW</div>
+            <div class="param-desc">Tolleranza di riferimento centraggio slitta (L_4)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-horizzallingwindow-prima" data-store="param-horizzallingwindow-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-horizzallingwindow-dopo" data-store="param-horizzallingwindow-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-horizzallingcentro">
+          <div class="param-info">
+            <div class="param-code">HORIZZ ALLING CENTRO</div>
+            <div class="param-desc">Posizione di riferimento centraggio slitta (L_4)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-horizzallingcentro-prima" data-store="param-horizzallingcentro-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-horizzallingcentro-dopo" data-store="param-horizzallingcentro-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-unlinkanglediffmax">
+          <div class="param-info">
+            <div class="param-code">UNLINK ANGLE DIFF MAX</div>
+            <div class="param-desc">Differenza massima tra angolo gambe in scarico</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-unlinkanglediffmax-prima" data-store="param-unlinkanglediffmax-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-unlinkanglediffmax-dopo" data-store="param-unlinkanglediffmax-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-powrofftime">
+          <div class="param-info">
+            <div class="param-code">POWR-OFF TIME</div>
+            <div class="param-desc">Tempo spegnimento automatico in s</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-powrofftime-prima" data-store="param-powrofftime-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-powrofftime-dopo" data-store="param-powrofftime-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-freeworkpressthr">
+          <div class="param-info">
+            <div class="param-code">FREE WORK PRESS THR</div>
+            <div class="param-desc">Pressione di riferimento per determinare se ha un paziente (bar)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-freeworkpressthr-prima" data-store="param-freeworkpressthr-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-freeworkpressthr-dopo" data-store="param-freeworkpressthr-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-legpositionsensmodel">
+          <div class="param-info">
+            <div class="param-code">LEG POSITION SENS MODEL</div>
+            <div class="param-desc">Cambia parametri in base al sensore utilizzato per le gambe</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-legpositionsensmodel-prima" data-store="param-legpositionsensmodel-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-legpositionsensmodel-dopo" data-store="param-legpositionsensmodel-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-uloadinclinationoffset">
+          <div class="param-info">
+            <div class="param-code">ULOAD INCLINATION OFFSET</div>
+            <div class="param-desc">Massimo angolo di alzata dal piano in scarico (L_3)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-uloadinclinationoffset-prima" data-store="param-uloadinclinationoffset-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-uloadinclinationoffset-dopo" data-store="param-uloadinclinationoffset-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-mininclianitionimuerr">
+          <div class="param-info">
+            <div class="param-code">MIN INCLIANTION IMU ERR</div>
+            <div class="param-desc">Sensibilità compensazione in fase di scarico</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-mininclianitionimuerr-prima" data-store="param-mininclianitionimuerr-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-mininclianitionimuerr-dopo" data-store="param-mininclianitionimuerr-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-actuatormovingtime">
+          <div class="param-info">
+            <div class="param-code">ACTUATOR MOVING TIME</div>
+            <div class="param-desc">Tempo AT_2 impiega per ritornare in posizione (in scarico)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-actuatormovingtime-prima" data-store="param-actuatormovingtime-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-actuatormovingtime-dopo" data-store="param-actuatormovingtime-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-switchrealeasetime">
+          <div class="param-info">
+            <div class="param-code">SWITCH REALEASE TIME</div>
+            <div class="param-desc">Tempo tra rilascio fisico e rilascio logico pulsanti IN/OUT</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-switchrealeasetime-prima" data-store="param-switchrealeasetime-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-switchrealeasetime-dopo" data-store="param-switchrealeasetime-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-swrelalarmenable">
+          <div class="param-info">
+            <div class="param-code">SW. REL. ALARM. ENABLE.</div>
+            <div class="param-desc">Abilitazione allarme rilascio pulsanti IN/OUT (1=ON /0=OFF)</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-swrelalarmenable-prima" data-store="param-swrelalarmenable-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-swrelalarmenable-dopo" data-store="param-swrelalarmenable-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-weightoffset">
+          <div class="param-info">
+            <div class="param-code">WEIGHT OFFSET</div>
+            <div class="param-desc">Offset di pressione utilizzato per il calcolo del peso del paziente</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-weightoffset-prima" data-store="param-weightoffset-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-weightoffset-dopo" data-store="param-weightoffset-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-weightgain">
+          <div class="param-info">
+            <div class="param-code">WEIGHT GAIN</div>
+            <div class="param-desc">Guadagno (gain) usato nella formula di calcolo del peso</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-weightgain-prima" data-store="param-weightgain-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-weightgain-dopo" data-store="param-weightgain-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-systemserialnumber">
+          <div class="param-info">
+            <div class="param-code">SYSTEM SERIAL NUMBER</div>
+            <div class="param-desc">Matricola SPARK-UC</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-systemserialnumber-prima" data-store="param-systemserialnumber-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-systemserialnumber-dopo" data-store="param-systemserialnumber-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-loadtotalcycles">
+          <div class="param-info">
+            <div class="param-code">LOAD TOTAL CYCLES</div>
+            <div class="param-desc">Numero di cicli di carico</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-loadtotalcycles-prima" data-store="param-loadtotalcycles-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-loadtotalcycles-dopo" data-store="param-loadtotalcycles-dopo">
+            </div>
+          </div>
+        </div>
+        <div class="param-item" data-item="param-unloadtotalcycles">
+          <div class="param-info">
+            <div class="param-code">UNLOAD TOTAL CYCLES</div>
+            <div class="param-desc">Numero di cicli di scarico</div>
+          </div>
+          <div class="param-values">
+            <div class="param-field">
+              <label>Prima</label>
+              <input type="text" id="param-unloadtotalcycles-prima" data-store="param-unloadtotalcycles-prima">
+            </div>
+            <div class="param-field">
+              <label>Dopo</label>
+              <input type="text" id="param-unloadtotalcycles-dopo" data-store="param-unloadtotalcycles-dopo">
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      
+      <div class="notes-section">
+        <label for="notes-parametri-uc">Note</label>
+        <textarea id="notes-parametri-uc" data-store="notes-parametri-uc" placeholder="Inserisci eventuali note o osservazioni..."></textarea>
+      </div>
+    </div></div>
+  </main>
+
+  
+      <div class="extra-block">
+        <div class="extra-block-title">Dati veicolo e cliente</div>
+        <div class="info-grid">
+          <div class="info-field">
+            <label for="marca-veicolo">Marca veicolo</label>
+            <input type="text" id="marca-veicolo" data-store="marca-veicolo">
+          </div>
+          <div class="info-field">
+            <label for="modello-veicolo">Modello veicolo</label>
+            <input type="text" id="modello-veicolo" data-store="modello-veicolo">
+          </div>
+          <div class="info-field">
+            <label for="targa-veicolo-ext">Targa veicolo</label>
+            <input type="text" id="targa-veicolo-ext" data-store="targa-veicolo-ext">
+          </div>
+          <div class="info-field">
+            <label for="cliente">Cliente</label>
+            <input type="text" id="cliente" data-store="cliente">
+          </div>
+          <div class="info-field">
+            <label for="persona-riferimento">Persona di riferimento</label>
+            <input type="text" id="persona-riferimento" data-store="persona-riferimento">
+          </div>
+          <div class="info-field">
+            <label for="contatto">Contatto</label>
+            <input type="text" id="contatto" data-store="contatto">
+          </div>
+        </div>
+
+        <div class="toggle-pill-group" role="radiogroup">
+          <label class="toggle-pill">
+            <input type="radio" name="tipo-controllo" value="straordinaria"><span>Manutenzione straordinaria</span>
+          </label>
+          <label class="toggle-pill">
+            <input type="radio" name="tipo-controllo" value="annuale"><span>Manutenzione annuale</span>
+          </label>
+        </div>
+
+        <div class="extra-block-title extra-block-title-sub">Elementi aggiuntivi presenti</div>
+        <div class="item-list extra-elements-list">
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>HE811</strong> &ndash; Poggiatesta estendibile completo di cuscino</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-he811"><span class="box"></span></label>
+          </div>
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>H-RAIL593</strong> &ndash; Barra laterale (lato testa)</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-hrail593"><span class="box"></span></label>
+          </div>
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>F-RAIL594</strong> &ndash; Barra laterale (lato piedi)</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-frail594"><span class="box"></span></label>
+          </div>
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>IV-P-DX426</strong> &ndash; Asta per porta flebo</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-ivpdx426"><span class="box"></span></label>
+          </div>
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>IV-P-DX654</strong> &ndash; Asta per porta flebo - rail</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-ivpdx654"><span class="box"></span></label>
+          </div>
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>IV-P-DX654-S</strong> &ndash; Asta per porta flebo - gancio</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-ivpdx654s"><span class="box"></span></label>
+          </div>
+          <div class="simple-check-item">
+            <div class="item-desc"><strong>TAB723</strong> &ndash; Tavolino porta strumenti</div>
+            <label class="simple-check"><input type="checkbox" data-store-check="extra-tab723"><span class="box"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="signature-block">
+        <div class="signature-block-title">Informazioni controllo</div>
+        <div class="signature-grid">
+          <div class="sig-field">
+            <label for="inspector">Controllo eseguito da</label>
+            <input type="text" id="inspector" data-store="inspector" placeholder="Nome e cognome">
+          </div>
+          <div class="sig-field">
+            <label for="location">Luogo</label>
+            <input type="text" id="location" data-store="location" placeholder="Luogo">
+          </div>
+          <div class="sig-field">
+            <label for="control-date">Data</label>
+            <input type="date" id="control-date" data-store="control-date">
+          </div>
+          <div class="sig-field sig-firma">
+            <label>Firma</label>
+            <button type="button" class="firma-btn" id="firma-btn">
+              <span class="firma-btn-placeholder" id="firma-btn-placeholder">&#9999; Tocca per firmare</span>
+              <img id="firma-preview" class="firma-preview" alt="Firma cliente" style="display:none;">
+            </button>
+            <input type="hidden" id="signature-data" data-store="signature-data">
+          </div>
+        </div>
+      </div>
+
+  <div class="firma-modal-overlay" id="firma-modal-overlay">
+    <div class="firma-modal">
+      <div class="firma-modal-title">Firma</div>
+      <div class="firma-canvas-wrap">
+        <canvas id="firma-canvas" class="firma-canvas"></canvas>
+      </div>
+      <div class="firma-modal-actions">
+        <button type="button" class="btn-firma-action btn-firma-cancel" id="firma-cancel">Cancella</button>
+        <button type="button" class="btn-firma-action btn-firma-clear" id="firma-clear">Ripeti</button>
+        <button type="button" class="btn-firma-action btn-firma-confirm" id="firma-confirm">Conferma</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-note" id="save-note"></div>
+
+  <div class="action-bar">
+    <button class="btn btn-reset" id="btn-reset">&#8635; Reset</button>
+    <button class="btn btn-pdf" id="btn-pdf">&#8595; Esporta PDF</button>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const tabs = document.querySelectorAll('.product-tab');
+  const wrappers = document.querySelectorAll('.tab-wrapper');
+  const STORE_KEY = 'manutenzioneSparkData';
+
+  function switchTab(id) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+    wrappers.forEach(w => w.classList.toggle('active', w.dataset.wrapper === id));
+    window.scrollTo({top: 0, behavior: 'instant'});
+  }
+
+  tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+  function updateItemStyle(radio) {
+    const item = radio.closest('.check-item');
+    if (item) {
+      item.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      radio.closest('.option').classList.add('selected');
+      item.classList.remove('state-ok', 'state-nok', 'state-nv');
+      item.classList.add('state-' + radio.value);
+      return;
+    }
+    const group = radio.closest('.toggle-pill-group');
+    if (group) {
+      group.querySelectorAll('.toggle-pill').forEach(o => o.classList.remove('selected'));
+      radio.closest('.toggle-pill').classList.add('selected');
+    }
+  }
+
+  document.querySelectorAll('.option-group input[type=radio], .toggle-pill-group input[type=radio]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      updateItemStyle(this);
+      persist();
+    });
+  });
+
+  document.querySelectorAll('.simple-check input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', persist);
+  });
+
+  function persist() {
+    const data = {};
+    document.querySelectorAll('[data-store]').forEach(el => {
+      data[el.dataset.store] = el.value;
+    });
+    document.querySelectorAll('input[type=radio]:checked').forEach(el => {
+      data['radio:' + el.name] = el.value;
+    });
+    document.querySelectorAll('[data-store-check]').forEach(el => {
+      data['chk:' + el.dataset.storeCheck] = el.checked;
+    });
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      const note = document.getElementById('save-note');
+      note.textContent = 'Salvato ' + new Date().toLocaleTimeString('it-IT');
+    } catch(e) {}
+  }
+
+  function restore() {
+    let raw;
+    try { raw = localStorage.getItem(STORE_KEY); } catch(e) { return; }
+    if (!raw) return;
+    let data;
+    try { data = JSON.parse(raw); } catch(e) { return; }
+    document.querySelectorAll('[data-store]').forEach(el => {
+      if (data[el.dataset.store] !== undefined) el.value = data[el.dataset.store];
+    });
+    document.querySelectorAll('[data-store-check]').forEach(el => {
+      const key = 'chk:' + el.dataset.storeCheck;
+      if (data[key] !== undefined) el.checked = data[key];
+    });
+    Object.keys(data).forEach(key => {
+      if (key.startsWith('radio:')) {
+        const name = key.slice(6);
+        const radio = document.querySelector(`input[name="${name}"][value="${data[key]}"]`);
+        if (radio) {
+          radio.checked = true;
+          updateItemStyle(radio);
+        }
+      }
+    });
+    if (signatureData.value) {
+      firmaPreview.src = signatureData.value;
+      firmaPreview.style.display = 'block';
+      firmaPlaceholder.style.display = 'none';
+      firmaBtn.classList.add('signed');
+    }
+  }
+
+  document.querySelectorAll('[data-store]').forEach(el => {
+    el.addEventListener('input', persist);
+    el.addEventListener('change', persist);
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function() {
+    if (!confirm('Cancellare tutti i dati inseriti in questa checklist?')) return;
+    try { localStorage.removeItem(STORE_KEY); } catch(e) {}
+    document.querySelectorAll('[data-store]').forEach(el => el.value = '');
+    document.querySelectorAll('.check-item').forEach(item => {
+      item.classList.remove('state-ok', 'state-nok', 'state-nv');
+      item.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      const nv = item.querySelector('input[value="nv"]');
+      if (nv) nv.checked = true;
+    });
+    document.querySelectorAll('.simple-check input[type=checkbox]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.toggle-pill-group input[type=radio]').forEach(r => r.checked = false);
+    document.querySelectorAll('.toggle-pill').forEach(p => p.classList.remove('selected'));
+    firmaBtn.classList.remove('signed');
+    firmaPlaceholder.style.display = '';
+    firmaPreview.style.display = 'none';
+    firmaPreview.src = '';
+    document.getElementById('save-note').textContent = '';
+  });
+
+  document.getElementById('btn-pdf').addEventListener('click', function() {
+    const originalTitle = document.title;
+    const pad = n => String(n).padStart(2, '0');
+    const today = new Date();
+    const dataStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
+
+    const activeTabBtn = document.querySelector('.product-tab.active');
+    const activeTab = activeTabBtn ? activeTabBtn.dataset.tab : 'spark-uc';
+    const MATRICOLA_FIELD_BY_TAB = {
+      'spark-uc': 'matricola-spark-uc',
+      'spark-fs': 'matricola-spark-fs',
+      'str-000': 'matricola-str-000',
+      'parametri-uc': 'matricola-spark-uc'
+    };
+    const snFieldId = MATRICOLA_FIELD_BY_TAB[activeTab] || 'matricola-spark-uc';
+    const snEl = document.getElementById(snFieldId);
+    const sn = snEl && snEl.value.trim() ? snEl.value.trim().replace(/[^a-zA-Z0-9_-]+/g, '') : '';
+    let nomeFile = 'Manutenzione_' + dataStr;
+    if (sn) nomeFile += '_SN' + sn;
+    document.title = nomeFile;
+
+    const restoreTitle = function() {
+      document.title = originalTitle;
+      window.removeEventListener('afterprint', restoreTitle);
+    };
+    window.addEventListener('afterprint', restoreTitle);
+    setTimeout(restoreTitle, 3000);
+
+    window.print();
+  });
+
+  window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('.notes-section').forEach(function(sec) {
+      const ta = sec.querySelector('textarea');
+      const empty = !ta || !ta.value.trim();
+      sec.classList.toggle('print-hide', empty);
+    });
+  });
+
+  /* FIRMA PAD */
+  const firmaBtn = document.getElementById('firma-btn');
+  const firmaOverlay = document.getElementById('firma-modal-overlay');
+  const firmaCanvas = document.getElementById('firma-canvas');
+  const firmaCtx = firmaCanvas.getContext('2d');
+  const firmaPlaceholder = document.getElementById('firma-btn-placeholder');
+  const firmaPreview = document.getElementById('firma-preview');
+  const signatureData = document.getElementById('signature-data');
+  let drawing = false;
+  let hasDrawn = false;
+
+  function resizeFirmaCanvas() {
+    const rect = firmaCanvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    firmaCanvas.width = rect.width * ratio;
+    firmaCanvas.height = rect.height * ratio;
+    firmaCtx.scale(ratio, ratio);
+    firmaCtx.lineWidth = 2.2;
+    firmaCtx.lineCap = 'round';
+    firmaCtx.lineJoin = 'round';
+    firmaCtx.strokeStyle = '#1c2b3a';
+  }
+
+  function firmaPos(evt) {
+    const rect = firmaCanvas.getBoundingClientRect();
+    const point = evt.touches ? evt.touches[0] : evt;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  }
+
+  function firmaStart(evt) {
+    evt.preventDefault();
+    drawing = true;
+    hasDrawn = true;
+    const p = firmaPos(evt);
+    firmaCtx.beginPath();
+    firmaCtx.moveTo(p.x, p.y);
+  }
+  function firmaMove(evt) {
+    if (!drawing) return;
+    evt.preventDefault();
+    const p = firmaPos(evt);
+    firmaCtx.lineTo(p.x, p.y);
+    firmaCtx.stroke();
+  }
+  function firmaEnd() { drawing = false; }
+
+  firmaCanvas.addEventListener('mousedown', firmaStart);
+  firmaCanvas.addEventListener('mousemove', firmaMove);
+  window.addEventListener('mouseup', firmaEnd);
+  firmaCanvas.addEventListener('touchstart', firmaStart, {passive:false});
+  firmaCanvas.addEventListener('touchmove', firmaMove, {passive:false});
+  firmaCanvas.addEventListener('touchend', firmaEnd);
+
+  function openFirmaModal() {
+    firmaOverlay.classList.add('open');
+    setTimeout(function() {
+      resizeFirmaCanvas();
+      firmaCtx.clearRect(0, 0, firmaCanvas.width, firmaCanvas.height);
+      hasDrawn = false;
+    }, 10);
+  }
+  function closeFirmaModal() {
+    firmaOverlay.classList.remove('open');
+  }
+
+  firmaBtn.addEventListener('click', openFirmaModal);
+
+  document.getElementById('firma-cancel').addEventListener('click', function() {
+    closeFirmaModal();
+  });
+
+  document.getElementById('firma-clear').addEventListener('click', function() {
+    firmaCtx.clearRect(0, 0, firmaCanvas.width, firmaCanvas.height);
+    hasDrawn = false;
+  });
+
+  document.getElementById('firma-confirm').addEventListener('click', function() {
+    if (!hasDrawn) { closeFirmaModal(); return; }
+    const dataUrl = firmaCanvas.toDataURL('image/png');
+    signatureData.value = dataUrl;
+    firmaPreview.src = dataUrl;
+    firmaPreview.style.display = 'block';
+    firmaPlaceholder.style.display = 'none';
+    firmaBtn.classList.add('signed');
+    closeFirmaModal();
+    persist();
+  });
+
+  restore();
+})();
+</script>
+</body>
+</html>
