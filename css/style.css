@@ -692,6 +692,46 @@ button {
   white-space: nowrap;
 }
 
+.doc-row-btn {
+  display: flex;
+  width: 100%;
+  text-align: left;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  font: inherit;
+  cursor: pointer;
+}
+
+.maint-add-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.maint-add-file:hover { background: var(--tint); }
+
+.maint-new-folder input[type="text"] {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.maint-note {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: -6px 0 14px;
+}
+
 /* -------------------------------------------------------------------
    EMPTY STATE
    ------------------------------------------------------------------- */
