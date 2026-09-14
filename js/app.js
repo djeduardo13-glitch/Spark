@@ -334,8 +334,34 @@ function renderMapView() {
       btn.classList.add("active");
       const answer = document.getElementById("mapAnswer");
       const meaning = UTENZE[h.id] || "";
-      answer.innerHTML = `<span class="map-answer-code">${h.id}</span><span class="map-answer-text">${meaning || "Descrizione non ancora disponibile."}</span>`;
-      answer.style.display = "flex";
+      const details = (typeof SENSOR_DETAILS !== "undefined") ? SENSOR_DETAILS[h.id] : null;
+
+      let extraHtml = "";
+      if (details) {
+        const bulletsHtml = (details.bullets && details.bullets.length)
+          ? `<ul class="map-answer-bullets">${details.bullets.map(b => `<li>${b}</li>`).join("")}</ul>`
+          : "";
+        extraHtml = `
+          <div class="map-answer-extra">
+            <div class="map-answer-tags">
+              ${details.tipo ? `<span class="map-answer-tag">${details.tipo}</span>` : ""}
+              ${details.cavo ? `<span class="map-answer-tag ghost">${details.cavo}</span>` : ""}
+            </div>
+            ${details.intro ? `<p class="map-answer-intro">${details.intro}</p>` : ""}
+            ${bulletsHtml}
+            ${details.dove ? `<p class="map-answer-dove"><strong>Dov'è collegato:</strong> ${details.dove}</p>` : ""}
+          </div>
+        `;
+      }
+
+      answer.innerHTML = `
+        <div class="map-answer-head">
+          <span class="map-answer-code">${h.id}</span>
+          <span class="map-answer-text">${meaning || "Descrizione non ancora disponibile."}</span>
+        </div>
+        ${extraHtml}
+      `;
+      answer.style.display = "block";
     });
     hotspotsEl.appendChild(btn);
   });
