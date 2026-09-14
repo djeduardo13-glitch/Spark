@@ -2227,7 +2227,7 @@
 </div>
 
 <script src="js/storage.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="js/vendor/html2pdf.bundle.min.js"></script>
 <script>
 (function() {
   const tabs = document.querySelectorAll('.product-tab');
@@ -2395,7 +2395,7 @@
     }
 
     if (typeof html2pdf === 'undefined' || typeof sparkSaveFile === 'undefined') {
-      errorEl.textContent = 'Salvataggio non disponibile: verifica la connessione a internet e riprova (serve la prima volta per caricare lo strumento PDF).';
+      errorEl.textContent = 'Salvataggio non disponibile: manca il file js/vendor/html2pdf.bundle.min.js o js/storage.js accanto a questa pagina. Verifica che entrambi siano stati caricati nel repository nella stessa struttura di cartelle.';
       errorEl.style.display = 'block';
       return;
     }
