@@ -124,133 +124,34 @@ function renderAccessLevels() {
 /* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per SN
    ------------------------------------------------------------------- */
-const DOC_FILE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg>`;
-
-function formatFileSize(bytes) {
-  if (!bytes) return "";
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / 1024 / 1024).toFixed(1) + " MB";
-}
-
-async function renderMaintenance() {
+function renderMaintenance() {
   const container = document.getElementById("checklistContainer");
   const dict = I18N[state.lang] || I18N.it;
+  const sns = Object.keys(MAINTENANCE_RECORDS);
 
-  const staticSns = Object.keys(MAINTENANCE_RECORDS);
-  let liveFolders = {};
-  if (typeof sparkGetAllFolders === "function") {
-    try { liveFolders = await sparkGetAllFolders(); } catch (e) { liveFolders = {}; }
+  if (sns.length === 0) {
+    container.innerHTML = `<div class="empty-state">${dict.maint_empty || dict.empty_state}</div>`;
+    return;
   }
-  const allSns = Array.from(new Set([...staticSns, ...Object.keys(liveFolders)])).sort();
 
   container.innerHTML = "";
-
-  if (allSns.length === 0) {
-    container.innerHTML = `<div class="empty-state">${dict.maint_empty || dict.empty_state}</div>`;
-  }
-
-  allSns.forEach(sn => {
+  sns.forEach(sn => {
+    const records = MAINTENANCE_RECORDS[sn].slice().sort((a, b) => (a.date < b.date ? 1 : -1));
     const card = document.createElement("div");
     card.className = "sn-card";
-
-    let rows = (MAINTENANCE_RECORDS[sn] || []).slice()
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .map(rec => `
-        <a class="doc-row" href="${rec.url}" target="_blank" rel="noopener" style="text-decoration:none;">
-          <span class="doc-icon">${DOC_FILE_ICON}</span>
-          <span class="doc-meta">
-            <span class="doc-title">${rec.title}</span><br>
-            <span class="doc-type">${rec.date}</span>
-          </span>
-          <span class="doc-action">Apri</span>
-        </a>
-      `).join("");
-
-    rows += (liveFolders[sn] || []).map(file => `
-        <button type="button" class="doc-row doc-row-btn maint-file-row" data-file-id="${file.id}">
-          <span class="doc-icon">${DOC_FILE_ICON}</span>
-          <span class="doc-meta">
-            <span class="doc-title">${file.filename}</span><br>
-            <span class="doc-type">${new Date(file.addedAt).toLocaleDateString("it-IT")} · ${formatFileSize(file.blob && file.blob.size)}</span>
-          </span>
-          <span class="doc-action">Scarica</span>
-        </button>
-      `).join("");
-
-    card.innerHTML = `
-      <h3 class="sn-card-title">SN ${sn}</h3>
-      ${rows}
-      <label class="maint-add-file">
-        <input type="file" data-add-file-sn="${sn}" style="display:none;">
-        <span>+ Aggiungi file a questa cartella</span>
-      </label>
-    `;
+    const rows = records.map(rec => `
+      <a class="doc-row" href="${rec.url}" target="_blank" rel="noopener" style="text-decoration:none;">
+        <span class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg></span>
+        <span class="doc-meta">
+          <span class="doc-title">${rec.title}</span><br>
+          <span class="doc-type">${rec.date}</span>
+        </span>
+        <span class="doc-action">Apri</span>
+      </a>
+    `).join("");
+    card.innerHTML = `<h3 class="sn-card-title">SN ${sn}</h3>${rows}`;
     container.appendChild(card);
   });
-
-  if (typeof sparkSaveFile === "function") {
-    const addCard = document.createElement("div");
-    addCard.className = "sn-card maint-new-folder";
-    addCard.innerHTML = `
-      <h3 class="sn-card-title">Nuova cartella / aggiungi file per SN</h3>
-      <p class="maint-note">Inserisci l'SN e scegli un file: se la cartella non esiste ancora viene creata.</p>
-      <input type="text" id="maintNewSn" placeholder="Numero di serie (SN)" style="width:100%; box-sizing:border-box; margin-bottom:10px;">
-      <label class="maint-add-file">
-        <input type="file" id="maintNewFile" style="display:none;">
-        <span>Scegli file e salva</span>
-      </label>
-    `;
-    container.appendChild(addCard);
-  }
-
-  container.querySelectorAll(".maint-file-row").forEach(row => {
-    row.addEventListener("click", async () => {
-      const id = Number(row.dataset.fileId);
-      const folders = await sparkGetAllFolders();
-      for (const folderSn of Object.keys(folders)) {
-        const file = folders[folderSn].find(f => f.id === id);
-        if (file) {
-          const url = URL.createObjectURL(file.blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = file.filename;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 5000);
-          break;
-        }
-      }
-    });
-  });
-
-  container.querySelectorAll("[data-add-file-sn]").forEach(input => {
-    input.addEventListener("change", async () => {
-      const sn = input.dataset.addFileSn;
-      const file = input.files[0];
-      if (!file) return;
-      await sparkSaveFile({ sn, filename: file.name, mimeType: file.type, blob: file, kind: "altro" });
-      renderMaintenance();
-    });
-  });
-
-  const newFileInput = document.getElementById("maintNewFile");
-  if (newFileInput) {
-    newFileInput.addEventListener("change", async () => {
-      const snInput = document.getElementById("maintNewSn");
-      const sn = snInput ? snInput.value.trim().replace(/[^a-zA-Z0-9_-]+/g, "") : "";
-      const file = newFileInput.files[0];
-      if (!sn) {
-        alert("Inserisci l'SN prima di aggiungere il file: senza SN non posso creare la cartella.");
-        newFileInput.value = "";
-        return;
-      }
-      if (!file) return;
-      await sparkSaveFile({ sn, filename: file.name, mimeType: file.type, blob: file, kind: "altro" });
-      renderMaintenance();
-    });
-  }
 }
 
 /* ---------------------------------------------------------------------
@@ -451,6 +352,7 @@ function renderMapView() {
   function clampScale(s) { return Math.min(4, Math.max(1, s)); }
 
   viewport.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".map-hotspot")) return;
     viewport.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
