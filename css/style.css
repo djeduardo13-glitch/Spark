@@ -692,46 +692,6 @@ button {
   white-space: nowrap;
 }
 
-.doc-row-btn {
-  display: flex;
-  width: 100%;
-  text-align: left;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  font: inherit;
-  cursor: pointer;
-}
-
-.maint-add-file {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  color: var(--brand);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 4px;
-}
-.maint-add-file:hover { background: var(--tint); }
-
-.maint-new-folder input[type="text"] {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  font-size: 14px;
-  font-family: inherit;
-}
-
-.maint-note {
-  font-size: 12px;
-  color: var(--ink-soft);
-  margin: -6px 0 14px;
-}
-
 /* -------------------------------------------------------------------
    EMPTY STATE
    ------------------------------------------------------------------- */
@@ -1276,6 +1236,10 @@ button {
   border-left: 4px solid var(--brand);
   border-radius: var(--radius-sm);
   padding: 14px 16px;
+}
+
+.map-answer-head {
+  display: flex;
   align-items: center;
   gap: 12px;
 }
@@ -1295,6 +1259,67 @@ button {
   font-size: 13.5px;
   color: var(--ink);
   line-height: 1.5;
+}
+
+.map-answer-extra {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.map-answer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.map-answer-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand-mid);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.map-answer-tag.ghost {
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+
+.map-answer-intro {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+
+.map-answer-bullets {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-answer-bullets li {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.map-answer-dove {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.map-answer-dove strong {
+  color: var(--ink);
 }
 
 @media (max-width: 480px) {
