@@ -208,6 +208,152 @@ const SIMULATOR_ICON_IMAGES = {
   rostro: "assets/icons/rostro.png",
   hmi: "assets/icons/hmi.png"
 };
+
+/* ---------------------------------------------------------------------
+   MAPPA COMPONENTI — "Legenda utenze" (R00 del 16/06/2026)
+   UTENZE: dizionario globale id -> descrizione (indipendente dalla vista:
+   uno stesso componente può comparire, ed essere cliccabile, in più viste).
+   ------------------------------------------------------------------- */
+const UTENZE = {
+  C_5:  "TELECAMERA",
+  LD_3: "SCHEDA LUCE FRONTALE - FISSA",
+  L_1:  "FOTOCELLULA PRESENZA PIANO (ON/OFF)",
+  L_2:  "FOTOCELLULA SLITTA (CATARIFRANGENTE) (ON/OFF)",
+  L_3:  "SENSORE DISTANZA - ALLINEAMENTO SLITTA/BARELLA VERTICALE",
+  AT_1: "SERVOMOTORE SBLOCCO SLITTA - PERNI VERTICALI",
+  AT_2: "SERVOMOTORE SBLOCCO SFERA - PERNO ORIZZONTALE",
+  FC_1: "MICRO FINECORSA ORIZZONTALE",
+  FC_2: "MICRO FINECORSA VERTICALE",
+  L_4:  "SENSORE DISTANZA ALLINEAMENTO ROSTRO/BARELLA ORIZZONTALE",
+  R_1:  "REED MAGNETICO SFERA",
+  C_1:  "DISPLAY LCD 7\"",
+  C_2:  "THUMBWHEEL",
+  C_3:  "PULSANTE - CARICO",
+  C_4:  "PULSANTE - SCARICO",
+  CS_1: "COSTA SENSIBILE DX e SX",
+  EV_1: "ELETTROVALVOLA LATO DX (GAMBA PIEDI)",
+  EV_2: "ELETTROVALVOLA LATO SX (GAMBA TESTA)",
+  M_5:  "MOTORE BRUSHLESS GAMBE POSTERIORI (POS. ANTERIORE)",
+  M_6:  "MOTORE BRUSHLESS GAMBE ANTERIORI (POS. POSTERIORE)",
+  LD_1: "SCHEDA LUCE DX - FISSA",
+  LD_2: "SCHEDA LUCE SX - FISSA",
+  PR_1: "SENSORE DI PRESSIONE LATO DX (GAMBA PIEDI)",
+  PR_2: "SENSORE DI PRESSIONE LATO SX (GAMBA TESTA)",
+  R_3:  "REED MAGNETICO BARELLINO",
+  R_2:  "REED MAGNETICO 10G",
+  RF_1: "LETTORE RFID",
+  A_1:  "SENSORE ANGOLARE LATO DX (GAMBA PIEDI)",
+  A_2:  "SENSORE ANGOLARE LATO SX (GAMBA TESTA)",
+  B_1:  "SEGNALATORE ACUSTICO",
+  BT_1: "BATTERIA",
+  F_1:  "FRENO PIEDE POSTERIORE DX",
+  F_3:  "FRENO PIEDE ANTERIORE DX",
+  F_2:  "FRENO PIEDE POSTERIORE SX",
+  F_4:  "FRENO PIEDE ANTERIORE SX",
+  G_1:  "INCLINOMETRO - GIROSCOPIO",
+  M_1:  "MOTORE BRUSHLESS PIEDE POST. DX",
+  M_3:  "MOTORE BRUSHLESS PIEDE ANT. DX",
+  M_2:  "MOTORE BRUSHLESS PIEDE POST. SX",
+  M_4:  "MOTORE BRUSHLESS PIEDE ANT. SX",
+  PO_1: "POTENZIOMETRO POS PIEDE POSTERIORE DX",
+  PO_3: "POTENZIOMETRO POS PIEDE ANTERIORE DX",
+  PO_2: "POTENZIOMETRO POS PIEDE POSTERIORE SX",
+  PO_4: "POTENZIOMETRO POS PIEDE ANTERIORE SX"
+};
+
+/* Viste della mappa componenti. Ogni hotspot: {id, x, y} con x/y in
+   percentuale rispetto all'immagine (0-100), per restare allineati
+   anche con zoom/pan. */
+const MAP_VIEWS = [
+  {
+    id: "rostro-1", label: "Rostro (1/2)", image: "assets/utenze/rostro-1.png",
+    hotspots: [
+      { id: "C_5", x: 72.9, y: 11.1 },
+      { id: "LD_3", x: 71.3, y: 21.8 },
+      { id: "L_1", x: 23.3, y: 58.0 },
+      { id: "L_3", x: 43.8, y: 59.0 }
+    ]
+  },
+  {
+    id: "rostro-2", label: "Rostro (2/2)", image: "assets/utenze/rostro-2.png",
+    hotspots: [
+      { id: "FC_2", x: 33.0, y: 33.1 },
+      { id: "L_4", x: 52.5, y: 45.4 },
+      { id: "FC_1", x: 75.9, y: 46.6 },
+      { id: "AT_1", x: 33.6, y: 57.2 },
+      { id: "AT_2", x: 56.1, y: 68.4 },
+      { id: "R_1", x: 16.1, y: 76.4 }
+    ]
+  },
+  {
+    id: "alto", label: "Alto", image: "assets/utenze/alto.png",
+    hotspots: [
+      { id: "LD_2", x: 52.6, y: 10.2 },
+      { id: "R_3", x: 35.9, y: 33.1 },
+      { id: "R_3", x: 70.5, y: 31.7 },
+      { id: "EV_2", x: 45.2, y: 34.1 },
+      { id: "M_6", x: 45.2, y: 46.1 },
+      { id: "CS_1", x: 9.0, y: 35.1 },
+      { id: "C_2", x: 17.4, y: 35.1 },
+      { id: "PR_2", x: 53.6, y: 40.0 },
+      { id: "LD_3", x: 86.8, y: 51.5 },
+      { id: "CS_1", x: 9.0, y: 51.8 },
+      { id: "C_1", x: 17.5, y: 51.8 },
+      { id: "C_4", x: 13.4, y: 67.5 },
+      { id: "C_3", x: 22.0, y: 67.5 },
+      { id: "LD_1", x: 52.6, y: 92.6 },
+      { id: "L_2", x: 63.9, y: 37.5 },
+      { id: "RF_1", x: 64.2, y: 45.2 },
+      { id: "R_2", x: 71.2, y: 44.2 },
+      { id: "R_2", x: 71.5, y: 53.8 },
+      { id: "PR_1", x: 51.2, y: 60.6 },
+      { id: "M_5", x: 60.2, y: 56.7 },
+      { id: "EV_1", x: 60.2, y: 65.4 }
+    ]
+  },
+  {
+    id: "lato-dx", label: "Lato DX", image: "assets/utenze/lato-dx.png",
+    hotspots: [
+      { id: "M_5", x: 60.0, y: 7.3 },
+      { id: "EV_1", x: 60.0, y: 13.9 },
+      { id: "LD_3", x: 91.3, y: 8.1 },
+      { id: "A_1", x: 48.6, y: 11.1 },
+      { id: "LD_1", x: 48.6, y: 17.7 },
+      { id: "G_1", x: 8.3, y: 11.3 },
+      { id: "R_2", x: 70.2, y: 15.0 },
+      { id: "BT_1", x: 16.3, y: 21.2 },
+      { id: "B_1", x: 48.8, y: 24.6 },
+      { id: "F_1", x: 32.8, y: 51.9 },
+      { id: "F_3", x: 64.7, y: 52.0 },
+      { id: "PO_1", x: 27.1, y: 58.8 },
+      { id: "PO_3", x: 70.6, y: 58.8 },
+      { id: "M_1", x: 23.5, y: 65.6 },
+      { id: "M_3", x: 74.2, y: 65.6 }
+    ]
+  },
+  {
+    id: "lato-sx", label: "Lato SX", image: "assets/utenze/lato-sx.png",
+    hotspots: [
+      { id: "M_6", x: 62.8, y: 10.6 },
+      { id: "EV_2", x: 62.8, y: 17.8 },
+      { id: "R_3", x: 72.3, y: 10.6 },
+      { id: "R_3", x: 32.5, y: 10.8 },
+      { id: "LD_3", x: 6.7, y: 11.4 },
+      { id: "A_2", x: 51.1, y: 14.7 },
+      { id: "LD_2", x: 51.1, y: 21.9 },
+      { id: "L_2", x: 41.6, y: 15.9 },
+      { id: "R_2", x: 29.0, y: 19.0 },
+      { id: "BT_1", x: 83.4, y: 25.0 },
+      { id: "F_4", x: 34.7, y: 59.4 },
+      { id: "F_2", x: 67.7, y: 59.4 },
+      { id: "PO_4", x: 28.4, y: 66.9 },
+      { id: "PO_2", x: 73.8, y: 66.9 },
+      { id: "M_4", x: 25.1, y: 74.2 },
+      { id: "M_2", x: 77.5, y: 74.3 }
+    ]
+  }
+];
+
 /* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per numero di serie (SN)
    Ogni chiave è un SN (matricola Spark). Il valore è l'elenco delle
@@ -266,6 +412,10 @@ const I18N = {
     fw_label: "Versione firmware",
     home_intro: "Tutto quello che serve per configurare, controllare e collaudare Spark, organizzato per versione firmware.",
     simulator_intro: "Naviga tra le schermate come sul dispositivo reale. Tocca una voce per vederne il significato.",
+    sim_mode_panel: "Pannello Spark",
+    sim_mode_map: "Mappa Componenti",
+    map_intro: "Scegli una vista, poi muoviti con le dita (o il mouse) e tocca un'etichetta per vederne il significato.",
+    map_reset: "Reimposta",
     sim_card_desc: "Naviga il pannello Spark come sul dispositivo reale e fai pratica.",
     sim_locked_msg: "Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.",
     sim_tap_to_start: "Tocca lo schermo per iniziare",

@@ -257,23 +257,161 @@ function isSimulatorAvailable() {
 
 function updateSimulatorAvailability() {
   const available = isSimulatorAvailable();
-  const navBtn = document.getElementById("navSimulator");
-  const card = document.getElementById("cardSimulator");
   const lockMsg = document.getElementById("simFwLock");
   const deviceWrap = document.getElementById("simDeviceWrap");
 
-  [navBtn, card].forEach(el => {
-    if (!el) return;
-    el.classList.toggle("is-disabled", !available);
-  });
-
   if (lockMsg) lockMsg.style.display = available ? "none" : "block";
   if (deviceWrap) deviceWrap.style.display = available ? "flex" : "none";
-
-  if (!available && state.view === "simulator") {
-    goToView("home");
-  }
+  // Nota: la Mappa Componenti (fisica) non dipende dalla versione FW,
+  // quindi la sezione Simulatore resta sempre accessibile: qui blocchiamo
+  // solo il contenuto della modalità "Pannello Spark".
 }
+
+/* ---------------------------------------------------------------------
+   MAPPA COMPONENTI
+   ------------------------------------------------------------------- */
+Object.assign(state, { simMode: "panel", mapViewIndex: 0 });
+
+document.getElementById("simModeSwitch").addEventListener("click", (e) => {
+  const btn = e.target.closest(".sim-mode-pill");
+  if (!btn) return;
+  state.simMode = btn.dataset.simMode;
+  document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p === btn));
+  document.getElementById("simPanelMode").style.display = state.simMode === "panel" ? "block" : "none";
+  document.getElementById("simMapMode").style.display = state.simMode === "map" ? "block" : "none";
+  if (state.simMode === "map") renderMapView();
+});
+
+function renderMapViewSwitch() {
+  const el = document.getElementById("mapViewSwitch");
+  el.innerHTML = "";
+  MAP_VIEWS.forEach((v, i) => {
+    const btn = document.createElement("button");
+    btn.className = "map-view-pill" + (i === state.mapViewIndex ? " active" : "");
+    btn.textContent = v.label;
+    btn.addEventListener("click", () => {
+      state.mapViewIndex = i;
+      renderMapView();
+    });
+    el.appendChild(btn);
+  });
+}
+
+const mapTransform = { scale: 1, tx: 0, ty: 0 };
+
+function applyMapTransform() {
+  const canvas = document.getElementById("mapCanvas");
+  canvas.style.transform = `translate(${mapTransform.tx}px, ${mapTransform.ty}px) scale(${mapTransform.scale})`;
+}
+
+function resetMapTransform() {
+  mapTransform.scale = 1;
+  mapTransform.tx = 0;
+  mapTransform.ty = 0;
+  applyMapTransform();
+}
+
+function renderMapView() {
+  renderMapViewSwitch();
+  const view = MAP_VIEWS[state.mapViewIndex];
+  const img = document.getElementById("mapImage");
+  img.src = view.image;
+  img.alt = view.label;
+  resetMapTransform();
+  document.getElementById("mapAnswer").style.display = "none";
+
+  const hotspotsEl = document.getElementById("mapHotspots");
+  hotspotsEl.innerHTML = "";
+  view.hotspots.forEach((h, i) => {
+    const btn = document.createElement("button");
+    btn.className = "map-hotspot";
+    btn.style.left = h.x + "%";
+    btn.style.top = h.y + "%";
+    btn.innerHTML = `<span class="map-hotspot-code">${h.id}</span>`;
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      document.querySelectorAll(".map-hotspot").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const answer = document.getElementById("mapAnswer");
+      const meaning = UTENZE[h.id] || "";
+      answer.innerHTML = `<span class="map-answer-code">${h.id}</span><span class="map-answer-text">${meaning || "Descrizione non ancora disponibile."}</span>`;
+      answer.style.display = "flex";
+    });
+    hotspotsEl.appendChild(btn);
+  });
+}
+
+/* -- Pan (drag) e zoom (rotellina / pinch) -- */
+(function setupMapPanZoom() {
+  const viewport = document.getElementById("mapViewport");
+  const pointers = new Map();
+  let dragging = false;
+  let startX = 0, startY = 0, startTx = 0, startTy = 0;
+  let pinchStartDist = 0, pinchStartScale = 1;
+
+  function clampScale(s) { return Math.min(4, Math.max(1, s)); }
+
+  viewport.addEventListener("pointerdown", (e) => {
+    viewport.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1) {
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      startTx = mapTransform.tx; startTy = mapTransform.ty;
+    } else if (pointers.size === 2) {
+      dragging = false;
+      const pts = Array.from(pointers.values());
+      pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      pinchStartScale = mapTransform.scale;
+    }
+  });
+
+  viewport.addEventListener("pointermove", (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size === 2) {
+      const pts = Array.from(pointers.values());
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if (pinchStartDist > 0) {
+        mapTransform.scale = clampScale(pinchStartScale * (dist / pinchStartDist));
+        applyMapTransform();
+      }
+    } else if (dragging && pointers.size === 1) {
+      mapTransform.tx = startTx + (e.clientX - startX);
+      mapTransform.ty = startTy + (e.clientY - startY);
+      applyMapTransform();
+    }
+  });
+
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchStartDist = 0;
+    if (pointers.size === 0) dragging = false;
+  }
+  viewport.addEventListener("pointerup", endPointer);
+  viewport.addEventListener("pointercancel", endPointer);
+  viewport.addEventListener("pointerleave", endPointer);
+
+  viewport.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    mapTransform.scale = clampScale(mapTransform.scale + delta);
+    applyMapTransform();
+  }, { passive: false });
+
+  viewport.addEventListener("dblclick", () => resetMapTransform());
+
+  document.getElementById("mapZoomIn").addEventListener("click", () => {
+    mapTransform.scale = clampScale(mapTransform.scale + 0.4);
+    applyMapTransform();
+  });
+  document.getElementById("mapZoomOut").addEventListener("click", () => {
+    mapTransform.scale = clampScale(mapTransform.scale - 0.4);
+    applyMapTransform();
+  });
+  document.getElementById("mapZoomReset").addEventListener("click", resetMapTransform);
+})();
 
 function renderDevice() {
   const screen = document.getElementById("deviceScreen");
@@ -459,6 +597,7 @@ function init() {
   renderCollaudo();
   renderDocuments();
   renderDevice();
+  renderMapView();
 }
 
 init();

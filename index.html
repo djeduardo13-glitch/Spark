@@ -127,17 +127,43 @@
           <p data-i18n="simulator_intro">Naviga tra le schermate come sul dispositivo reale. Tocca una voce per vederne il significato.</p>
         </div>
 
-        <div class="access-card" id="accessLevels"></div>
-
-        <div class="sim-fw-lock" id="simFwLock">
-          <p data-i18n="sim_locked_msg">Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.</p>
+        <div class="sim-mode-switch" id="simModeSwitch">
+          <button class="sim-mode-pill active" data-sim-mode="panel" data-i18n="sim_mode_panel">Pannello Spark</button>
+          <button class="sim-mode-pill" data-sim-mode="map" data-i18n="sim_mode_map">Mappa Componenti</button>
         </div>
 
-        <div class="device-wrap" id="simDeviceWrap">
-          <div class="device-frame">
-            <div class="device-notch">Spark</div>
-            <div class="device-screen" id="deviceScreen"></div>
+        <!-- Modalità: Pannello Spark -->
+        <div id="simPanelMode">
+          <div class="access-card" id="accessLevels"></div>
+
+          <div class="sim-fw-lock" id="simFwLock">
+            <p data-i18n="sim_locked_msg">Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.</p>
           </div>
+
+          <div class="device-wrap" id="simDeviceWrap">
+            <div class="device-frame">
+              <div class="device-notch">Spark</div>
+              <div class="device-screen" id="deviceScreen"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modalità: Mappa Componenti -->
+        <div id="simMapMode" style="display:none;">
+          <p class="map-intro" data-i18n="map_intro">Scegli una vista, poi muoviti con le dita (o il mouse) e tocca un'etichetta per vederne il significato.</p>
+          <div class="map-view-switch" id="mapViewSwitch"></div>
+          <div class="map-viewport" id="mapViewport">
+            <div class="map-canvas" id="mapCanvas">
+              <img id="mapImage" alt="" draggable="false">
+              <div id="mapHotspots"></div>
+            </div>
+          </div>
+          <div class="map-zoom-controls">
+            <button class="map-zoom-btn" id="mapZoomOut" aria-label="Zoom -">&minus;</button>
+            <button class="map-zoom-btn" id="mapZoomReset" data-i18n="map_reset">Reimposta</button>
+            <button class="map-zoom-btn" id="mapZoomIn" aria-label="Zoom +">+</button>
+          </div>
+          <div class="map-answer" id="mapAnswer" style="display:none;"></div>
         </div>
       </section>
 
