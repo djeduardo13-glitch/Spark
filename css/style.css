@@ -1460,3 +1460,113 @@ button {
   margin-top: 6px;
   font-style: italic;
 }
+
+/* -------------------------------------------------------------------
+   RICERCA GLOBALE (Simulatore: errori + parametri)
+   ------------------------------------------------------------------- */
+
+.global-search-box {
+  position: relative;
+  margin-bottom: 14px;
+  max-width: 520px;
+}
+
+.global-search-box > svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+.global-search-box input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px 12px 40px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.global-search-box input:focus {
+  outline: none;
+  border-color: var(--brand-mid);
+}
+
+.global-search-results {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  max-height: 360px;
+  overflow-y: auto;
+  z-index: 30;
+}
+
+.gsr-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+}
+
+.gsr-item:last-child { border-bottom: none; }
+.gsr-item:hover { background: var(--tint); }
+
+.gsr-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  border-radius: 999px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+
+.gsr-tag.error { background: #c0392b; }
+.gsr-tag.param { background: var(--brand-mid); }
+
+.gsr-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+.gsr-snippet {
+  font-size: 12px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gsr-empty {
+  padding: 14px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* Badge categoria errore */
+.param-badge.cat-l { background: #b8860b; }
+.param-badge.cat-w { background: #8e44ad; }
+.param-badge.cat-e { background: #c0392b; }
+
+.error-code { color: var(--brand); }
