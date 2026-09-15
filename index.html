@@ -41,12 +41,6 @@
         </span>
         <span data-i18n="nav_checklist">Manutenzione</span>
       </button>
-      <button class="nav-item" data-view="errori">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-        </span>
-        <span data-i18n="nav_errori">Codici Errore</span>
-      </button>
       <button class="nav-item" data-view="collaudo">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.4 6.4 2.8 2.8"/><path d="M2 13h4"/><path d="m6.4 19.6 2.8-2.8"/><circle cx="12" cy="13" r="4"/></svg>
@@ -118,11 +112,6 @@
             <h3 data-i18n="nav_collaudo">Collaudo</h3>
             <p>La procedura guidata di collaudo del prodotto.</p>
           </button>
-          <button class="module-card" data-goto="errori">
-            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-            <h3 data-i18n="nav_errori">Codici Errore</h3>
-            <p data-i18n="errori_card_desc">Elenco ricercabile dei codici di allarme ed errore, tradotti in italiano.</p>
-          </button>
           <button class="module-card" data-goto="documents">
             <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
             <h3 data-i18n="nav_documents">Documenti</h3>
@@ -141,6 +130,7 @@
         <div class="sim-mode-switch" id="simModeSwitch">
           <button class="sim-mode-pill active" data-sim-mode="panel" data-i18n="sim_mode_panel">Pannello Spark</button>
           <button class="sim-mode-pill" data-sim-mode="map" data-i18n="sim_mode_map">Mappa Componenti</button>
+          <button class="sim-mode-pill" data-sim-mode="params" data-i18n="sim_mode_params">Parametri</button>
         </div>
 
         <!-- Modalità: Pannello Spark -->
@@ -176,6 +166,16 @@
           </div>
           <div class="map-answer" id="mapAnswer" style="display:none;"></div>
         </div>
+
+        <!-- Modalità: Parametri -->
+        <div id="simParamsMode" style="display:none;">
+          <p class="map-intro" data-i18n="params_intro">Elenco parametri settabili da menu HMI: nome, default, min, max, risoluzione e descrizione completa.</p>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="paramSearch" data-i18n-placeholder="search_placeholder" placeholder="Cerca un parametro…">
+          </div>
+          <div class="param-list" id="paramList"></div>
+        </div>
       </section>
 
       <!-- MANUTENZIONE -->
@@ -191,22 +191,6 @@
         </a>
 
         <div id="checklistContainer"></div>
-      </section>
-
-      <!-- CODICI ERRORE -->
-      <section class="view" id="view-errori">
-        <div class="view-header">
-          <h2 data-i18n="nav_errori">Codici Errore</h2>
-          <p data-i18n="errori_intro">Elenco dei codici di allarme ed errore, con descrizione in italiano. Cerca per codice o per parola chiave.</p>
-        </div>
-
-        <div class="fault-search-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="text" id="faultSearch" data-i18n-placeholder="errori_search_placeholder" placeholder="Cerca per codice (es. E040) o parola chiave (es. motore, pressione)...">
-          <span class="fault-count" id="faultCount"></span>
-        </div>
-
-        <div id="faultContainer"></div>
       </section>
 
       <!-- COLLAUDO -->
@@ -232,7 +216,6 @@
 </div>
 
 <script src="js/data.js"></script>
-<script src="js/storage.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
