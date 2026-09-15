@@ -261,6 +261,26 @@ const UTENZE = {
   PO_4: "POTENZIOMETRO POS PIEDE ANTERIORE SX"
 };
 
+const SENSOR_DETAILS = {
+  R_1: { cavo: "DIS0019098 - Reed 1", tipo: "Magnetico", intro: "Segnala che la sfera è posizionata correttamente all'interno della slitta superiore del rostro.", bullets: ["Consenso discesa: autorizza lo SPARK ad abbassarsi fino a raggiungere FC_1.", "Vincolo di sicurezza: se R_1 si disattiva in qualsiasi posizione del carico (a causa dell'allontanamento del magnete dalla slitta superiore), interrompe immediatamente qualsiasi operazione in corso."], dove: "Scheda rostro - DIS0016202" },
+  R_2: { cavo: "DIS0019099 - Reed 2", tipo: "Magnetico", intro: "Segnala che i ganci 10G (sistema di aggancio lato rostro) sono correttamente chiusi e impegnati.", bullets: ["Display: quando attivo, compare il lucchetto verde \"10G\" sull'HMI.", "Logica stati: atteso nello stato L_W_SLED_POS_3 (attesa reed 2 attivo – ganci 10G) durante il ciclo di carico."], dove: "Scheda rostro - DIS0016202" },
+  R_3: { cavo: "DIS0019098", tipo: "Magnetico", intro: "Segnala che entrambi i ganci dedicati al vincolo del barellino sono correttamente chiusi.", bullets: ["Display: quando entrambi i reed R_3 sono attivi, si attiva il lucchetto verde del barellino sull'HMI"], dove: "Scheda gateway - DIS0020986" },
+  FC_1: { cavo: "DIS0019100 - Fine corsa 1", tipo: "Meccanico", intro: "Segnala che lo SPARK si è abbassato fino a raggiungere la posizione orizzontale desiderata per iniziare la fase di carico.", bullets: ["Logica stati: è il target di discesa durante L_W_LINK_TOUCH_H (attesa pressione switch orizzontale). Una volta premuto, la macchina procede alla discesa verticale verso FC_2."], dove: "Scheda rostro - DIS0016202" },
+  FC_2: { cavo: "DIS0019101- Fine corsa 2", tipo: "Meccanico", intro: "Segnala che lo SPARK ha raggiunto il fine corsa meccanico verticale.", bullets: ["Consenso discesa verso R_1: una volta attivato FC_2, la macchina ha il consenso per abbassarsi ulteriormente fino a sentire R_1.", "Logica stati: è il target di discesa durante L_W_LINK_TOUCH_V (scende automaticamente fino alla pressione switch verticale)."], dove: "Scheda rostro - DIS0016202" },
+  L_1: { cavo: "DIS0019382 - Laser 1 (SENDISLAS)", tipo: "Laser ON - OFF", intro: "Fotocellula di presenza piano: rileva la presenza della slitta intermedia nella zona del rostro.", bullets: ["Quando rileva la slitta, disattiva il servomotore AT_1 (sblocco slitta – perni verticali).", "Logica stati: durante L_W_SLED_POS_1 la macchina attende che L_1 venga disattivato (slitta non più rilevata) per poi procedere a disattivare i perni verticali. Durante U_W_POS_1 attende che L_1 sia disattivato per passare alla discesa gambe lato testa."], dove: "Scheda rostro - DIS0016202" },
+  L_2: { cavo: "DIS0019026 - Laser 2 ", tipo: "Laser sensore striscia", intro: "Fotocellula catarifrangente per rilevamento della striscia riflettente sulla slitta.", bullets: ["In fase di CARICO: quando viene impegnato dalla striscia, comanda il sollevamento delle gambe lato piedi.", "In fase di SCARICO: quando il segnale della striscia non è più rilevato, comanda l'abbassamento delle gambe lato piedi.", "Logica stati: durante L_W_SLED_POS_2 la macchina attende che L_2 venga attivato per procedere al sollevamento gambe lato piedi (L_W_F_LEG_UP). Durante U_W_POS_2 attende che L_2 venga attivato prima di attivare la discesa gambe lato piedi."], dove: "Scheda rostro - DIS0016202" },
+  L_3: { cavo: "DIS0019383 - Laser 3 (SENDISLAS30200)", tipo: "Laser distanza ", intro: "Sensore di distanza per il controllo in continuo dell'allineamento verticale tra la barella e la slitta.", bullets: ["Allineamento: verifica in continuo l'inclinazione della barella rispetto alla slitta e comanda le gambe lato piedi per mantenere l'allineamento.", "Logica stati: attivo durante L_W_ADJ_LVL_LEG_F: la macchina si porta al valore laser impostato come parametro muovendo le gambe lato piedi; una volta allineata registra l'angolo HMI e lo mantiene attivando i perni verticali del rostro."], dove: "Scheda rostro - DIS0016202" },
+  L_4: { cavo: "(SENDISLAS30200)", tipo: "Laser distanza ", intro: "Sensore di distanza per il controllo in continuo dell'allineamento orizzontale della barella.", bullets: ["Funzione: verifica che il carico avvenga in modo dritto, controllando l'allineamento orizzontale barella/rostro durante la fase di avvicinamento"], dove: "Scheda display - DIS0016201" },
+  PO_1: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede motori DX e SX - DIS0016204" },
+  PO_2: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede motori DX e SX - DIS0016204" },
+  PO_3: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede motori DX e SX - DIS0016204" },
+  PO_4: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede motori DX e SX - DIS0016204" },
+  A_1: { cavo: null, tipo: "Analogico", intro: "Misurano l'angolo delle gambe rispetto al riferimento orizzontale.", bullets: ["Riferimento per i potenziometri: i sensori angolari A_1 e A_2 sono il riferimento principale per l'allineamento piedi/gambe (utilizzati dai potenziometri).", "Logica stati: usati in HEAD_DOWN e FEET_DOWN per determinare quando la gamba raggiunge il punto minimo (angolo = 0); in HORIZONTAL e AUTO_HORIZONTAL per livellare le gambe allo stesso angolo (±1°); in L_W_H_LEG_UP e L_W_RECOVERY_H_LEG per verificare che le gambe lato testa abbiano raggiunto angolo = 0; durante U_W_LEG_DISCH_PRS per verificare che l'angolo sia maggiore dell'angolo di carico."], dove: "Schede motori DX e SX - DIS0016204" },
+  A_2: { cavo: null, tipo: "Analogico", intro: "Misurano l'angolo delle gambe rispetto al riferimento orizzontale.", bullets: ["Riferimento per i potenziometri: i sensori angolari A_1 e A_2 sono il riferimento principale per l'allineamento piedi/gambe (utilizzati dai potenziometri).", "Logica stati: usati in HEAD_DOWN e FEET_DOWN per determinare quando la gamba raggiunge il punto minimo (angolo = 0); in HORIZONTAL e AUTO_HORIZONTAL per livellare le gambe allo stesso angolo (±1°); in L_W_H_LEG_UP e L_W_RECOVERY_H_LEG per verificare che le gambe lato testa abbiano raggiunto angolo = 0; durante U_W_LEG_DISCH_PRS per verificare che l'angolo sia maggiore dell'angolo di carico."], dove: "Schede motori DX e SX - DIS0016204" },
+  PR_1: { cavo: null, tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."], dove: "Schede motori DX e SX - DIS0016204" },
+  PR_2: { cavo: null, tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."], dove: "Schede motori DX e SX - DIS0016204" },
+};
+
 /* Viste della mappa componenti. Ogni hotspot: {id, x, y} con x/y in
    percentuale rispetto all'immagine (0-100), per restare allineati
    anche con zoom/pan. */
@@ -354,6 +374,268 @@ const MAP_VIEWS = [
   }
 ];
 
+const PARAMETERS = [
+  {
+    name: "MAX MT SPEED", default: "3500", max: "4000", min: "500", res: "1", unit: "rpm",
+    desc: [
+      { t: "p", h: "Questo parametro rappresenta la velocità di rotazione massima dei motori per il movimento delle gambe (lato testa e piedi) durante la movimentazione libera (FREE, rostro non vincolato alla slitta)." }
+    ]
+  },
+  {
+    name: "MAX SPEED MT HEAD UP", default: "3000", max: "4000", min: "500", res: "1", unit: "rpm",
+    desc: [
+      { t: "p", h: "Rappresenta la velocità di movimentazione delle gambe lato testa in fase di salita durante il carico della barella." }
+    ]
+  },
+  {
+    name: "MAX SPEED MT HEAD DOWN", default: "3000", max: "4000", min: "500", res: "1", unit: "rpm",
+    desc: [
+      { t: "p", h: "Rappresenta la velocità di riferimento per il movimento delle gambe lato testa durante la fase di scarico della barella." },
+      { t: "p", h: "Da questo valore si ottengono altre velocità di riferimento per le gambe lato testa. Sono calcolate come percentuali dell'80% e del 50% della suddetta velocità." },
+      { t: "p", h: "L'80% della MAX SPEED MT HEAD DOWN è utilizzata per muovere le gambe verso il basso durante:" },
+      { t: "ul", items: ["La fase di livellamento in cui la barella equalizza gli angoli delle gambe: abbassa le gambe del lato più vicino al suolo.", "La fase di scarico: dopo che il laser 1 si disimpegna fino a che le ruote raggiungono il suolo (touch down) e dopo lo sgancio dalla slitta con l'attuatore orizzontale."] },
+      { t: "p", h: "Il 50% della MAX SPEED MT HEAD DOWN è utilizzata quando necessario (angolo gambe lato testa &lt; angolo di carico lato testa) per raggiungere l'angolo di carico memorizzato abbassando le gambe lato testa." }
+    ]
+  },
+  {
+    name: "MAX SPEED MT FEET UP", default: "3000", max: "4000", min: "500", res: "1", unit: "rpm",
+    desc: [
+      { t: "p", h: "Rappresenta la velocità di movimentazione delle gambe lato piedi in fase di salita durante il carico della barella, da quando i laser 1 e 2 sono impegnati a quando le gambe lato piedi sono completamente salite." }
+    ]
+  },
+  {
+    name: "MAX SPEED MT FEET DOWN", default: "3000", max: "4000", min: "500", res: "1", unit: "rpm",
+    desc: [
+      { t: "p", h: "Rappresenta la velocità di riferimento per il movimento delle gambe lato piedi durante la fase di scarico della barella." },
+      { t: "p", h: "Da questo valore si ottengono altre velocità di riferimento per le gambe lato piedi. Sono calcolate come percentuali dell'80% e del 50% della suddetta velocità." },
+      { t: "p", h: "L'80% della MAX SPEED MT FEET DOWN è utilizzata per muovere le gambe verso il basso durante:" },
+      { t: "ul", items: ["La fase di livellamento in cui la barella equalizza gli angoli delle gambe: abbassa le gambe del lato più vicino al suolo."] },
+      { t: "p", h: "Il 50% della MAX SPEED MT FEET DOWN è utilizzata quando necessario (angolo gambe lato piedi &lt; angolo di carico lato piedi) per raggiungere l'angolo di carico memorizzato abbassando le gambe lato piedi." }
+    ]
+  },
+  {
+    name: "START STEP PLANE DWN", default: "15", max: "50", min: "0", res: "1", unit: "step/10ms",
+    desc: [
+      { t: "p", h: "Questo parametro permette di regolare <strong>l'accelerazione</strong> (gradino positivo, START) delle gambe in fase di <strong>discesa</strong> del piano barella (PLANE DOWN). Più è alto il valore del parametro e maggiore sarà la velocità con cui le valvole proporzionali si apriranno per raggiungere il target (% corrente) impostato dall'HMI." }
+    ]
+  },
+  {
+    name: "STOP STEP PLANE DWN", default: "10", max: "50", min: "0", res: "1", unit: "step/10ms",
+    desc: [
+      { t: "p", h: "Questo parametro permette di regolare la <strong>decelerazione</strong> delle gambe (gradino negativo, STOP) in fase di <strong>discesa</strong> del piano barella (PLANE DOWN). Più è alto il valore del parametro e maggiore sarà la velocità con cui le valvole proporzionali si chiuderanno per raggiungere il target (% corrente) impostato dall'HMI." },
+      { t: "p", h: "Il sistema di controllo prevede un filtro che temporalmente addolcisce le variazioni del riferimento delle valvole, ciò consente di avere variazioni di velocità di discesa più o meno dolci." }
+    ]
+  },
+  {
+    name: "START STEP PLANE UP", default: "100", max: "500", min: "0", res: "1", unit: "step/10ms",
+    desc: [
+      { t: "p", h: "Questo parametro permette di regolare <strong>l'accelerazione</strong> (gradino positivo, START) delle gambe in fase di <strong>salita</strong> del piano barella (PLANE UP). Più è alto il valore del parametro e maggiore sarà la velocità con cui i motori accelereranno per raggiungere il target (rpm) impostato dall'HMI." }
+    ]
+  },
+  {
+    name: "STOP STEP PLANE UP", default: "80", max: "500", min: "0", res: "1", unit: "step/10ms",
+    desc: [
+      { t: "p", h: "Questo parametro permette di regolare la <strong>decelerazione</strong> delle gambe (gradino negativo, STOP) in fase di <strong>salita</strong> del piano barella (PLANE UP). Più è alto il valore del parametro e maggiore sarà la velocità con cui i motori rallenteranno per raggiungere il target (rpm) impostato dall'HMI." },
+      { t: "p", h: "Il sistema di controllo prevede un filtro che temporalmente addolcisce le variazioni del riferimento di velocità dei motori, ciò consente di avere variazioni di velocità di salita più o meno dolci." },
+      { t: "img", src: "assets/params/filtraggio-temporale.png", caption: "Filtraggio temporale del comando delle gambe (vale per tutti e 4 i parametri START/STOP STEP PLANE)" }
+    ]
+  },
+  {
+    name: "HEAVY LOAD SPEED", default: "1000", max: "4000", min: "500", res: "1", unit: "rpm",
+    desc: [
+      { t: "p", h: "Al fine di rendere più sicura la movimentazione a carichi elevati è stata implementata una funzione lineare che riduce la velocità massima dei motori all'aumentare del carico." },
+      { t: "img", src: "assets/params/velocita-pressione.png", caption: "Velocità massima in funzione della pressione media" },
+      { t: "p", h: "I due parametri HEAVY LOAD SPEED e HEAVY LOAD PRESS individuano un punto nel piano cartesiano velocità/pressione idraulica (vedi figura) che permette di stabilire quanto diminuisce la velocità massima all'aumentare della pressione media dell'olio idraulico. In questo modo è possibile regolare la pendenza della retta." },
+      { t: "p", h: "In riferimento alla figura, V0 = 4000 rpm e P0 = 10 bar, mentre V1 = HEAVY LOAD SPEED e P1 = HEAVY LOAD PRESS." },
+      { t: "p", h: "Questa funzione segue il seguente comportamento:" },
+      { t: "formula", lines: ["V(p) = m·p + V0   se P0 < p < P1   dove m = (V1 − V0) / (P1 − P0)", "V(p) = V0   se p ≤ P0", "V(p) = V1   se p ≥ P1"] }
+    ]
+  },
+  {
+    name: "HEAVY LOAD PRESS", default: "80", max: "150", min: "10", res: "1", unit: "bar",
+    desc: [
+      { t: "p", h: "Al fine di rendere più sicura la movimentazione a carichi elevati è stata implementata una funzione lineare che riduce la velocità massima dei motori all'aumentare del carico." },
+      { t: "img", src: "assets/params/velocita-pressione.png", caption: "Velocità massima in funzione della pressione media" },
+      { t: "p", h: "I due parametri HEAVY LOAD SPEED e HEAVY LOAD PRESS individuano un punto nel piano cartesiano velocità/pressione idraulica (vedi figura) che permette di stabilire quanto diminuisce la velocità massima all'aumentare della pressione media dell'olio idraulico. In questo modo è possibile regolare la pendenza della retta." },
+      { t: "p", h: "In riferimento alla figura, V0 = 4000 rpm e P0 = 10 bar, mentre V1 = HEAVY LOAD SPEED e P1 = HEAVY LOAD PRESS." },
+      { t: "p", h: "Questa funzione segue il seguente comportamento:" },
+      { t: "formula", lines: ["V(p) = m·p + V0   se P0 < p < P1   dove m = (V1 − V0) / (P1 − P0)", "V(p) = V0   se p ≤ P0", "V(p) = V1   se p ≥ P1"] }
+    ]
+  },
+  {
+    name: "ACT VER WORK POS", default: "10.7", max: "15.0", min: "6.5", res: "0.1", unit: "% dutycycle",
+    desc: [
+      { t: "p", h: "Questo parametro indica la quota di <strong>lavoro</strong> per l'attuatore verticale (AT_1), espressa in % del dutycycle del segnale di controllo dell'attuatore. L'attuatore verticale è in posizione di lavoro quando deve sganciare la slitta." }
+    ]
+  },
+  {
+    name: "ACT VER IDLE POS", default: "10.7", max: "15.0", min: "6.5", res: "0.1", unit: "% dutycycle",
+    desc: [
+      { t: "p", h: "Questo parametro indica la quota di <strong>riposo</strong> per l'attuatore verticale (AT_1), espressa in % del dutycycle del segnale di controllo dell'attuatore. L'attuatore verticale è in posizione di riposo quando <strong>non</strong> deve sganciare la slitta." }
+    ]
+  },
+  {
+    name: "ACT HOR WORK POS", default: "10.7", max: "15.0", min: "6.5", res: "0.1", unit: "% dutycycle",
+    desc: [
+      { t: "p", h: "Questo parametro indica la quota di <strong>lavoro</strong> per l'attuatore orizzontale (AT_2), espressa in % del dutycycle del segnale di controllo dell'attuatore. L'attuatore orizzontale è in posizione di lavoro quando deve liberare il rostro dalla slitta." }
+    ]
+  },
+  {
+    name: "ACT HOR IDLE POS", default: "10.7", max: "15.0", min: "6.5", res: "0.1", unit: "% dutycycle",
+    desc: [
+      { t: "p", h: "Questo parametro indica la quota di <strong>riposo</strong> per l'attuatore orizzontale (AT_2), espressa in % del dutycycle del segnale di controllo dell'attuatore. L'attuatore orizzontale è in posizione di riposo quando <strong>non</strong> deve liberare il rostro dalla slitta." }
+    ]
+  },
+  {
+    name: "LASER POS REF", default: "1380", max: "2000", min: "1000", res: "1", unit: "ADC counts",
+    desc: [
+      { t: "p", h: "Per assicurare che il piano della barella sia allineato a quello di carico è stato predisposto un laser analogico (L_3) che misura la distanza tra il rostro e il piano su cui scorre la slitta di carico. Il valore del parametro LASER POS REF è il valore del segnale generato da L_3 quando il piano barella è parallelo a quello di carico, espresso in conteggi della conversione da analogico a digitale (ADC counts). La risoluzione è di circa 0.05 mm a conteggio." },
+      { t: "p", h: "Questo parametro è utilizzato in fase di carico per allineare il piano della barella al piano di carico: ciò avviene quando il rostro è vincolato alla slitta e le gambe lato testa sono completamente alzate. In questa situazione, modificando l'altezza da terra del lato piedi, il sistema osserva il segnale di L_3 cercando di raggiungere il valore impostato da LASER POS REF." },
+      { t: "p", h: "Il sistema smetterà di inseguire il valore di riferimento se il valore assoluto dell'errore (L_3 − LASER POS REF) è inferiore a 15 conteggi (circa 0.57 mm)." },
+      { t: "p", h: "Da prove sperimentali si è notata la necessità di compensare le flessioni della struttura della barella con carichi elevati; quindi è stata introdotta una <strong>funzione di correzione</strong> che, all'aumentare della pressione idraulica del lato piedi, riduce il riferimento dato da LASER POS REF." },
+      { t: "p", h: "Nota: in questa situazione il lato testa è sollevato da terra con il rostro appoggiato alla slitta; per questa funzione la pressione di riferimento lato piedi è mediata su 50 punti campionati a 10ms." },
+      { t: "p", h: "Se la pressione lato piedi è superiore a 25 bar, la suddetta funzione riduce il valore di riferimento di 6 conteggi (0.228 mm) ogni 10 bar, per un massimo di 150 conteggi (5.7 mm)." },
+      { t: "p", h: "Siccome il valore massimo di pressione è 150 bar, la correzione massima sarà = [(150 − 25) × 0.6] × 0.038 = <strong>2.85 mm</strong>. Nota: il laser L_3 ha una risoluzione di 0.038 mm ogni conteggio." }
+    ]
+  },
+  {
+    name: "LASER UNLOAD DELTA", default: "50", max: "2000", min: "0", res: "1", unit: "ADC counts",
+    desc: [
+      { t: "p", h: "Questo valore viene utilizzato nella fase di scarico." },
+      { t: "p", h: "Quando il laser digitale L_2 viene disimpegnato, le gambe lato piedi scendono fino a raggiungere il suolo (TOUCHDOWN); da questo punto in poi il movimento continua con lo scopo di alzare il lato piedi fino a che il valore di L_3 è ad una distanza (DELTA) dal suo <strong>minimo relativo</strong> pari o superiore al parametro LASER UNLOAD DELTA. Ciò ha lo scopo di portare il rostro in appoggio alla slitta sollevando i rulli lato piedi dal piano di carico: questo evita il salto verso il basso della barella quando la slitta viene sganciata ed estratta. Contemporaneamente, questo parametro aumenta l'inclinazione della barella per il resto della fase di scarico, per facilitarne l'estrazione." },
+      { t: "p", h: "Cosa succede in fase di scarico: quando L_2 viene disimpegnato e il rostro si trova sollevato dal piano della slitta, i rulli del fondo lato piedi appoggiano al piano di carico e rappresentano il fulcro della leva di primo genere che ha come estremità la sfera del rostro e il lato piedi. Al termine del touchdown delle ruote lato piedi, il movimento delle gambe lato piedi non viene interrotto, in modo che la sfera del rostro si avvicini al piano della slitta fino a raggiungerlo e i rulli si allontanino dal piano di carico. Il sistema riconosce quando il fulcro passa alla sfera del rostro individuando il <strong>minimo relativo</strong> del segnale del laser L_3. Il movimento delle gambe lato piedi viene interrotto quando una delle due condizioni sopra descritte è soddisfatta." }
+    ]
+  },
+  {
+    name: "HORIZ ALIGN WINDOW", default: "300", max: "1000", min: "50", res: "1", unit: "ADC counts",
+    desc: [
+      { t: "p", h: "Parametro espresso in conteggi (ADC counts), è utilizzato per settare la tolleranza dell'allarme di disallineamento orizzontale, che si basa sulla misura del laser analogico orizzontale (L_4). Questo parametro indica quanto la misura L_4 può variare rispetto al valore di riferimento (HORIZ ALIGN CENTER) prima che si attivi il suddetto allarme." }
+    ]
+  },
+  {
+    name: "HORIZ ALIGN CENTER", default: "1000", max: "3000", min: "300", res: "1", unit: "ADC counts",
+    desc: [
+      { t: "p", h: "Parametro espresso in conteggi (ADC counts), è utilizzato per settare il valore del laser L_4 quando i due assi longitudinali della barella e della slitta di carico sono allineati. Questo parametro e quello HORIZ ALIGN WINDOW vengono utilizzati per gestire l'allarme di disallineamento orizzontale secondo questa logica:" },
+      { t: "formula", lines: ["threshold_high = HORIZ ALIGN CENTER + HORIZ ALIGN WINDOW", "threshold_low  = HORIZ ALIGN CENTER − HORIZ ALIGN WINDOW", "se (value_L_4 < threshold_low) o (value_L_4 > threshold_high) → Allarme = ON", "altrimenti → Allarme = OFF"] }
+    ]
+  },
+  {
+    name: "UNLINK ANGLE DIFF MAX", default: "5", max: "20", min: "0", res: "0.1", unit: "degree",
+    desc: [
+      { t: "p", h: "Questo parametro è utilizzato nella fase di scarico: quando le ruote delle gambe lato testa hanno raggiunto il suolo, il sistema controlla la differenza tra l'angolo gambe lato piedi e lato testa. Se la differenza tra i due è maggiore del parametro UNLINK ANGLE DIFF MAX, il sistema non procede con lo sgancio del rostro dalla slitta mediante l'attuatore orizzontale (ACT 2) e informa l'utente mediante un messaggio di errore (L200)." },
+      { t: "p", h: "Quando questo avviene significa che le ruote lato testa sono appoggiate ad una superficie che è ad una quota maggiore rispetto a quella su cui appoggiano le ruote del lato piedi — con molta probabilità le ruote sono appoggiate ad un gradino, un marciapiede o un ostacolo non previsto. In queste condizioni, procedere con lo sgancio dalla slitta rappresenta un potenziale rischio di effettuare un brusco salto." }
+    ]
+  },
+  {
+    name: "POWER-OFF TIME", default: "1200", max: "32000", min: "0", res: "1", unit: "s",
+    desc: [
+      { t: "p", h: "È il tempo (secondi) che deve trascorrere dall'ultima interazione affinché il sistema si spenga autonomamente." },
+      { t: "p", h: "Il valore 0 disabilita questa funzionalità." }
+    ]
+  },
+  {
+    name: "FREE WORK PRESS THR", default: "30", max: "150", min: "20", res: "1", unit: "bar",
+    desc: [
+      { t: "p", h: "Rappresenta il valore in bar della pressione idraulica media tra lato testa e lato piedi che permette di identificare se la barella è con paziente o senza paziente." }
+    ]
+  },
+  {
+    name: "LEG POSITION SENS MODEL", default: "1", max: "1", min: "0", res: "1", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Identifica il tipo di sensore per misurare l'angolo delle gambe installato sul lato testa e piedi." },
+      { t: "ul", items: ["0 = VERTI-X 05E6-709-221-202", "1 = RFD-4021-609-211-401"] }
+    ]
+  },
+  {
+    name: "MIN INCLINATION IMU ERR", default: "0.5", max: "2", min: "0", res: "0.1", unit: "degree",
+    desc: [
+      { t: "p", h: "Questo parametro viene utilizzato durante la fase di carico e scarico, quando la correzione dell'allineamento verticale del piano barella con quello di carico è affidata alla piattaforma inerziale (IMU)." },
+      { t: "p", h: "Questo parametro rappresenta la tolleranza di correzione del suddetto allineamento: se il valore assoluto dell'errore di allineamento è inferiore a questo parametro, il sistema non correggerà l'altezza lato piedi." },
+      { t: "p", h: "L'inclinazione della barella lungo l'asse longitudinale viene controllata dalla piattaforma inerziale (IMU) quando:" },
+      { t: "ul", items: ["in carico, dopo che la slitta è stata sganciata (gambe lato testa completamente retratte e allineamento con laser concluso);", "in scarico, dopo che la slitta è stata sganciata, quindi è avvenuto il touchdown del lato piedi e si è conclusa la fase di allineamento in scarico portando la sfera del rostro in appoggio (vedi parametro LASER UNLOAD DELTA)."] }
+    ]
+  },
+  {
+    name: "ACTUATOR MOVING TIME", default: "0", max: "9.99", min: "0", res: "0.01", unit: "s",
+    desc: [
+      { t: "p", h: "Serve per indicare quanto tempo (secondi) occorre attendere dopo l'attivazione dell'attuatore <strong>orizzontale</strong> (AT_2) per considerarne conclusa la movimentazione (tempo di attuazione)." }
+    ]
+  },
+  {
+    name: "SWITCH RELEASE TIME", default: "0", max: "9.99", min: "0", res: "0.01", unit: "s",
+    desc: [
+      { t: "p", h: "Rappresenta il ritardo con cui il sistema considera il pulsante di carico o scarico rilasciato: se il rilascio del pulsante di carico o scarico avviene per un tempo inferiore a questo parametro, il sistema non lo considera." },
+      { t: "p", h: "Serve per filtrare rilasci brevi, tipicamente non voluti, che possono generare stop fastidiosi delle fasi di carico o scarico." }
+    ]
+  },
+  {
+    name: "SW.REL. ALARM ENABLE", default: "0", max: "1", min: "0", res: "1", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Permette di abilitare (1) o disabilitare (0) l'allarme di rilascio dei pulsanti di carico e scarico nelle fasi di carico e scarico." }
+    ]
+  },
+  {
+    name: "WEIGHT OFFSET", default: "32.42", max: "327.67", min: "-327.68", res: "0.01", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Questi parametri sono utilizzati dalla funzione di calcolo del peso paziente (weight measure)." },
+      { t: "p", h: "Servono per la formula che calcola il peso misurando la pressione idraulica (bar) lato testa e piedi, secondo la seguente formula:" },
+      { t: "formula", lines: ["peso = [(pressione testa + pressione piedi) − WEIGHT OFFSET] × WEIGHT GAIN"] }
+    ]
+  },
+  {
+    name: "WEIGHT GAIN", default: "0.43", max: "327.67", min: "-327.68", res: "0.01", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Questi parametri sono utilizzati dalla funzione di calcolo del peso paziente (weight measure)." },
+      { t: "p", h: "Servono per la formula che calcola il peso misurando la pressione idraulica (bar) lato testa e piedi, secondo la seguente formula:" },
+      { t: "formula", lines: ["peso = [(pressione testa + pressione piedi) − WEIGHT OFFSET] × WEIGHT GAIN"] }
+    ]
+  },
+  {
+    name: "SYSTEM SERIAL NUMBER", default: "0", max: "9999999", min: "0", res: "1", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Rappresenta il numero seriale che identifica la barella." }
+    ]
+  },
+  {
+    name: "LOAD TOTAL CYCLES", default: "0", max: "9999999", min: "0", res: "1", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Indica quanti cicli completi di <strong>carico</strong> sono stati effettuati dalla barella." }
+    ]
+  },
+  {
+    name: "UNLOAD TOTAL CYCLES", default: "0", max: "9999999", min: "0", res: "1", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Indica quanti cicli completi di <strong>scarico</strong> sono stati effettuati dalla barella." }
+    ]
+  },
+  {
+    name: "PAIRING EDEN SN", default: "0", max: "9999999", min: "0", res: "1", unit: "N.A.",
+    desc: [
+      { t: "p", h: "Questo parametro permette di indicare il serial number del dispositivo EDEN BS8 a cui lo Spark deve collegarsi (bluetooth) per le operazioni di carico e scarico. Per disabilitare l'uso del dispositivo EDEN BS8 e di tutte le funzionalità relative, occorre impostare il serial number a 0: in questo caso lo Spark implementerà lo scarico e il carico nella modalità tradizionale." }
+    ]
+  },
+  {
+    name: "HIGH LOAD LEVEL ANGLE LEG", default: "75.0", max: "75.0", min: "60.0", res: "0.1", unit: "degree",
+    desc: [
+      { t: "p", h: "Rappresenta la soglia dell'angolo gambe oltre la quale il sistema disabilita alcuni controlli che impedirebbero lo scarico o il carico quando queste operazioni sono eseguite ad altezze vicine al limite massimo di estensione delle gambe. La fase di livellamento del lato piedi è bloccante per procedere con le operazioni di carico/scarico (vedi stati L_W_ADJ_LVL_LEG_F, U_W_POS_2, U_W_NO_BUMP): se le gambe lato piedi raggiungono il valore massimo, ad esempio a causa dell'estrema altezza a cui si trova il piano di carico, il sistema si bloccherebbe in attesa del livellamento del piano. Ma se il valore di questo parametro è inferiore al valore dell'angolo massimo raggiungibile dalle gambe (esempio: massimo raggiungibile di 69 gradi e HIGH LOAD LEVEL ANGLE LEG di 68.5) allora il sistema considererà comunque raggiunto il livellamento e procederà con le fasi successive." },
+      { t: "p", h: "Se il valore di questo parametro è maggiore o uguale al valore massimo raggiungibile dall'angolo gambe, questa funzionalità di bypass verrà disabilitata; se invece si vuole abilitarla occorre impostare un valore leggermente inferiore al valore massimo raggiungibile (qualche decimo di grado in meno)." }
+    ]
+  },
+  {
+    name: "HIGH LOAD LEVEL WHEELS LEN", default: "50.0", max: "50.0", min: "44.0", res: "0.1", unit: "mm",
+    desc: [
+      { t: "p", h: "Rappresenta la soglia dell'estensione dell'attuatore di posizione ruote oltre la quale il sistema disabilita alcuni controlli che impedirebbero lo scarico o il carico quando queste operazioni sono eseguite ad altezze vicine al limite massimo di estensione delle gambe e degli attuatori delle ruote." },
+      { t: "p", h: "Anche la lunghezza dell'attuatore di posizione delle ruote può bloccare l'estensione dell'attuatore delle gambe: siccome gli assi di rotazione orizzontale delle ruote devono essere mantenuti perpendicolari al terreno, se una o più ruote raggiungono la loro massima quota (45 mm), anche l'estensione delle gambe viene fermata. Se il carico e lo scarico avvengono con piani di carico inclinati, è possibile che alcuni attuatori della posizione delle ruote raggiungano il loro valore massimo e quindi impediscano il procedere delle operazioni (vedi stati L_W_ADJ_LVL_LEG_F, U_W_POS_2, U_W_NO_BUMP); ma se il valore di HIGH LOAD LEVEL WHEELS LEN è inferiore al valore di massima estensione (45 mm) (esempio: 44.5) allora il sistema considererà comunque raggiunto il livellamento e procederà con le fasi successive. Se invece si vuole mantenere disabilitata questa funzionalità, occorre impostare un valore maggiore o uguale a 45 mm." }
+    ]
+  },
+  {
+    name: "MAX LEG ANGLE", default: "69.0", max: "71.0", min: "68.0", res: "0.1", unit: "degree",
+    desc: [
+      { t: "p", h: "Indica il valore massimo dell'angolo raggiungibile dalle gambe. Va definito in fase di collaudo in modo da permettere la massima escursione ma, contemporaneamente, evitare che gli attuatori idraulici raggiungano il finecorsa alla massima estensione, con conseguente inutile e dannoso sforzo meccanico." }
+    ]
+  },
+];
+
 /* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per numero di serie (SN)
    Ogni chiave è un SN (matricola Spark). Il valore è l'elenco delle
@@ -384,123 +666,6 @@ const COLLAUDO = [
 ];
 
 /* ---------------------------------------------------------------------
-   CODICI ERRORE
-   L = allarmi di logica/sequenza, W = warning, E = errori hardware/sensori.
-   I codici sensore citati nei messaggi (R1, R2, L1, L2...) sono gli stessi
-   della mappa componenti (UTENZE): R1→R_1, L1→L_1, ecc.
-   Fonte: lista codici fornita da Eduardo (upload del 14/09/2026).
-   ------------------------------------------------------------------- */
-const FAULT_CODES = [
-  { code: "L001", type: "L", message: "Controllo Reed 1 avvio scarico fallito: durante la fase di avvio scarico lo stato del sensore Reed non è valido." },
-  { code: "L002", type: "L", message: "R1 non attivo inatteso oppure R2 attivo inatteso in Attesa Scarico Pos 1." },
-  { code: "L003", type: "L", message: "Stato inatteso di R2 o S2 attivo con R1 non attivo in Avvio Carico." },
-  { code: "L004", type: "L", message: "L1 non attivo inatteso in Carico Attesa Pos 2." },
-  { code: "L005", type: "L", message: "R1 non attivo inatteso in Carico Attesa Pos 2." },
-  { code: "L006", type: "L", message: "L1 non attivo e L2 attivo inatteso in Avvio Scarico." },
-  { code: "L007", type: "L", message: "Pressione gambe lato Piedi troppo bassa (ruote Piedi non a terra) in Avvio Scarico." },
-  { code: "L008", type: "L", message: "Stato R1 non attivo inatteso in Attesa Scarico Pos 2." },
-  { code: "L009", type: "L", message: "L'angolo della gamba Piedi ha raggiunto il valore meccanico massimo in Scarico Gamba Piedi Giù." },
-  { code: "L010", type: "L", message: "Stato R1 non attivo inatteso in Attesa Scarico Gamba Piedi Giù." },
-  { code: "L011", type: "L", message: "L'angolo della gamba Piedi ha raggiunto il valore meccanico massimo in Scarico No Bump." },
-  { code: "L012", type: "L", message: "Stato R1 non attivo inatteso in Scarico No Bump." },
-  { code: "L013", type: "L", message: "Angolo gamba Piedi o Testa ha raggiunto il valore minimo consentito in Carico Attesa Contatto Link V." },
-  { code: "L014", type: "L", message: "Ripristino angolo gamba Testa fallito in Attesa Ripristino Gamba Testa Su." },
-  { code: "L015", type: "L", message: "Stato R1 non attivo inatteso in Attesa Regolazione Gamba Piedi." },
-  { code: "L016", type: "L", message: "Angolo gamba Testa troppo alto per il ripristino in Attesa Regolazione Gamba Piedi." },
-  { code: "L017", type: "L", message: "R1 non attivo inatteso oppure L1 attivo inatteso in Attesa Gamba Testa Su." },
-  { code: "L018", type: "L", message: "R1 non attivo inatteso in Carico Attesa Pos Slitta 1." },
-  { code: "L019", type: "L", message: "L'angolo della gamba Piedi ha raggiunto il valore meccanico massimo in Scarico Gamba Giù Testa." },
-  { code: "L020", type: "L", message: "Scarico pressione gamba Piedi non eseguito in tempo in Attesa Scarico Pressione Gamba." },
-  { code: "L200", type: "L", message: "Ruote lato Testa troppo lontane dal pavimento: il blocco slitta viene disabilitato per evitare un salto troppo grande." },
-  { code: "W002", type: "W", message: "Pacchetto dati Cloud scartato perché il buffer dati è pieno." },
-  { code: "E010", type: "E", message: "Comunicazione CAN bus persa — ECU Motore Destro." },
-  { code: "E011", type: "E", message: "Comunicazione CAN bus persa — ECU Motore Sinistro." },
-  { code: "E012", type: "E", message: "Comunicazione CAN bus persa — ECU Rostro." },
-  { code: "E020", type: "E", message: "Errore di inizializzazione dell'unità inerziale (giroscopio)." },
-  { code: "E021", type: "E", message: "Valore sotto soglia — posizione ruota lato Testa DX." },
-  { code: "E023", type: "E", message: "Valore sotto soglia — posizione ruota lato Piedi DX." },
-  { code: "E024", type: "E", message: "Valore sotto soglia — posizione ruota lato Testa SX." },
-  { code: "E026", type: "E", message: "Valore sotto soglia — posizione ruota lato Piedi SX." },
-  { code: "E028", type: "E", message: "Valore sotto soglia — alimentazione sensori lato DX." },
-  { code: "E029", type: "E", message: "Valore sopra soglia — alimentazione sensori lato DX." },
-  { code: "E030", type: "E", message: "Valore sotto soglia — alimentazione sensori lato SX." },
-  { code: "E031", type: "E", message: "Valore sopra soglia — alimentazione sensori lato SX." },
-  { code: "E032", type: "E", message: "Valore sotto soglia — posizione gamba lato Piedi." },
-  { code: "E033", type: "E", message: "Valore sopra soglia — posizione gamba lato Piedi." },
-  { code: "E034", type: "E", message: "Valore sotto soglia — posizione gamba lato Testa." },
-  { code: "E035", type: "E", message: "Valore sopra soglia — posizione gamba lato Testa." },
-  { code: "E036", type: "E", message: "Valore sotto soglia — sensore di pressione lato Piedi." },
-  { code: "E037", type: "E", message: "Valore sopra soglia — sensore di pressione lato Piedi." },
-  { code: "E038", type: "E", message: "Valore sotto soglia — sensore di pressione lato Testa." },
-  { code: "E039", type: "E", message: "Valore sopra soglia — sensore di pressione lato Testa." },
-  { code: "E040", type: "E", message: "Valore sotto soglia — motore ruota Testa DX." },
-  { code: "E041", type: "E", message: "Valore sopra soglia — motore ruota Testa DX." },
-  { code: "E042", type: "E", message: "Valore sotto soglia — motore ruota Piedi DX." },
-  { code: "E043", type: "E", message: "Valore sopra soglia — motore ruota Piedi DX." },
-  { code: "E044", type: "E", message: "Valore sotto soglia — motore gamba Piedi." },
-  { code: "E045", type: "E", message: "Valore sopra soglia — motore gamba Piedi." },
-  { code: "E046", type: "E", message: "Valore sotto soglia — motore ruota Testa SX." },
-  { code: "E047", type: "E", message: "Valore sopra soglia — motore ruota Testa SX." },
-  { code: "E048", type: "E", message: "Valore sotto soglia — motore ruota Piedi SX." },
-  { code: "E049", type: "E", message: "Valore sopra soglia — motore ruota Piedi SX." },
-  { code: "E050", type: "E", message: "Valore sotto soglia — motore gamba Testa." },
-  { code: "E051", type: "E", message: "Valore sopra soglia — motore gamba Testa." },
-  { code: "E052", type: "E", message: "Valore sotto soglia — freno Testa DX." },
-  { code: "E053", type: "E", message: "Valore sopra soglia — freno Testa DX." },
-  { code: "E054", type: "E", message: "Valore sotto soglia — freno Piedi DX." },
-  { code: "E055", type: "E", message: "Valore sopra soglia — freno Piedi DX." },
-  { code: "E056", type: "E", message: "Valore sotto soglia — freno Testa SX." },
-  { code: "E057", type: "E", message: "Valore sopra soglia — freno Testa SX." },
-  { code: "E058", type: "E", message: "Valore sotto soglia — freno Piedi SX." },
-  { code: "E059", type: "E", message: "Valore sopra soglia — freno Piedi SX." },
-  { code: "E060", type: "E", message: "Valore sotto soglia — elettrovalvola lato Piedi." },
-  { code: "E061", type: "E", message: "Valore sopra soglia — elettrovalvola lato Piedi." },
-  { code: "E062", type: "E", message: "Valore sotto soglia — elettrovalvola lato Testa." },
-  { code: "E063", type: "E", message: "Valore sopra soglia — elettrovalvola lato Testa." },
-  { code: "E064", type: "E", message: "Valore sopra soglia — uscita segnalatore acustico lato SX." },
-  { code: "E065", type: "E", message: "Valore sopra soglia — uscita segnalatore acustico lato DX." },
-  { code: "E066", type: "E", message: "Valore sopra soglia — uscita Led lato SX." },
-  { code: "E067", type: "E", message: "Valore sopra soglia — uscita Led lato DX." },
-  { code: "E100", type: "E", message: "Sovracorrente motore gamba Testa." },
-  { code: "E101", type: "E", message: "Sovracorrente motore ruota Testa SX." },
-  { code: "E102", type: "E", message: "Sovracorrente motore ruota Piedi SX." },
-  { code: "E103", type: "E", message: "Sovracorrente motore gamba Piedi." },
-  { code: "E104", type: "E", message: "Sovracorrente motore ruota Testa DX." },
-  { code: "E105", type: "E", message: "Sovracorrente motore ruota Piedi DX." },
-  { code: "E106", type: "E", message: "Sovracorrente attuatore verticale." },
-  { code: "E107", type: "E", message: "Sovracorrente attuatore orizzontale." },
-  { code: "E108", type: "E", message: "Sovratemperatura motore gamba Testa." },
-  { code: "E109", type: "E", message: "Sovratemperatura motore ruota Testa SX." },
-  { code: "E110", type: "E", message: "Sovratemperatura motore ruota Piedi SX." },
-  { code: "E111", type: "E", message: "Sovratemperatura motore gamba Piedi." },
-  { code: "E112", type: "E", message: "Sovratemperatura motore ruota Testa DX." },
-  { code: "E113", type: "E", message: "Sovratemperatura motore ruota Piedi DX." },
-  { code: "E114", type: "E", message: "Sovratemperatura attuatore verticale." },
-  { code: "E115", type: "E", message: "Sovratemperatura attuatore orizzontale." },
-  { code: "E116", type: "E", message: "Incoerenza nella posizione delle ruote." },
-  { code: "E117", type: "E", message: "Pulsante Carico bloccato." },
-  { code: "E118", type: "E", message: "Pulsante Scarico bloccato." },
-  { code: "E119", type: "E", message: "Thumbwheel bloccato." },
-  { code: "E120", type: "E", message: "Guasto di inizializzazione ECU Motore Sinistro." },
-  { code: "E121", type: "E", message: "Guasto di inizializzazione ECU Motore Destro." },
-  { code: "E122", type: "E", message: "Guasto di inizializzazione ECU Rostro Destro." },
-  { code: "E123", type: "E", message: "Guasto di calibrazione ECU Motore Sinistro." },
-  { code: "E124", type: "E", message: "Guasto di calibrazione ECU Motore Destro." },
-  { code: "E125", type: "E", message: "Guasto di calibrazione ECU Rostro Destro." },
-  { code: "E126", type: "E", message: "Sovratensione Thumbwheel." },
-  { code: "E127", type: "E", message: "Sottotensione Thumbwheel." },
-  { code: "E128", type: "E", message: "Errore: connessione EDEN persa." },
-  { code: "E129", type: "E", message: "Errore di posizione EDEN." },
-  { code: "E130", type: "E", message: "Livello segnale Thumbwheel troppo basso." },
-  { code: "E131", type: "E", message: "Livello segnale Thumbwheel troppo alto." },
-  { code: "E132", type: "E", message: "Cortocircuito o carico assente su uscita ECU K15 quando attiva (ON)." },
-  { code: "E133", type: "E", message: "Cortocircuito verso l'alimentazione su uscita ECU K15 quando disattiva (OFF)." },
-  { code: "E134", type: "E", message: "Cortocircuito o carico assente su uscita OPT quando attiva (ON)." },
-  { code: "E135", type: "E", message: "Cortocircuito verso l'alimentazione su uscita OPT quando disattiva (OFF)." },
-  { code: "E136", type: "E", message: "Guasto attuatore verticale bloccato." }
-];
-
-/* ---------------------------------------------------------------------
    DOCUMENTI
    ------------------------------------------------------------------- */
 const DOCUMENTS = {
@@ -524,7 +689,6 @@ const I18N = {
     nav_home: "Home",
     nav_simulator: "Simulatore",
     nav_checklist: "Manutenzione",
-    nav_errori: "Codici Errore",
     nav_collaudo: "Collaudo",
     nav_documents: "Documenti",
     fw_label: "Versione firmware",
@@ -534,6 +698,9 @@ const I18N = {
     sim_mode_map: "Mappa Componenti",
     map_intro: "Scegli una vista, poi muoviti con le dita (o il mouse) e tocca un'etichetta per vederne il significato.",
     map_reset: "Reimposta",
+    sim_mode_params: "Parametri",
+    params_intro: "Elenco parametri settabili da menu HMI: nome, default, min, max, risoluzione e descrizione completa.",
+    search_placeholder: "Cerca un parametro…",
     sim_card_desc: "Naviga il pannello Spark come sul dispositivo reale e fai pratica.",
     sim_locked_msg: "Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.",
     sim_tap_to_start: "Tocca lo schermo per iniziare",
@@ -544,13 +711,6 @@ const I18N = {
     maint_card_desc: "Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.",
     new_maint_btn: "Nuova manutenzione",
     maint_empty: "Nessuna manutenzione caricata ancora. Compila una nuova checklist e mandamela: la aggiungo qui, organizzata per SN.",
-    errori_intro: "Elenco dei codici di allarme ed errore, con descrizione in italiano. Cerca per codice o per parola chiave.",
-    errori_card_desc: "Elenco ricercabile dei codici di allarme ed errore, tradotti in italiano.",
-    errori_search_placeholder: "Cerca per codice (es. E040) o parola chiave (es. motore, pressione)...",
-    errori_empty: "Nessun codice trovato per questa ricerca.",
-    errori_type_L: "Logica",
-    errori_type_W: "Warning",
-    errori_type_E: "Errore",
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",
     empty_state: "Contenuti in arrivo per questa sezione.",
