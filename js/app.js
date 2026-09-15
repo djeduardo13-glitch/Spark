@@ -280,8 +280,10 @@ document.getElementById("simModeSwitch").addEventListener("click", (e) => {
   document.getElementById("simPanelMode").style.display = state.simMode === "panel" ? "block" : "none";
   document.getElementById("simMapMode").style.display = state.simMode === "map" ? "block" : "none";
   document.getElementById("simParamsMode").style.display = state.simMode === "params" ? "block" : "none";
+  document.getElementById("simErrorsMode").style.display = state.simMode === "errors" ? "block" : "none";
   if (state.simMode === "map") renderMapView();
   if (state.simMode === "params") renderParameters();
+  if (state.simMode === "errors") renderErrors();
 });
 
 function renderParamDesc(desc) {
@@ -333,6 +335,151 @@ function renderParameters(filterText) {
 document.getElementById("paramSearch").addEventListener("input", (e) => {
   renderParameters(e.target.value);
 });
+
+/* ---------------------------------------------------------------------
+   ERRORI
+   ------------------------------------------------------------------- */
+const CAT_COLOR = { L: "cat-l", W: "cat-w", E: "cat-e" };
+
+function renderErrors(filterText) {
+  const list = document.getElementById("errorList");
+  const query = (filterText || "").trim().toLowerCase();
+  const items = ERRORS.filter(er =>
+    query === "" ||
+    er.code.toLowerCase().includes(query) ||
+    er.text.toLowerCase().includes(query)
+  );
+
+  if (items.length === 0) {
+    list.innerHTML = `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
+    return;
+  }
+
+  list.innerHTML = "";
+  items.forEach(er => {
+    const row = document.createElement("div");
+    row.className = "param-row";
+    row.dataset.errorCode = er.code;
+    row.innerHTML = `
+      <button class="param-question">
+        <span class="param-q-left">
+          <span class="param-name error-code">${er.code}</span>
+          <span class="param-badges">
+            <span class="param-badge ${CAT_COLOR[er.cat] || ""}">${er.catLabel}</span>
+          </span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="param-answer"><p class="param-p">${er.text}</p></div>
+    `;
+    row.querySelector(".param-question").addEventListener("click", () => {
+      row.classList.toggle("open");
+    });
+    list.appendChild(row);
+  });
+}
+
+document.getElementById("errorSearch").addEventListener("input", (e) => {
+  renderErrors(e.target.value);
+});
+
+/* ---------------------------------------------------------------------
+   RICERCA GLOBALE (errori + parametri)
+   ------------------------------------------------------------------- */
+(function setupGlobalSearch() {
+  const input = document.getElementById("globalSearch");
+  const results = document.getElementById("globalSearchResults");
+
+  function closeResults() {
+    results.style.display = "none";
+    results.innerHTML = "";
+  }
+
+  input.addEventListener("input", () => {
+    const query = input.value.trim().toLowerCase();
+    if (query === "") { closeResults(); return; }
+
+    const dict = I18N[state.lang] || I18N.it;
+    const errorMatches = ERRORS.filter(er =>
+      er.code.toLowerCase().includes(query) || er.text.toLowerCase().includes(query)
+    ).slice(0, 8);
+    const paramMatches = PARAMETERS.filter(pr =>
+      pr.name.toLowerCase().includes(query)
+    ).slice(0, 8);
+
+    if (errorMatches.length === 0 && paramMatches.length === 0) {
+      results.innerHTML = `<div class="gsr-empty">${dict.global_search_no_results || "Nessun risultato"}</div>`;
+      results.style.display = "block";
+      return;
+    }
+
+    let html = "";
+    errorMatches.forEach(er => {
+      html += `
+        <button class="gsr-item" data-gsr-type="error" data-gsr-key="${er.code}">
+          <span class="gsr-tag error">${dict.global_search_error_tag || "Errore"}</span>
+          <span class="gsr-title">${er.code}</span>
+          <span class="gsr-snippet">${er.text}</span>
+        </button>`;
+    });
+    paramMatches.forEach(pr => {
+      html += `
+        <button class="gsr-item" data-gsr-type="param" data-gsr-key="${pr.name}">
+          <span class="gsr-tag param">${dict.global_search_param_tag || "Parametro"}</span>
+          <span class="gsr-title">${pr.name}</span>
+          <span class="gsr-snippet">Default ${pr.default} ${pr.unit}</span>
+        </button>`;
+    });
+    results.innerHTML = html;
+    results.style.display = "block";
+
+    results.querySelectorAll(".gsr-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.gsrType;
+        const key = btn.dataset.gsrKey;
+        closeResults();
+        input.value = "";
+
+        if (type === "param") {
+          state.simMode = "params";
+          document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === "params"));
+          document.getElementById("simPanelMode").style.display = "none";
+          document.getElementById("simMapMode").style.display = "none";
+          document.getElementById("simParamsMode").style.display = "block";
+          document.getElementById("simErrorsMode").style.display = "none";
+          renderParameters();
+          setTimeout(() => {
+            const row = Array.from(document.querySelectorAll("#paramList .param-row"))
+              .find(r => r.querySelector(".param-name").textContent === key);
+            if (row) {
+              row.classList.add("open");
+              row.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 30);
+        } else {
+          state.simMode = "errors";
+          document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === "errors"));
+          document.getElementById("simPanelMode").style.display = "none";
+          document.getElementById("simMapMode").style.display = "none";
+          document.getElementById("simParamsMode").style.display = "none";
+          document.getElementById("simErrorsMode").style.display = "block";
+          renderErrors();
+          setTimeout(() => {
+            const row = document.querySelector(`#errorList [data-error-code="${key}"]`);
+            if (row) {
+              row.classList.add("open");
+              row.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 30);
+        }
+      });
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#globalSearchBox")) closeResults();
+  });
+})();
 
 function renderMapViewSwitch() {
   const el = document.getElementById("mapViewSwitch");
