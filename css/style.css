@@ -5,7 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --brand:        #004682;
+  --brand:        #004082;
   --brand-dark:   #002d54;
   --brand-mid:    #1f6aa8;
   --ink:          #14212e;
@@ -762,7 +762,7 @@ button {
   border-radius: 10px;
   min-height: 460px;
   padding: 14px;
-  font-family: 'Courier New', 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   color: #e8edf1;
   display: flex;
   flex-direction: column;
@@ -942,7 +942,7 @@ button {
   font-size: 12.5px;
   font-weight: 700;
   color: #f2c94c;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .sim-row.open .sim-row-answer { display: block; }
@@ -1189,7 +1189,7 @@ button {
   padding: 3px 8px;
   font-size: 10px;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
   pointer-events: auto;
   white-space: nowrap;
   box-shadow: 0 0 0 3px rgba(0, 70, 130, 0.22);
@@ -1245,7 +1245,7 @@ button {
 }
 
 .map-answer-code {
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   color: var(--brand);
   background: var(--tint);
@@ -1288,7 +1288,7 @@ button {
   background: var(--paper);
   border: 1px solid var(--line);
   font-weight: 500;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .map-answer-intro {
@@ -1366,7 +1366,7 @@ button {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--ink);
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
   letter-spacing: -0.01em;
 }
 
@@ -1435,7 +1435,7 @@ button {
   background: var(--tint);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--brand-dark);
   display: flex;
@@ -1545,7 +1545,7 @@ button {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--ink);
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', sans-serif;
   flex-shrink: 0;
 }
 
