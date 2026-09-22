@@ -699,6 +699,65 @@ function renderDevice() {
     bindSimIcons();
     return;
   }
+
+  if (state.simScreen === "paramscreen") {
+    renderSimParamScreen();
+    return;
+  }
+}
+
+function renderSimParamScreen() {
+  const screen = document.getElementById("deviceScreen");
+  const page = state.simParamPage || 1;
+  const names = PARAM_PAGES[page] || [];
+
+  const rows = names.map(name => {
+    const pr = PARAMETERS.find(p => p.name === name);
+    const shortDesc = PARAM_SHORT_DESC[name] || "";
+    const fullDescHtml = pr ? renderParamDesc(pr.desc).replace(/class="param-p"/g, 'class="sim-param-p"').replace(/class="param-ul"/g, 'class="sim-param-ul"').replace(/class="param-formula"/g, 'class="sim-param-formula"').replace(/class="param-figure"/g, 'class="sim-param-figure"') : "<p class=\"sim-param-p\">Nessuna descrizione tecnica dettagliata associata a questa voce.</p>";
+    const hasSpecs = pr && (pr.default !== null || pr.min !== null || pr.max !== null);
+    return `
+      <div class="sim-row" data-sim-row="${name}">
+        <div class="sim-row-main">
+          <div class="sim-row-left" style="flex-direction:column;align-items:flex-start;gap:2px;">
+            <span class="sim-row-code">${name}</span>
+            ${shortDesc ? `<span class="sim-param-caption">${shortDesc}</span>` : ""}
+          </div>
+          <svg class="sim-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div class="sim-row-answer">
+          ${fullDescHtml}
+          ${hasSpecs ? `
+          <div class="sim-row-specs">
+            <div class="sim-spec"><span class="spec-label">Default</span><span class="spec-value">${pr.default ?? "—"}</span></div>
+            <div class="sim-spec"><span class="spec-label">Min</span><span class="spec-value">${pr.min ?? "—"}</span></div>
+            <div class="sim-spec"><span class="spec-label">Max</span><span class="spec-value">${pr.max ?? "—"}</span></div>
+          </div>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  screen.innerHTML = `
+    <div class="sim-screen-title">PARAMETRI</div>
+    <div class="sim-side-switch">
+      <button class="sim-side-pill ${page === 1 ? "active" : ""}" data-sim-param-page="1">Pagina 1</button>
+      <button class="sim-side-pill ${page === 2 ? "active" : ""}" data-sim-param-page="2">Pagina 2</button>
+    </div>
+    <div class="sim-data-list">${rows}</div>
+    <div class="sim-single-back">
+      <button class="sim-icon-btn${SIMULATOR_ICON_IMAGES && SIMULATOR_ICON_IMAGES.back ? " has-img" : ""}" data-sim-action="menu">${simIconMarkup("back")}</button>
+    </div>
+  `;
+
+  bindAccordion(screen);
+  bindSimIcons();
+  screen.querySelectorAll("[data-sim-param-page]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.simParamPage = parseInt(btn.dataset.simParamPage, 10);
+      renderDevice();
+    });
+  });
 }
 
 function bindAccordion(container, rowSelector, headerSelector) {
@@ -805,6 +864,9 @@ function bindSimIcons() {
       } else if (item.kind === "info") {
         state.simScreen = "info";
         state.simInfoId = item.legendId;
+      } else if (item.kind === "paramscreen") {
+        state.simScreen = "paramscreen";
+        state.simParamPage = 1;
       } else if (item.kind === "action") {
         state.simScreen = item.action;
       }

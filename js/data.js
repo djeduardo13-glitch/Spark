@@ -176,7 +176,7 @@ const SIMULATOR_MENU = [
   { id: "hmi", label: "HMI", icon: "hmi", kind: "info", legendId: "mp-hmi" },
   { id: "back", label: "Indietro", icon: "back", kind: "action", action: "boot" },
   { id: "workpanel", label: "Work Panel", icon: "workpanel", kind: "category", category: "work-panel" },
-  { id: "parametri", label: "Parametri", icon: "params", kind: "info", legendId: "mp-parametri" },
+  { id: "parametri", label: "Parametri", icon: "params", kind: "paramscreen" },
   { id: "faults", label: "Faults", icon: "faults", kind: "info", legendId: "mp-faults" },
   { id: "poweroff", label: "Power Off", icon: "power", kind: "info", legendId: "mp-poweroff" }
 ];
@@ -520,6 +520,13 @@ const PARAMETERS = [
     ]
   },
   {
+    name: "UNLOAD INCLINATION OFFSET", default: null, max: null, min: null, res: null, unit: "",
+    desc: [
+      { t: "p", h: "Rappresenta il massimo angolo di alzata dal piano (misurato tramite il laser L_3) durante la fase di scarico." },
+      { t: "p", h: "Nota: nel documento tecnico dei parametri HMI questo parametro risultava segnato come rimosso in una revisione precedente. Non avendo per ora i valori di default/min/max, sono mostrati vuoti: se mi fornisci quei dati li aggiungo." }
+    ]
+  },
+  {
     name: "UNLINK ANGLE DIFF MAX", default: "5", max: "20", min: "0", res: "0.1", unit: "degree",
     desc: [
       { t: "p", h: "Questo parametro è utilizzato nella fase di scarico: quando le ruote delle gambe lato testa hanno raggiunto il suolo, il sistema controlla la differenza tra l'angolo gambe lato piedi e lato testa. Se la differenza tra i due è maggiore del parametro UNLINK ANGLE DIFF MAX, il sistema non procede con lo sgancio del rostro dalla slitta mediante l'attuatore orizzontale (ACT 2) e informa l'utente mediante un messaggio di errore (L200)." },
@@ -635,6 +642,67 @@ const PARAMETERS = [
     ]
   },
 ];
+
+/* ---------------------------------------------------------------------
+   SCHERMATA PARAMETRI DEL SIMULATORE (Pannello Spark)
+   Come sul dispositivo reale: i parametri sono divisi in 2 pagine.
+   I nomi devono corrispondere esattamente a "name" in PARAMETERS.
+   ------------------------------------------------------------------- */
+const PARAM_PAGES = {
+  1: [
+    "MAX MT SPEED", "ACT VER WORK POS", "ACT VER IDLE POS", "ACT HOR WORK POS",
+    "ACT HOR IDLE POS", "LASER POS REF", "LASER UNLOAD DELTA", "UNLINK ANGLE DIFF MAX",
+    "POWER-OFF TIME", "UNLOAD INCLINATION OFFSET", "MIN INCLINATION IMU ERR",
+    "ACTUATOR MOVING TIME", "SWITCH RELEASE TIME", "WEIGHT OFFSET", "WEIGHT GAIN",
+    "PAIRING EDEN SN", "HIGH LOAD LEVEL ANGLE LEG", "HIGH LOAD LEVEL WHEELS LEN", "MAX LEG ANGLE"
+  ],
+  2: [
+    "MAX SPEED MT HEAD UP", "MAX SPEED MT HEAD DOWN", "MAX SPEED MT FEET UP", "MAX SPEED MT FEET DOWN",
+    "START STEP PLANE DWN", "STOP STEP PLANE DWN", "START STEP PLANE UP", "STOP STEP PLANE UP",
+    "HEAVY LOAD SPEED", "HEAVY LOAD PRESS", "HORIZ ALIGN WINDOW", "HORIZ ALIGN CENTER",
+    "FREE WORK PRESS THR", "LEG POSITION SENS MODEL", "SW.REL. ALARM ENABLE",
+    "SYSTEM SERIAL NUMBER", "LOAD TOTAL CYCLES", "UNLOAD TOTAL CYCLES", "TIME AND DATE"
+  ]
+};
+
+/* Etichetta breve (come apparirebbe sull'HMI) mostrata sotto il nome nella
+   schermata del simulatore. Fonte: documento riassuntivo parametri (1.pdf). */
+const PARAM_SHORT_DESC = {
+  "MAX MT SPEED": "Velocità di salita (RPM)",
+  "MAX SPEED MT HEAD UP": "Velocità di salita gambe testa in carico (RPM)",
+  "MAX SPEED MT HEAD DOWN": "Velocità di discesa gambe testa in scarico (RPM)",
+  "MAX SPEED MT FEET UP": "Velocità di salita gambe piedi in carico (RPM)",
+  "MAX SPEED MT FEET DOWN": "Velocità di discesa gambe piedi in scarico (RPM)",
+  "START STEP PLANE DWN": "Rampa inizio discesa",
+  "STOP STEP PLANE DWN": "Rampa fine discesa",
+  "START STEP PLANE UP": "Rampa inizio salita",
+  "STOP STEP PLANE UP": "Rampa fine salita",
+  "HEAVY LOAD SPEED": "Velocità di riferimento con carico massimo (RPM)",
+  "HEAVY LOAD PRESS": "Pressione di riferimento per taglio velocità (bar)",
+  "ACT VER WORK POS": "Posizione di lavoro AT_1",
+  "ACT VER IDLE POS": "Posizione di riposo AT_1",
+  "ACT HOR WORK POS": "Posizione di lavoro AT_2",
+  "ACT HOR IDLE POS": "Posizione di riposo AT_2",
+  "LASER POS REF": "Distanza L_3 in posizione orizzontale",
+  "LASER UNLOAD DELTA": "Valore di incremento L_3 per allineamento in scarico",
+  "HORIZ ALIGN WINDOW": "Tolleranza di riferimento centraggio slitta (L_4)",
+  "HORIZ ALIGN CENTER": "Posizione di riferimento centraggio slitta (L_4)",
+  "UNLINK ANGLE DIFF MAX": "Differenza massima tra angolo gambe in scarico",
+  "POWER-OFF TIME": "Tempo spegnimento automatico in s (0 = mai)",
+  "FREE WORK PRESS THR": "Pressione di riferimento per determinare se c'è un paziente",
+  "LEG POSITION SENS MODEL": "Cambia parametri in base al sensore utilizzato per le gambe",
+  "UNLOAD INCLINATION OFFSET": "Massimo angolo di alzata dal piano in scarico (L_3)",
+  "MIN INCLINATION IMU ERR": "Sensibilità compensazione in fase di scarico",
+  "ACTUATOR MOVING TIME": "Tempo che AT_2 impiega per ritornare in posizione (in scarico)",
+  "SWITCH RELEASE TIME": "Tempo tra rilascio fisico e rilascio logico pulsanti IN/OUT",
+  "SW.REL. ALARM ENABLE": "Allarme rilascio pulsanti IN/OUT (1=ON / 0=OFF)",
+  "WEIGHT OFFSET": "Offset di pressione (bar) per il calcolo del peso paziente",
+  "WEIGHT GAIN": "Guadagno (gain) usato nella formula di calcolo del peso",
+  "SYSTEM SERIAL NUMBER": "Matricola SPARK-UC",
+  "LOAD TOTAL CYCLES": "Numero di cicli di carico",
+  "UNLOAD TOTAL CYCLES": "Numero di cicli di scarico",
+  "TIME AND DATE": "Impostazione data e ora del sistema"
+};
 
 const ERRORS = [
   { code: "L001", cat: "L", catLabel: "Ciclo carico/scarico", text: "CONTROLLO REED 1 AVVIO SCARICO FALLITO: durante la fase di avvio scarico lo stato del sensore Reed non è valido." },
