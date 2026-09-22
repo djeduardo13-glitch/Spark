@@ -8,7 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
   :root {
-    --primary: #004682;
+    --primary: #004082;
     --primary-dark: #003463;
     --primary-light: #e7eff7;
     --primary-lighter: #f4f8fb;
@@ -539,12 +539,11 @@
     border-top: 1px solid var(--border);
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     display: flex;
-    flex-wrap: wrap;
     gap: 10px;
     z-index: 30;
   }
   .btn {
-    flex: 1 1 90px;
+    flex: 1;
     border: none;
     border-radius: 10px;
     padding: 13px 10px;
@@ -562,20 +561,12 @@
   .btn-pdf {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: #fff;
-    flex: 1.4 1 140px;
+    flex: 2;
     box-shadow: 0 4px 10px rgba(0,70,130,0.25);
   }
-  .btn-salva {
-    background: linear-gradient(135deg, #1f9d55, #157a3f);
-    color: #fff;
-    flex: 1.4 1 140px;
-    box-shadow: 0 4px 10px rgba(31,157,85,0.25);
-  }
-  .btn-salva:disabled { opacity: 0.65; cursor: wait; }
   .btn-reset {
     background: #f1f4f7;
     color: var(--text-mute);
-    flex: 1 1 90px;
   }
 
   .save-note {
@@ -583,18 +574,6 @@
     font-size: 0.68rem;
     color: var(--text-mute);
     padding: 6px 0 2px;
-  }
-  .save-error {
-    display: none;
-    text-align: center;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #c0392b;
-    background: #fdecea;
-    border: 1px solid #f3c3bd;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin: 0 16px 8px;
   }
 
   /* PRINT / PDF EXPORT */
@@ -2216,18 +2195,14 @@
   </div>
 
   <div class="save-note" id="save-note"></div>
-  <div class="save-error" id="salva-error"></div>
 
   <div class="action-bar">
     <button class="btn btn-reset" id="btn-reset">&#8635; Reset</button>
-    <button class="btn btn-salva" id="btn-salva">&#128190; Salva</button>
     <button class="btn btn-pdf" id="btn-pdf">&#8595; Esporta PDF</button>
   </div>
 
 </div>
 
-<script src="js/storage.js"></script>
-<script src="js/vendor/html2pdf.bundle.min.js"></script>
 <script>
 (function() {
   const tabs = document.querySelectorAll('.product-tab');
@@ -2372,83 +2347,6 @@
     setTimeout(restoreTitle, 3000);
 
     window.print();
-  });
-
-  document.getElementById('btn-salva').addEventListener('click', async function() {
-    const btn = this;
-    const errorEl = document.getElementById('salva-error');
-    const noteEl = document.getElementById('save-note');
-    errorEl.style.display = 'none';
-
-    const snEl = document.getElementById('matricola-spark-uc');
-    const snRaw = snEl ? snEl.value.trim() : '';
-    const sn = snRaw.replace(/[^a-zA-Z0-9_-]+/g, '');
-
-    if (!sn) {
-      errorEl.textContent = 'Inserisci la matricola SPARK-UC (SN) prima di salvare: senza SN non posso creare la cartella.';
-      errorEl.style.display = 'block';
-      if (snEl) {
-        snEl.focus();
-        snEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
-    }
-
-    if (typeof html2pdf === 'undefined' || typeof sparkSaveFile === 'undefined') {
-      errorEl.textContent = 'Salvataggio non disponibile: manca il file js/vendor/html2pdf.bundle.min.js o js/storage.js accanto a questa pagina. Verifica che entrambi siano stati caricati nel repository nella stessa struttura di cartelle.';
-      errorEl.style.display = 'block';
-      return;
-    }
-
-    const originalLabel = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = 'Salvataggio...';
-
-    const wrappers2 = document.querySelectorAll('.tab-wrapper');
-    const prevWrapperDisplay = Array.from(wrappers2).map(w => w.style.display);
-    wrappers2.forEach(w => { w.style.display = 'block'; });
-
-    const hideEls = document.querySelectorAll('nav.tabs, .action-bar, .save-note, .save-error');
-    const prevHideDisplay = Array.from(hideEls).map(el => el.style.display);
-    hideEls.forEach(el => { el.style.display = 'none'; });
-
-    const pad = n => String(n).padStart(2, '0');
-    const today = new Date();
-    const dataStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
-    const filename = 'Manutenzione_SN' + sn + '_' + dataStr + '.pdf';
-
-    try {
-      const pdfBlob = await html2pdf()
-        .from(document.querySelector('.app'))
-        .set({
-          margin: 6,
-          filename: filename,
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'] }
-        })
-        .outputPdf('blob');
-
-      await sparkSaveFile({
-        sn: sn,
-        filename: filename,
-        mimeType: 'application/pdf',
-        blob: pdfBlob,
-        kind: 'manutenzione-pdf'
-      });
-
-      noteEl.textContent = 'Salvato nella cartella SN' + sn + ' — ' + today.toLocaleTimeString('it-IT');
-    } catch (err) {
-      console.error(err);
-      errorEl.textContent = 'Errore durante il salvataggio: ' + (err && err.message ? err.message : err);
-      errorEl.style.display = 'block';
-    } finally {
-      wrappers2.forEach((w, i) => { w.style.display = prevWrapperDisplay[i]; });
-      hideEls.forEach((el, i) => { el.style.display = prevHideDisplay[i]; });
-      btn.disabled = false;
-      btn.innerHTML = originalLabel;
-    }
   });
 
   window.addEventListener('beforeprint', function() {
