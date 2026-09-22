@@ -325,11 +325,9 @@ function renderParameters(filterText) {
       </button>
       <div class="param-answer">${renderParamDesc(pr.desc)}</div>
     `;
-    row.querySelector(".param-question").addEventListener("click", () => {
-      row.classList.toggle("open");
-    });
     list.appendChild(row);
   });
+  bindAccordion(list, ".param-row", ".param-question");
 }
 
 document.getElementById("paramSearch").addEventListener("input", (e) => {
@@ -372,11 +370,9 @@ function renderErrors(filterText) {
       </button>
       <div class="param-answer"><p class="param-p">${er.text}</p></div>
     `;
-    row.querySelector(".param-question").addEventListener("click", () => {
-      row.classList.toggle("open");
-    });
     list.appendChild(row);
   });
+  bindAccordion(list, ".param-row", ".param-question");
 }
 
 document.getElementById("errorSearch").addEventListener("input", (e) => {
@@ -705,10 +701,12 @@ function renderDevice() {
   }
 }
 
-function bindAccordion(container) {
-  const rows = container.querySelectorAll(".sim-row");
+function bindAccordion(container, rowSelector, headerSelector) {
+  rowSelector = rowSelector || ".sim-row";
+  headerSelector = headerSelector || ".sim-row-main";
+  const rows = container.querySelectorAll(rowSelector);
   rows.forEach(row => {
-    row.querySelector(".sim-row-main").addEventListener("click", () => {
+    row.querySelector(headerSelector).addEventListener("click", () => {
       const wasOpen = row.classList.contains("open");
       rows.forEach(r => r.classList.remove("open"));
       if (!wasOpen) row.classList.add("open");
