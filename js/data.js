@@ -822,6 +822,68 @@ const ERRORS = [
    quando lo esporti in PDF, il file scaricato è già nominato con l'SN
    che hai inserito — mandamelo e lo aggiungo qui, nella cartella giusta.
    ------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------
+   PROCEDURE GUIDATE — guide passo-passo per la sezione Manutenzione.
+   Riscritte in forma guidata a partire dai documenti STEM (non sono
+   una copia 1:1 del PDF originale). "source" è solo un riferimento
+   interno al documento di origine.
+   ------------------------------------------------------------------- */
+const PROCEDURES = [
+  {
+    id: "altezza-carico",
+    title: "Configurazione altezza di carico",
+    source: "IS000039 R00",
+    intro: "Come impostare e salvare l'altezza di carico di Spark rispetto al ricettacolo del veicolo.",
+    steps: [
+      {
+        title: "Sgancia il ricettacolo",
+        detail: "Estrai completamente il ricettacolo e l'assieme slitta intermedio dall'assieme slitta base. Assicurati che siano entrambi completamente sganciati prima di procedere.",
+        img: "assets/manutenzione/altezza-carico/step1.jpg"
+      },
+      {
+        title: "Regola l'altezza",
+        detail: "Premi e tieni premute contemporaneamente le due coste sensibili, poi regola l'altezza usando il thumbwheel (su/giù) sul telecomando.",
+        img: "assets/manutenzione/altezza-carico/step2.jpg"
+      },
+      {
+        title: "Verifica la quota di 20 mm",
+        detail: "Posiziona Spark all'altezza corretta: deve esserci uno spazio di esattamente 20 mm tra la sfera del rostro e il piano inferiore del ricettacolo. Misura con un metro.",
+        img: "assets/manutenzione/altezza-carico/step3.jpg"
+      },
+      {
+        title: "Entra nel menu Parametri",
+        detail: "Per salvare l'altezza appena impostata, premi il pulsante \"Impostazioni\" (icona utensili) sullo schermo di Spark.",
+        img: "assets/manutenzione/altezza-carico/step4.jpg"
+      },
+      {
+        title: "Accedi con il PIN",
+        detail: "Inserisci il PIN di accesso 151010 sul tastierino numerico e conferma premendo il segno di spunta.",
+        img: "assets/manutenzione/altezza-carico/step5.jpg"
+      },
+      {
+        title: "Vai alla schermata di salvataggio",
+        detail: "Premi il pulsante Home, poi premi il pulsante con l'icona dell'ambulanza per aprire la schermata dedicata al salvataggio dell'altezza di carico.",
+        img: "assets/manutenzione/altezza-carico/step6.jpg"
+      },
+      {
+        title: "Salva l'altezza",
+        detail: "Tieni premuto sul pulsante \"altezza di carico\" finché non senti il segnale acustico di conferma: l'altezza è stata salvata.",
+        img: "assets/manutenzione/altezza-carico/step8.jpg"
+      },
+      {
+        title: "Torna al menu principale",
+        detail: "Premi il pulsante a forma di ingranaggio per tornare alla schermata dei parametri.",
+        img: "assets/manutenzione/altezza-carico/step9.jpg"
+      },
+      {
+        title: "Esci dal menu Parametri",
+        detail: "Premi la freccia indietro per uscire e tornare alla schermata principale di Spark. La configurazione è completata.",
+        img: "assets/manutenzione/altezza-carico/step10.jpg"
+      }
+    ]
+  }
+];
+
 const MAINTENANCE_RECORDS = {
   // "SN12345": [
   //   { date: "2026-09-13", title: "Manutenzione ordinaria", url: "manutenzione/SN12345/manutenzione_SN12345_2026-09-13.pdf" }
@@ -895,6 +957,8 @@ const I18N = {
     checklist_intro: "Cronologia delle manutenzioni già effettuate, organizzata per numero di serie (SN).",
     maint_card_desc: "Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.",
     new_maint_btn: "Nuova manutenzione",
+    procedures_heading: "Procedure guidate",
+    sn_history_heading: "Cronologia per numero di serie",
     maint_empty: "Nessuna manutenzione caricata ancora. Compila una nuova checklist e mandamela: la aggiungo qui, organizzata per SN.",
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",

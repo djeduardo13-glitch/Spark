@@ -122,6 +122,52 @@ function renderAccessLevels() {
 }
 
 /* ---------------------------------------------------------------------
+   PROCEDURE GUIDATE (Manutenzione)
+   ------------------------------------------------------------------- */
+function renderProcedures() {
+  const container = document.getElementById("proceduresContainer");
+  if (!container) return;
+
+  if (typeof PROCEDURES === "undefined" || PROCEDURES.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = "";
+  PROCEDURES.forEach(proc => {
+    const card = document.createElement("div");
+    card.className = "procedure-card";
+
+    const stepsHtml = proc.steps.map((s, i) => `
+      <div class="procedure-step">
+        <div class="step-num">${i + 1}</div>
+        <div class="step-body">
+          <h4>${s.title}</h4>
+          <p>${s.detail}</p>
+          ${s.img ? `<img class="procedure-step-img" src="${s.img}" alt="${s.title}">` : ""}
+        </div>
+      </div>
+    `).join("");
+
+    card.innerHTML = `
+      <button class="procedure-header">
+        <span class="procedure-header-text">
+          <span class="procedure-title">${proc.title}</span>
+          <span class="procedure-intro">${proc.intro}</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="procedure-body">
+        <div class="procedure-steps">${stepsHtml}</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  bindAccordion(container, ".procedure-card", ".procedure-header");
+}
+
+/* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per SN
    ------------------------------------------------------------------- */
 function renderMaintenance() {
@@ -880,6 +926,7 @@ function init() {
   renderAccessLevels();
   updateSimulatorAvailability();
   renderMaintenance();
+  renderProcedures();
   renderCollaudo();
   renderDocuments();
   renderDevice();
