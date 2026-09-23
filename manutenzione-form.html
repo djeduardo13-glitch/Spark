@@ -2,8 +2,14 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Checklist Manutenzione SPARK</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#004682">
+<link rel="icon" href="assets/icons/app/favicon.ico">
+<link rel="apple-touch-icon" href="assets/icons/app/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spark">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -2447,6 +2453,11 @@
 
   restore();
 })();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+  }
 </script>
 </body>
 </html>
