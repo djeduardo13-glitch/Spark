@@ -1648,30 +1648,31 @@ button {
 
 .sub-heading:first-of-type { margin-top: 4px; }
 
-.procedure-card {
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  margin-bottom: 14px;
-  overflow: hidden;
-}
-
-.procedure-header {
+.procedure-tile {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   padding: 16px 18px;
-  border: none;
-  background: transparent;
+  margin-bottom: 12px;
   text-align: left;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-.procedure-header-text {
+.procedure-tile:hover {
+  border-color: var(--brand-mid);
+  transform: translateX(2px);
+}
+
+.procedure-tile-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .procedure-title {
@@ -1685,26 +1686,36 @@ button {
   color: var(--ink-soft);
 }
 
-.procedure-header .chev {
-  width: 17px;
-  height: 17px;
+.procedure-tile-arrow {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   color: var(--brand-mid);
-  transition: transform 0.18s ease;
 }
 
-.procedure-card.open .procedure-header .chev { transform: rotate(180deg); }
-
-.procedure-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.25s ease;
+.back-to-list-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: var(--brand);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 8px 0;
+  margin-bottom: 12px;
 }
 
-.procedure-card.open .procedure-body { max-height: 8000px; }
+.back-to-list-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.back-to-list-btn:hover { text-decoration: underline; }
 
 .procedure-steps {
-  padding: 4px 18px 20px;
+  padding: 4px 0 20px;
   display: flex;
   flex-direction: column;
 }
