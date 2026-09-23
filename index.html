@@ -50,12 +50,6 @@
         </span>
         <span data-i18n="nav_checklist">Manutenzione</span>
       </button>
-      <button class="nav-item" data-view="collaudo">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.4 6.4 2.8 2.8"/><path d="M2 13h4"/><path d="m6.4 19.6 2.8-2.8"/><circle cx="12" cy="13" r="4"/></svg>
-        </span>
-        <span data-i18n="nav_collaudo">Collaudo</span>
-      </button>
       <button class="nav-item" data-view="documents">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
@@ -116,11 +110,6 @@
             <h3 data-i18n="nav_checklist">Manutenzione</h3>
             <p data-i18n="maint_card_desc">Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.</p>
           </button>
-          <button class="module-card" data-goto="collaudo">
-            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.4 6.4 2.8 2.8"/><path d="M2 13h4"/><path d="m6.4 19.6 2.8-2.8"/><circle cx="12" cy="13" r="4"/></svg></span>
-            <h3 data-i18n="nav_collaudo">Collaudo</h3>
-            <p>La procedura guidata di collaudo del prodotto.</p>
-          </button>
           <button class="module-card" data-goto="documents">
             <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
             <h3 data-i18n="nav_documents">Documenti</h3>
@@ -143,10 +132,11 @@
         </div>
 
         <div class="sim-mode-switch" id="simModeSwitch">
-          <button class="sim-mode-pill active" data-sim-mode="panel" data-i18n="sim_mode_panel">Pannello Spark</button>
+          <button class="sim-mode-pill active" data-sim-mode="panel" data-i18n="sim_mode_panel">Simulatore HMI</button>
           <button class="sim-mode-pill" data-sim-mode="map" data-i18n="sim_mode_map">Mappa Componenti</button>
           <button class="sim-mode-pill" data-sim-mode="params" data-i18n="sim_mode_params">Parametri</button>
           <button class="sim-mode-pill" data-sim-mode="errors" data-i18n="sim_mode_errors">Errori</button>
+          <button class="sim-mode-pill" data-sim-mode="components" data-i18n="sim_mode_components">Componenti</button>
         </div>
 
         <!-- Modalità: Pannello Spark -->
@@ -202,6 +192,12 @@
           </div>
           <div class="param-list" id="errorList"></div>
         </div>
+
+        <!-- Modalità: Componenti / Sensori (struttura predisposta per contenuti futuri) -->
+        <div id="simComponentsMode" style="display:none;">
+          <p class="map-intro" data-i18n="components_intro">Scheda tecnica di ogni componente/sensore: cosa fa, dove si trova, come si verifica.</p>
+          <div class="empty-state" data-i18n="components_empty">Sezione in preparazione: i contenuti verranno aggiunti qui componente per componente.</div>
+        </div>
       </section>
 
       <!-- MANUTENZIONE -->
@@ -238,15 +234,6 @@
           </div>
           <div class="procedure-steps" id="procedureDetailSteps"></div>
         </div>
-      </section>
-
-      <!-- COLLAUDO -->
-      <section class="view" id="view-collaudo">
-        <div class="view-header">
-          <h2 data-i18n="nav_collaudo">Collaudo</h2>
-          <p data-i18n="collaudo_intro">La procedura di collaudo del prodotto.</p>
-        </div>
-        <div id="collaudoContainer"></div>
       </section>
 
       <!-- DOCUMENTI -->
