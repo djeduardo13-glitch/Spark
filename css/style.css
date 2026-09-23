@@ -1084,16 +1084,18 @@ button {
 
 .sim-mode-switch {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   background: var(--tint);
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   padding: 4px;
   margin-bottom: 20px;
-  max-width: 420px;
+  max-width: 560px;
 }
 
 .sim-mode-pill {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 92px;
   border: none;
   background: transparent;
   padding: 9px 14px;
@@ -1647,6 +1649,17 @@ button {
 }
 
 .sub-heading:first-of-type { margin-top: 4px; }
+
+.category-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin: 18px 0 10px;
+}
+
+.category-heading:first-child { margin-top: 0; }
 
 .procedure-tile {
   width: 100%;
