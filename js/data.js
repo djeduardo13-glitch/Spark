@@ -959,6 +959,7 @@ const I18N = {
     new_maint_btn: "Nuova manutenzione",
     procedures_heading: "Procedure guidate",
     sn_history_heading: "Cronologia per numero di serie",
+    back_to_procedures: "Torna alle procedure",
     maint_empty: "Nessuna manutenzione caricata ancora. Compila una nuova checklist e mandamela: la aggiungo qui, organizzata per SN.",
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",

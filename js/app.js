@@ -42,6 +42,7 @@ function goToView(viewId) {
   document.getElementById("view-" + viewId).classList.add("active");
   document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.view === viewId));
   closeDrawer();
+  if (viewId === "checklist" && typeof closeProcedureDetail === "function") closeProcedureDetail();
   document.querySelector(".content").scrollTo?.(0, 0);
   window.scrollTo(0, 0);
 }
@@ -135,37 +136,51 @@ function renderProcedures() {
 
   container.innerHTML = "";
   PROCEDURES.forEach(proc => {
-    const card = document.createElement("div");
-    card.className = "procedure-card";
-
-    const stepsHtml = proc.steps.map((s, i) => `
-      <div class="procedure-step">
-        <div class="step-num">${i + 1}</div>
-        <div class="step-body">
-          <h4>${s.title}</h4>
-          <p>${s.detail}</p>
-          ${s.img ? `<img class="procedure-step-img" src="${s.img}" alt="${s.title}">` : ""}
-        </div>
-      </div>
-    `).join("");
-
-    card.innerHTML = `
-      <button class="procedure-header">
-        <span class="procedure-header-text">
-          <span class="procedure-title">${proc.title}</span>
-          <span class="procedure-intro">${proc.intro}</span>
-        </span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="procedure-body">
-        <div class="procedure-steps">${stepsHtml}</div>
-      </div>
+    const tile = document.createElement("button");
+    tile.className = "procedure-tile";
+    tile.innerHTML = `
+      <span class="procedure-tile-text">
+        <span class="procedure-title">${proc.title}</span>
+        <span class="procedure-intro">${proc.intro}</span>
+      </span>
+      <svg class="procedure-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
     `;
-    container.appendChild(card);
+    tile.addEventListener("click", () => openProcedureDetail(proc.id));
+    container.appendChild(tile);
   });
-
-  bindAccordion(container, ".procedure-card", ".procedure-header");
 }
+
+function openProcedureDetail(procId) {
+  const proc = PROCEDURES.find(p => p.id === procId);
+  if (!proc) return;
+
+  document.getElementById("procedureDetailTitle").textContent = proc.title;
+  document.getElementById("procedureDetailIntro").textContent = proc.intro;
+
+  const stepsHtml = proc.steps.map((s, i) => `
+    <div class="procedure-step">
+      <div class="step-num">${i + 1}</div>
+      <div class="step-body">
+        <h4>${s.title}</h4>
+        <p>${s.detail}</p>
+        ${s.img ? `<img class="procedure-step-img" src="${s.img}" alt="${s.title}">` : ""}
+      </div>
+    </div>
+  `).join("");
+  document.getElementById("procedureDetailSteps").innerHTML = stepsHtml;
+
+  document.getElementById("maintenanceListView").style.display = "none";
+  document.getElementById("procedureDetailView").style.display = "block";
+  document.querySelector(".content").scrollTo?.(0, 0);
+  window.scrollTo(0, 0);
+}
+
+function closeProcedureDetail() {
+  document.getElementById("procedureDetailView").style.display = "none";
+  document.getElementById("maintenanceListView").style.display = "block";
+}
+
+document.getElementById("procedureBackBtn").addEventListener("click", closeProcedureDetail);
 
 /* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per SN
