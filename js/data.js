@@ -828,6 +828,13 @@ const ERRORS = [
    una copia 1:1 del PDF originale). "source" è solo un riferimento
    interno al documento di origine.
    ------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------
+   PROCEDURE GUIDATE (Manutenzione)
+   Campo opzionale "category" per raggruppare nella UI: "calibrazioni" |
+   "regolazioni" | "sostituzioni" | "diagnostica". Le procedure senza
+   "category" vengono mostrate in un gruppo "Altre procedure" — nessuna
+   procedura esistente è stata riclassificata a forza in questa fase.
+   ------------------------------------------------------------------- */
 const PROCEDURES = [
   {
     id: "altezza-carico",
@@ -910,12 +917,12 @@ const COLLAUDO = [
    ------------------------------------------------------------------- */
 const DOCUMENTS = {
   "7.9": [
-    { title: "Manuale utente — FW 7.9", type: "PDF", url: "#" },
-    { title: "Note di rilascio — FW 7.9", type: "PDF", url: "#" }
+    { title: "Manuale utente — FW 7.9", type: "PDF", url: "#", category: "manuali" },
+    { title: "Note di rilascio — FW 7.9", type: "PDF", url: "#", category: "firmware" }
   ],
   "8.2": [
-    { title: "Manuale utente — FW 8.2.x.x", type: "PDF", url: "#" },
-    { title: "Note di rilascio — FW 8.2.x.x", type: "PDF", url: "#" }
+    { title: "Manuale utente — FW 8.2.x.x", type: "PDF", url: "#", category: "manuali" },
+    { title: "Note di rilascio — FW 8.2.x.x", type: "PDF", url: "#", category: "firmware" }
   ]
 };
 
@@ -927,28 +934,31 @@ const I18N = {
     appName: "Spark Doc Hub",
     tagline: "Centro documentazione, manutenzione e collaudo",
     nav_home: "Home",
-    nav_simulator: "Simulatore",
+    nav_simulator: "Tecnico",
     nav_checklist: "Manutenzione",
     nav_collaudo: "Collaudo",
     nav_documents: "Documenti",
     fw_label: "Versione firmware",
     home_intro: "Tutto quello che serve per configurare, controllare e collaudare Spark, organizzato per versione firmware.",
-    simulator_intro: "Naviga tra le schermate come sul dispositivo reale. Tocca una voce per vederne il significato.",
-    sim_mode_panel: "Pannello Spark",
+    simulator_intro: "Tutto quello che serve per conoscere la macchina: simulatore HMI, parametri, errori, mappa componenti e sensori.",
+    sim_mode_panel: "Simulatore HMI",
     sim_mode_map: "Mappa Componenti",
     map_intro: "Scegli una vista, poi muoviti con le dita (o il mouse) e tocca un'etichetta per vederne il significato.",
     map_reset: "Reimposta",
     sim_mode_params: "Parametri",
     sim_mode_errors: "Errori",
+    sim_mode_components: "Componenti",
     params_intro: "Elenco parametri settabili da menu HMI: nome, default, min, max, risoluzione e descrizione completa.",
     errors_intro: "Codici di errore/allarme del sistema, tradotti in italiano. Cerca per codice o per parola.",
+    components_intro: "Scheda tecnica di ogni componente/sensore: cosa fa, dove si trova, come si verifica.",
+    components_empty: "Sezione in preparazione: i contenuti verranno aggiunti qui componente per componente.",
     error_search_placeholder: "Cerca un codice o una parola…",
     global_search_placeholder: "Cerca un errore (codice o parola) o un parametro…",
     global_search_no_results: "Nessun risultato",
     global_search_error_tag: "Errore",
     global_search_param_tag: "Parametro",
     search_placeholder: "Cerca un parametro…",
-    sim_card_desc: "Naviga il pannello Spark come sul dispositivo reale e fai pratica.",
+    sim_card_desc: "Simulatore HMI, parametri, errori, mappa componenti e sensori: tutto per conoscere la macchina.",
     sim_locked_msg: "Il simulatore è disponibile solo con firmware 8.2.x.x selezionato in alto.",
     sim_tap_to_start: "Tocca lo schermo per iniziare",
     sim_back_to_menu: "Menu",
@@ -958,11 +968,21 @@ const I18N = {
     maint_card_desc: "Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.",
     new_maint_btn: "Nuova manutenzione",
     procedures_heading: "Procedure guidate",
+    proc_cat_calibrazioni: "Calibrazioni",
+    proc_cat_regolazioni: "Regolazioni",
+    proc_cat_sostituzioni: "Sostituzioni",
+    proc_cat_diagnostica: "Diagnostica",
+    proc_cat_altro: "Altre procedure",
     sn_history_heading: "Cronologia per numero di serie",
     back_to_procedures: "Torna alle procedure",
     maint_empty: "Nessuna manutenzione caricata ancora. Compila una nuova checklist e mandamela: la aggiungo qui, organizzata per SN.",
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",
+    doc_cat_manuali: "Manuali",
+    doc_cat_tecnica: "Documentazione tecnica",
+    doc_cat_firmware: "Firmware / Release",
+    doc_cat_schemi: "Schemi e disegni",
+    doc_cat_altro: "Altri documenti",
     empty_state: "Contenuti in arrivo per questa sezione.",
     access_title: "Livelli di accesso",
     lang_it: "Italiano",

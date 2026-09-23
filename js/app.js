@@ -90,7 +90,6 @@ function renderFwSwitch() {
       renderFwSwitch();
       updateSimulatorAvailability();
       renderMaintenance();
-      renderCollaudo();
       renderDocuments();
       renderDevice();
     });
@@ -134,19 +133,43 @@ function renderProcedures() {
     return;
   }
 
-  container.innerHTML = "";
-  PROCEDURES.forEach(proc => {
-    const tile = document.createElement("button");
-    tile.className = "procedure-tile";
-    tile.innerHTML = `
-      <span class="procedure-tile-text">
-        <span class="procedure-title">${proc.title}</span>
-        <span class="procedure-intro">${proc.intro}</span>
-      </span>
-      <svg class="procedure-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  const dict = I18N[state.lang] || I18N.it;
+  const CATEGORY_ORDER = [
+    { key: "calibrazioni", label: dict.proc_cat_calibrazioni },
+    { key: "regolazioni", label: dict.proc_cat_regolazioni },
+    { key: "sostituzioni", label: dict.proc_cat_sostituzioni },
+    { key: "diagnostica", label: dict.proc_cat_diagnostica }
+  ];
+
+  function tileHtml(proc) {
+    return `
+      <button class="procedure-tile" data-proc-id="${proc.id}">
+        <span class="procedure-tile-text">
+          <span class="procedure-title">${proc.title}</span>
+          <span class="procedure-intro">${proc.intro}</span>
+        </span>
+        <svg class="procedure-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
     `;
-    tile.addEventListener("click", () => openProcedureDetail(proc.id));
-    container.appendChild(tile);
+  }
+
+  let html = "";
+  CATEGORY_ORDER.forEach(cat => {
+    const items = PROCEDURES.filter(p => p.category === cat.key);
+    if (items.length === 0) return;
+    html += `<h4 class="category-heading">${cat.label}</h4>`;
+    html += items.map(tileHtml).join("");
+  });
+
+  const uncategorized = PROCEDURES.filter(p => !CATEGORY_ORDER.some(c => c.key === p.category));
+  if (uncategorized.length > 0) {
+    html += `<h4 class="category-heading">${dict.proc_cat_altro}</h4>`;
+    html += uncategorized.map(tileHtml).join("");
+  }
+
+  container.innerHTML = html;
+  container.querySelectorAll("[data-proc-id]").forEach(tile => {
+    tile.addEventListener("click", () => openProcedureDetail(tile.dataset.procId));
   });
 }
 
@@ -217,6 +240,10 @@ function renderMaintenance() {
 
 /* ---------------------------------------------------------------------
    COLLAUDO
+   La sezione "Collaudo" non è più una view autonoma (riorganizzazione
+   navigazione). Funzione e dati (COLLAUDO in data.js) restano qui
+   intatti e inutilizzati, pronti per essere richiamati da Documenti
+   quando il collaudo diventerà un documento scaricabile.
    ------------------------------------------------------------------- */
 function renderCollaudo() {
   const container = document.getElementById("collaudoContainer");
@@ -257,24 +284,42 @@ function renderDocuments() {
     return;
   }
 
-  container.innerHTML = "";
-  docs.forEach(doc => {
-    const row = document.createElement("a");
-    row.className = "doc-row";
-    row.href = doc.url;
-    row.target = "_blank";
-    row.rel = "noopener";
-    row.style.textDecoration = "none";
-    row.innerHTML = `
-      <span class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg></span>
-      <span class="doc-meta">
-        <span class="doc-title">${doc.title}</span><br>
-        <span class="doc-type">${doc.type}</span>
-      </span>
-      <span class="doc-action">Apri</span>
+  const dict = I18N[state.lang] || I18N.it;
+  const CATEGORY_ORDER = [
+    { key: "manuali", label: dict.doc_cat_manuali },
+    { key: "tecnica", label: dict.doc_cat_tecnica },
+    { key: "firmware", label: dict.doc_cat_firmware },
+    { key: "schemi", label: dict.doc_cat_schemi }
+  ];
+
+  function rowHtml(doc) {
+    return `
+      <a class="doc-row" href="${doc.url}" target="_blank" rel="noopener" style="text-decoration:none;">
+        <span class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg></span>
+        <span class="doc-meta">
+          <span class="doc-title">${doc.title}</span><br>
+          <span class="doc-type">${doc.type}</span>
+        </span>
+        <span class="doc-action">Apri</span>
+      </a>
     `;
-    container.appendChild(row);
+  }
+
+  let html = "";
+  CATEGORY_ORDER.forEach(cat => {
+    const items = docs.filter(d => d.category === cat.key);
+    if (items.length === 0) return;
+    html += `<h4 class="category-heading">${cat.label}</h4>`;
+    html += items.map(rowHtml).join("");
   });
+
+  const uncategorized = docs.filter(d => !CATEGORY_ORDER.some(c => c.key === d.category));
+  if (uncategorized.length > 0) {
+    html += `<h4 class="category-heading">${dict.doc_cat_altro}</h4>`;
+    html += uncategorized.map(rowHtml).join("");
+  }
+
+  container.innerHTML = html;
 }
 
 /* ---------------------------------------------------------------------
@@ -342,6 +387,7 @@ document.getElementById("simModeSwitch").addEventListener("click", (e) => {
   document.getElementById("simMapMode").style.display = state.simMode === "map" ? "block" : "none";
   document.getElementById("simParamsMode").style.display = state.simMode === "params" ? "block" : "none";
   document.getElementById("simErrorsMode").style.display = state.simMode === "errors" ? "block" : "none";
+  document.getElementById("simComponentsMode").style.display = state.simMode === "components" ? "block" : "none";
   if (state.simMode === "map") renderMapView();
   if (state.simMode === "params") renderParameters();
   if (state.simMode === "errors") renderErrors();
@@ -504,6 +550,7 @@ document.getElementById("errorSearch").addEventListener("input", (e) => {
           document.getElementById("simMapMode").style.display = "none";
           document.getElementById("simParamsMode").style.display = "block";
           document.getElementById("simErrorsMode").style.display = "none";
+          document.getElementById("simComponentsMode").style.display = "none";
           renderParameters();
           setTimeout(() => {
             const row = Array.from(document.querySelectorAll("#paramList .param-row"))
@@ -520,6 +567,7 @@ document.getElementById("errorSearch").addEventListener("input", (e) => {
           document.getElementById("simMapMode").style.display = "none";
           document.getElementById("simParamsMode").style.display = "none";
           document.getElementById("simErrorsMode").style.display = "block";
+          document.getElementById("simComponentsMode").style.display = "none";
           renderErrors();
           setTimeout(() => {
             const row = document.querySelector(`#errorList [data-error-code="${key}"]`);
@@ -942,7 +990,6 @@ function init() {
   updateSimulatorAvailability();
   renderMaintenance();
   renderProcedures();
-  renderCollaudo();
   renderDocuments();
   renderDevice();
   renderMapView();
