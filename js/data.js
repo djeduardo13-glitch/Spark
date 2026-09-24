@@ -942,6 +942,7 @@ const I18N = {
     home_intro: "Tutto quello che serve per configurare, controllare e collaudare Spark, organizzato per versione firmware.",
     simulator_intro: "Tutto quello che serve per conoscere la macchina: simulatore HMI, parametri, errori, mappa componenti e sensori.",
     sim_mode_panel: "Simulatore HMI",
+    sim_panel_intro: "Riproduce lo schermo del pannello Spark: naviga i menu come sul dispositivo reale.",
     sim_mode_map: "Mappa Componenti",
     map_intro: "Scegli una vista, poi muoviti con le dita (o il mouse) e tocca un'etichetta per vederne il significato.",
     map_reset: "Reimposta",
