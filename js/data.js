@@ -281,6 +281,42 @@ const SENSOR_DETAILS = {
   PR_2: { cavo: null, tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."], dove: "Schede motori DX e SX - DIS0016204" },
 };
 
+/* ---------------------------------------------------------------------
+   CATALOGO COMPONENTI/SENSORI (Tecnico → Componenti)
+   Indice minimo: id + categoria. Nome, codice cavo, tipo, funzione,
+   logica e collegamento NON sono duplicati qui — vengono letti a runtime
+   da UTENZE[id] (nome) e SENSOR_DETAILS[id] (tutto il resto), che erano
+   già presenti nel repo e già verificati contro COMPONENTI.pdf.
+   Categoria assegnata dal campo "tipo"/"Funzione" di SENSOR_DETAILS:
+   Magnetico→magnetici, Meccanico(fine corsa)→finecorsa, Laser→laser,
+   Potenziometro→potenziometri, Analogico "angolo"→angolari,
+   Analogico "pressione"→pressione. Nessuna categoria è stata inventata:
+   dove il PDF non permetteva di distinguere con certezza (vedi report),
+   la scelta è comunque tracciabile dal testo esistente in SENSOR_DETAILS.
+   Struttura volutamente minima e already-extensible: essendo un oggetto
+   JS, in futuro si possono aggiungere campi (es. parametriCollegati)
+   senza bisogno di migrare nulla.
+   ------------------------------------------------------------------- */
+const COMPONENTS = [
+  { id: "R_1", categoria: "magnetici" },
+  { id: "R_2", categoria: "magnetici" },
+  { id: "R_3", categoria: "magnetici" },
+  { id: "FC_1", categoria: "finecorsa" },
+  { id: "FC_2", categoria: "finecorsa" },
+  { id: "L_1", categoria: "laser" },
+  { id: "L_2", categoria: "laser" },
+  { id: "L_3", categoria: "laser" },
+  { id: "L_4", categoria: "laser" },
+  { id: "PO_1", categoria: "potenziometri" },
+  { id: "PO_2", categoria: "potenziometri" },
+  { id: "PO_3", categoria: "potenziometri" },
+  { id: "PO_4", categoria: "potenziometri" },
+  { id: "A_1", categoria: "angolari" },
+  { id: "A_2", categoria: "angolari" },
+  { id: "PR_1", categoria: "pressione" },
+  { id: "PR_2", categoria: "pressione" }
+];
+
 /* Viste della mappa componenti. Ogni hotspot: {id, x, y} con x/y in
    percentuale rispetto all'immagine (0-100), per restare allineati
    anche con zoom/pan. */
@@ -953,6 +989,20 @@ const I18N = {
     errors_intro: "Codici di errore/allarme del sistema, tradotti in italiano. Cerca per codice o per parola.",
     components_intro: "Scheda tecnica di ogni componente/sensore: cosa fa, dove si trova, come si verifica.",
     components_empty: "Sezione in preparazione: i contenuti verranno aggiunti qui componente per componente.",
+    component_search_placeholder: "Cerca per nome, ID, codice o tipo…",
+    back_to_components: "Torna ai componenti",
+    cat_all: "Tutti",
+    cat_magnetici: "Sensori magnetici",
+    cat_finecorsa: "Fine corsa",
+    cat_laser: "Laser",
+    cat_potenziometri: "Potenziometri",
+    cat_angolari: "Sensori angolari",
+    cat_pressione: "Sensori di pressione",
+    component_field_codice: "Codice cavo",
+    component_field_tipo: "Tipo",
+    component_field_funzione: "Funzione",
+    component_field_logica: "Logica di funzionamento",
+    component_field_collegamento: "Collegamento",
     error_search_placeholder: "Cerca un codice o una parola…",
     global_search_placeholder: "Cerca un errore (codice o parola) o un parametro…",
     global_search_no_results: "Nessun risultato",

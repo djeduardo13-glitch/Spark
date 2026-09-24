@@ -43,6 +43,7 @@ function goToView(viewId) {
   document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.view === viewId));
   closeDrawer();
   if (viewId === "checklist" && typeof closeProcedureDetail === "function") closeProcedureDetail();
+  if (viewId !== "simulator" && typeof closeComponentDetail === "function") closeComponentDetail();
   document.querySelector(".content").scrollTo?.(0, 0);
   window.scrollTo(0, 0);
 }
@@ -388,9 +389,11 @@ document.getElementById("simModeSwitch").addEventListener("click", (e) => {
   document.getElementById("simParamsMode").style.display = state.simMode === "params" ? "block" : "none";
   document.getElementById("simErrorsMode").style.display = state.simMode === "errors" ? "block" : "none";
   document.getElementById("simComponentsMode").style.display = state.simMode === "components" ? "block" : "none";
+  if (state.simMode !== "components" && typeof closeComponentDetail === "function") closeComponentDetail();
   if (state.simMode === "map") renderMapView();
   if (state.simMode === "params") renderParameters();
   if (state.simMode === "errors") renderErrors();
+  if (state.simMode === "components") renderComponents();
 });
 
 function renderParamDesc(desc) {
@@ -487,6 +490,103 @@ document.getElementById("errorSearch").addEventListener("input", (e) => {
 });
 
 /* ---------------------------------------------------------------------
+   TECNICO → COMPONENTI
+   Legge da COMPONENTS (id+categoria) unendo UTENZE (nome) e
+   SENSOR_DETAILS (cavo/tipo/intro/bullets/dove). Nessun dato duplicato.
+   ------------------------------------------------------------------- */
+const CAT_LABEL_KEY = {
+  magnetici: "cat_magnetici", finecorsa: "cat_finecorsa", laser: "cat_laser",
+  potenziometri: "cat_potenziometri", angolari: "cat_angolari", pressione: "cat_pressione"
+};
+
+state.componentCategory = "all";
+
+function renderComponents(filterText) {
+  const container = document.getElementById("componentsContainer");
+  if (!container || typeof COMPONENTS === "undefined") return;
+  const dict = I18N[state.lang] || I18N.it;
+  const query = (filterText || "").trim().toLowerCase();
+
+  const items = COMPONENTS.filter(c => {
+    if (state.componentCategory !== "all" && c.categoria !== state.componentCategory) return false;
+    if (query === "") return true;
+    const nome = (UTENZE[c.id] || "").toLowerCase();
+    const det = SENSOR_DETAILS[c.id] || {};
+    const haystack = [c.id, nome, det.tipo || "", det.cavo || ""].join(" ").toLowerCase();
+    return haystack.includes(query);
+  });
+
+  if (items.length === 0) {
+    container.innerHTML = `<div class="empty-state">${dict.empty_state}</div>`;
+    return;
+  }
+
+  container.innerHTML = "";
+  items.forEach(c => {
+    const nome = UTENZE[c.id] || c.id;
+    const catLabel = dict[CAT_LABEL_KEY[c.categoria]] || c.categoria;
+    const tile = document.createElement("button");
+    tile.className = "procedure-tile";
+    tile.innerHTML = `
+      <span class="procedure-tile-text">
+        <span class="procedure-title">${nome} <span class="component-id-tag">${c.id}</span></span>
+        <span class="procedure-intro">${catLabel}</span>
+      </span>
+      <svg class="procedure-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    `;
+    tile.addEventListener("click", () => openComponentDetail(c.id));
+    container.appendChild(tile);
+  });
+}
+
+function openComponentDetail(id) {
+  const comp = COMPONENTS.find(c => c.id === id);
+  if (!comp) return;
+  const dict = I18N[state.lang] || I18N.it;
+  const nome = UTENZE[id] || id;
+  const det = SENSOR_DETAILS[id] || {};
+  const catLabel = dict[CAT_LABEL_KEY[comp.categoria]] || comp.categoria;
+
+  document.getElementById("componentDetailTitle").textContent = `${id} — ${nome}`;
+  document.getElementById("componentDetailSub").textContent = catLabel;
+
+  const fields = document.getElementById("componentDetailFields");
+  let html = "";
+  if (det.cavo) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_codice}</span><span class="component-field-value">${det.cavo}</span></div>`;
+  if (det.tipo) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_tipo}</span><span class="component-field-value">${det.tipo}</span></div>`;
+  if (det.intro) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_funzione}</span><span class="component-field-value">${det.intro}</span></div>`;
+  if (det.bullets && det.bullets.length) {
+    html += `<div class="component-field"><span class="component-field-label">${dict.component_field_logica}</span><ul class="component-field-list">`;
+    det.bullets.forEach(b => { html += `<li>${b}</li>`; });
+    html += `</ul></div>`;
+  }
+  if (det.dove) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_collegamento}</span><span class="component-field-value">${det.dove}</span></div>`;
+  fields.innerHTML = html;
+
+  document.getElementById("componentsListView").style.display = "none";
+  document.getElementById("componentDetailView").style.display = "block";
+}
+
+function closeComponentDetail() {
+  document.getElementById("componentDetailView").style.display = "none";
+  document.getElementById("componentsListView").style.display = "block";
+}
+
+document.getElementById("componentBackBtn").addEventListener("click", closeComponentDetail);
+
+document.getElementById("componentSearch").addEventListener("input", (e) => {
+  renderComponents(e.target.value);
+});
+
+document.getElementById("componentFilterRow").addEventListener("click", (e) => {
+  const chip = e.target.closest(".filter-chip");
+  if (!chip) return;
+  state.componentCategory = chip.dataset.cat;
+  document.querySelectorAll("#componentFilterRow .filter-chip").forEach(c => c.classList.toggle("active", c === chip));
+  renderComponents(document.getElementById("componentSearch").value);
+});
+
+/* ---------------------------------------------------------------------
    RICERCA GLOBALE (errori + parametri)
    ------------------------------------------------------------------- */
 (function setupGlobalSearch() {
@@ -551,6 +651,7 @@ document.getElementById("errorSearch").addEventListener("input", (e) => {
           document.getElementById("simParamsMode").style.display = "block";
           document.getElementById("simErrorsMode").style.display = "none";
           document.getElementById("simComponentsMode").style.display = "none";
+          if (typeof closeComponentDetail === "function") closeComponentDetail();
           renderParameters();
           setTimeout(() => {
             const row = Array.from(document.querySelectorAll("#paramList .param-row"))
@@ -568,6 +669,7 @@ document.getElementById("errorSearch").addEventListener("input", (e) => {
           document.getElementById("simParamsMode").style.display = "none";
           document.getElementById("simErrorsMode").style.display = "block";
           document.getElementById("simComponentsMode").style.display = "none";
+          if (typeof closeComponentDetail === "function") closeComponentDetail();
           renderErrors();
           setTimeout(() => {
             const row = document.querySelector(`#errorList [data-error-code="${key}"]`);
@@ -991,6 +1093,7 @@ function init() {
   renderMaintenance();
   renderProcedures();
   renderDocuments();
+  renderComponents();
   renderDevice();
   renderMapView();
 }
