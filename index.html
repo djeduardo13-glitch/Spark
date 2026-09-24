@@ -132,15 +132,31 @@
         </div>
 
         <div class="sim-mode-switch" id="simModeSwitch">
-          <button class="sim-mode-pill active" data-sim-mode="panel" data-i18n="sim_mode_panel">Simulatore HMI</button>
-          <button class="sim-mode-pill" data-sim-mode="map" data-i18n="sim_mode_map">Mappa Componenti</button>
-          <button class="sim-mode-pill" data-sim-mode="params" data-i18n="sim_mode_params">Parametri</button>
-          <button class="sim-mode-pill" data-sim-mode="errors" data-i18n="sim_mode_errors">Errori</button>
-          <button class="sim-mode-pill" data-sim-mode="components" data-i18n="sim_mode_components">Componenti</button>
+          <button class="sim-mode-pill active" data-sim-mode="panel">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+            <span data-i18n="sim_mode_panel">Simulatore HMI</span>
+          </button>
+          <button class="sim-mode-pill" data-sim-mode="params">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></span>
+            <span data-i18n="sim_mode_params">Parametri</span>
+          </button>
+          <button class="sim-mode-pill" data-sim-mode="errors">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+            <span data-i18n="sim_mode_errors">Errori</span>
+          </button>
+          <button class="sim-mode-pill" data-sim-mode="map">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m14.5 9.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+            <span data-i18n="sim_mode_map">Mappa Componenti</span>
+          </button>
+          <button class="sim-mode-pill" data-sim-mode="components">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span>
+            <span data-i18n="sim_mode_components">Componenti</span>
+          </button>
         </div>
 
-        <!-- Modalità: Pannello Spark -->
+                <!-- Modalità: Simulatore HMI -->
         <div id="simPanelMode">
+          <p class="map-intro" data-i18n="sim_panel_intro">Riproduce lo schermo del pannello Spark: naviga i menu come sul dispositivo reale.</p>
           <div class="access-card" id="accessLevels"></div>
 
           <div class="sim-fw-lock" id="simFwLock">
