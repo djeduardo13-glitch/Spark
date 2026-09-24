@@ -211,8 +211,42 @@
 
         <!-- Modalità: Componenti / Sensori (struttura predisposta per contenuti futuri) -->
         <div id="simComponentsMode" style="display:none;">
-          <p class="map-intro" data-i18n="components_intro">Scheda tecnica di ogni componente/sensore: cosa fa, dove si trova, come si verifica.</p>
-          <div class="empty-state" data-i18n="components_empty">Sezione in preparazione: i contenuti verranno aggiunti qui componente per componente.</div>
+
+          <!-- Vista lista -->
+          <div id="componentsListView">
+            <p class="map-intro" data-i18n="components_intro">Scheda tecnica di ogni componente/sensore: cosa fa, dove si trova, come si verifica.</p>
+
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" id="componentSearch" data-i18n-placeholder="component_search_placeholder" placeholder="Cerca per nome, ID, codice o tipo…">
+            </div>
+
+            <div class="filter-chip-row" id="componentFilterRow">
+              <button class="filter-chip active" data-cat="all" data-i18n="cat_all">Tutti</button>
+              <button class="filter-chip" data-cat="magnetici" data-i18n="cat_magnetici">Sensori magnetici</button>
+              <button class="filter-chip" data-cat="finecorsa" data-i18n="cat_finecorsa">Fine corsa</button>
+              <button class="filter-chip" data-cat="laser" data-i18n="cat_laser">Laser</button>
+              <button class="filter-chip" data-cat="potenziometri" data-i18n="cat_potenziometri">Potenziometri</button>
+              <button class="filter-chip" data-cat="angolari" data-i18n="cat_angolari">Sensori angolari</button>
+              <button class="filter-chip" data-cat="pressione" data-i18n="cat_pressione">Sensori di pressione</button>
+            </div>
+
+            <div id="componentsContainer"></div>
+          </div>
+
+          <!-- Vista dettaglio componente -->
+          <div id="componentDetailView" style="display:none;">
+            <button class="back-to-list-btn" id="componentBackBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+              <span data-i18n="back_to_components">Torna ai componenti</span>
+            </button>
+            <div class="view-header">
+              <h2 id="componentDetailTitle"></h2>
+              <p id="componentDetailSub"></p>
+            </div>
+            <div id="componentDetailFields"></div>
+          </div>
+
         </div>
       </section>
 
