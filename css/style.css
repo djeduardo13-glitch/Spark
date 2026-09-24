@@ -1739,6 +1739,72 @@ button {
 
 .back-to-list-btn:hover { text-decoration: underline; }
 
+.filter-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.filter-chip {
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 7px 13px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.filter-chip.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.component-id-tag {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--brand-mid);
+  background: var(--tint);
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+
+.component-field {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.component-field:last-child { border-bottom: none; }
+
+.component-field-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+}
+
+.component-field-value {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.component-field-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
 .procedure-steps {
   padding: 4px 0 20px;
   display: flex;
