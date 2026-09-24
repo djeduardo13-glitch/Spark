@@ -1094,6 +1094,10 @@ button {
 }
 
 .sim-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   flex: 1 1 auto;
   min-width: 92px;
   border: none;
@@ -1105,6 +1109,14 @@ button {
   color: var(--brand-dark);
   font-family: 'Poppins', sans-serif;
 }
+
+.sim-mode-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+.sim-mode-icon svg { width: 15px; height: 15px; }
+.sim-mode-pill.active .sim-mode-icon { opacity: 1; }
 
 .sim-mode-pill.active {
   background: var(--brand);
