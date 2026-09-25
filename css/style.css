@@ -1739,6 +1739,22 @@ button {
 
 .back-to-list-btn:hover { text-decoration: underline; }
 
+.map-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+}
+.map-link-btn:hover { background: var(--brand-dark); }
+.map-link-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
 .filter-chip-row {
   display: flex;
   flex-wrap: wrap;
