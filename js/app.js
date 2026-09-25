@@ -379,21 +379,25 @@ function updateSimulatorAvailability() {
    ------------------------------------------------------------------- */
 Object.assign(state, { simMode: "panel", mapViewIndex: 0 });
 
+function switchSimMode(mode) {
+  state.simMode = mode;
+  document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === mode));
+  document.getElementById("simPanelMode").style.display = mode === "panel" ? "block" : "none";
+  document.getElementById("simMapMode").style.display = mode === "map" ? "block" : "none";
+  document.getElementById("simParamsMode").style.display = mode === "params" ? "block" : "none";
+  document.getElementById("simErrorsMode").style.display = mode === "errors" ? "block" : "none";
+  document.getElementById("simComponentsMode").style.display = mode === "components" ? "block" : "none";
+  if (mode !== "components" && typeof closeComponentDetail === "function") closeComponentDetail();
+  if (mode === "map") renderMapView();
+  if (mode === "params") renderParameters();
+  if (mode === "errors") renderErrors();
+  if (mode === "components") renderComponents();
+}
+
 document.getElementById("simModeSwitch").addEventListener("click", (e) => {
   const btn = e.target.closest(".sim-mode-pill");
   if (!btn) return;
-  state.simMode = btn.dataset.simMode;
-  document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p === btn));
-  document.getElementById("simPanelMode").style.display = state.simMode === "panel" ? "block" : "none";
-  document.getElementById("simMapMode").style.display = state.simMode === "map" ? "block" : "none";
-  document.getElementById("simParamsMode").style.display = state.simMode === "params" ? "block" : "none";
-  document.getElementById("simErrorsMode").style.display = state.simMode === "errors" ? "block" : "none";
-  document.getElementById("simComponentsMode").style.display = state.simMode === "components" ? "block" : "none";
-  if (state.simMode !== "components" && typeof closeComponentDetail === "function") closeComponentDetail();
-  if (state.simMode === "map") renderMapView();
-  if (state.simMode === "params") renderParameters();
-  if (state.simMode === "errors") renderErrors();
-  if (state.simMode === "components") renderComponents();
+  switchSimMode(btn.dataset.simMode);
 });
 
 function renderParamDesc(desc) {
@@ -496,7 +500,11 @@ document.getElementById("errorSearch").addEventListener("input", (e) => {
    ------------------------------------------------------------------- */
 const CAT_LABEL_KEY = {
   magnetici: "cat_magnetici", finecorsa: "cat_finecorsa", laser: "cat_laser",
-  potenziometri: "cat_potenziometri", angolari: "cat_angolari", pressione: "cat_pressione"
+  potenziometri: "cat_potenziometri", angolari: "cat_angolari", pressione: "cat_pressione",
+  comandi: "cat_comandi", motori: "cat_motori", attuatori: "cat_attuatori",
+  elettrovalvole: "cat_elettrovalvole", freni: "cat_freni", illuminazione: "cat_illuminazione",
+  alimentazione: "cat_alimentazione", segnalazione: "cat_segnalazione",
+  comunicazione: "cat_comunicazione", altrisensori: "cat_altrisensori"
 };
 
 state.componentCategory = "all";
@@ -512,7 +520,8 @@ function renderComponents(filterText) {
     if (query === "") return true;
     const nome = (UTENZE[c.id] || "").toLowerCase();
     const det = SENSOR_DETAILS[c.id] || {};
-    const haystack = [c.id, nome, det.tipo || "", det.cavo || ""].join(" ").toLowerCase();
+    const catLabel = (dict[CAT_LABEL_KEY[c.categoria]] || c.categoria).toLowerCase();
+    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", catLabel].join(" ").toLowerCase();
     return haystack.includes(query);
   });
 
@@ -539,6 +548,29 @@ function renderComponents(filterText) {
   });
 }
 
+/* Trova la prima occorrenza di un componente tra gli hotspot della mappa.
+   Associazione SOLO per ID identico (nessuna interpretazione/somiglianza). */
+function findComponentHotspot(id) {
+  for (let vi = 0; vi < MAP_VIEWS.length; vi++) {
+    const hi = MAP_VIEWS[vi].hotspots.findIndex(h => h.id === id);
+    if (hi !== -1) return { viewIndex: vi, hotspotIndex: hi };
+  }
+  return null;
+}
+
+function goToComponentOnMap(id) {
+  const loc = findComponentHotspot(id);
+  if (!loc) return;
+  switchSimMode("map");
+  state.mapViewIndex = loc.viewIndex;
+  renderMapView();
+  const hotspotBtn = document.getElementById("mapHotspots").children[loc.hotspotIndex];
+  if (hotspotBtn) {
+    hotspotBtn.click();
+    hotspotBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
 function openComponentDetail(id) {
   const comp = COMPONENTS.find(c => c.id === id);
   if (!comp) return;
@@ -561,7 +593,16 @@ function openComponentDetail(id) {
     html += `</ul></div>`;
   }
   if (det.dove) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_collegamento}</span><span class="component-field-value">${det.dove}</span></div>`;
+  if (html === "") html = `<div class="empty-state">${dict.component_no_details}</div>`;
   fields.innerHTML = html;
+
+  const mapLinkWrap = document.getElementById("componentMapLinkWrap");
+  if (findComponentHotspot(id)) {
+    mapLinkWrap.style.display = "block";
+    mapLinkWrap.querySelector("#componentMapLinkBtn").onclick = () => goToComponentOnMap(id);
+  } else {
+    mapLinkWrap.style.display = "none";
+  }
 
   document.getElementById("componentsListView").style.display = "none";
   document.getElementById("componentDetailView").style.display = "block";
@@ -760,14 +801,29 @@ function renderMapView() {
         `;
       }
 
+      const isComponent = (typeof COMPONENTS !== "undefined") && COMPONENTS.some(c => c.id === h.id);
+      const openCompBtnHtml = isComponent
+        ? `<button type="button" class="map-link-btn" id="openComponentBtn" style="margin-top:10px;">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+             <span data-i18n="open_component">Apri componente</span>
+           </button>`
+        : "";
+
       answer.innerHTML = `
         <div class="map-answer-head">
           <span class="map-answer-code">${h.id}</span>
           <span class="map-answer-text">${meaning || "Descrizione non ancora disponibile."}</span>
         </div>
         ${extraHtml}
+        ${openCompBtnHtml}
       `;
       answer.style.display = "block";
+      if (isComponent) {
+        document.getElementById("openComponentBtn").addEventListener("click", () => {
+          switchSimMode("components");
+          openComponentDetail(h.id);
+        });
+      }
     });
     hotspotsEl.appendChild(btn);
   });
