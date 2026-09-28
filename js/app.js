@@ -453,8 +453,14 @@ document.getElementById("paramSearch").addEventListener("input", (e) => {
    ------------------------------------------------------------------- */
 const CAT_COLOR = { L: "cat-l", W: "cat-w", E: "cat-e" };
 
+/* Ordine di visualizzazione delle sezioni (solo presentazione).
+   Le categorie sono quelle già presenti in ERRORS (cat/catLabel), non rinominate.
+   Eventuali categorie future non elencate qui vengono accodate in fondo. */
+const ERROR_SECTION_ORDER = ["E", "L", "W"];
+
 function renderErrors(filterText) {
   const list = document.getElementById("errorList");
+  const dict = I18N[state.lang] || I18N.it;
   const query = (filterText || "").trim().toLowerCase();
   const items = ERRORS.filter(er =>
     query === "" ||
@@ -463,35 +469,137 @@ function renderErrors(filterText) {
   );
 
   if (items.length === 0) {
-    list.innerHTML = `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
+    list.innerHTML = `<div class="empty-state">${dict.empty_state}</div>`;
     return;
   }
 
+  const extraCats = [...new Set(items.map(er => er.cat))].filter(c => !ERROR_SECTION_ORDER.includes(c));
+  const sections = [...ERROR_SECTION_ORDER, ...extraCats];
+
   list.innerHTML = "";
-  items.forEach(er => {
-    const row = document.createElement("div");
-    row.className = "param-row";
-    row.dataset.errorCode = er.code;
-    row.innerHTML = `
-      <button class="param-question">
-        <span class="param-q-left">
-          <span class="param-name error-code">${er.code}</span>
-          <span class="param-badges">
-            <span class="param-badge ${CAT_COLOR[er.cat] || ""}">${er.catLabel}</span>
+  sections.forEach(cat => {
+    const group = items.filter(er => er.cat === cat);
+    if (group.length === 0) return;
+
+    const title = document.createElement("h4");
+    title.className = "error-section-title";
+    title.textContent = group[0].catLabel;
+    list.appendChild(title);
+
+    group.forEach(er => {
+      const row = document.createElement("div");
+      row.className = "param-row";
+      row.dataset.errorCode = er.code;
+      row.innerHTML = `
+        <button class="param-question">
+          <span class="param-q-left">
+            <span class="param-name error-code">${er.code}</span>
           </span>
-        </span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="param-answer"><p class="param-p">${er.text}</p></div>
-    `;
-    list.appendChild(row);
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="param-answer"><p class="param-p">${er.text}</p></div>
+      `;
+      row.querySelector(".param-answer").appendChild(buildRelationBlock(
+        dict.relation_components_title,
+        getErrorComponents(er.code).map(id => ({
+          label: `${id} — ${UTENZE[id] || id}`,
+          onClick: () => goToComponent(id)
+        })),
+        dict.relation_no_components,
+        "list"
+      ));
+      list.appendChild(row);
+    });
   });
+  /* bindAccordion agisce su tutte le righe della lista (anche tra sezioni
+     diverse): aprendo un errore si chiude quello aperto prima. */
   bindAccordion(list, ".param-row", ".param-question");
 }
 
 document.getElementById("errorSearch").addEventListener("input", (e) => {
   renderErrors(e.target.value);
 });
+
+/* ---------------------------------------------------------------------
+   RELAZIONI COMPONENTI ↔ PARAMETRI ↔ ERRORI
+   Le uniche fonti sono PARAM_COMPONENTS e ERROR_COMPONENTS (data.js).
+   Tutto il resto è calcolato qui a runtime, senza copiare dati.
+   ------------------------------------------------------------------- */
+function getErrorComponents(code) {
+  return ERROR_COMPONENTS[code] || [];
+}
+
+function getComponentErrors(id) {
+  return ERRORS.filter(er => (ERROR_COMPONENTS[er.code] || []).includes(id)).map(er => er.code);
+}
+
+function getComponentParams(id) {
+  return PARAMETERS.filter(pr => (PARAM_COMPONENTS[pr.name] || []).includes(id)).map(pr => pr.name);
+}
+
+/* Blocco "titolo + elenco cliccabile" riusato in dettaglio errore e dettaglio
+   componente. items: [{label, onClick}]. mode: "chips" (compatto) | "list" (una per riga). */
+function buildRelationBlock(title, items, emptyText, mode) {
+  const block = document.createElement("div");
+  block.className = "relation-block";
+
+  const label = document.createElement("span");
+  label.className = "relation-label";
+  label.textContent = title;
+  block.appendChild(label);
+
+  if (items.length === 0) {
+    const none = document.createElement("span");
+    none.className = "relation-none";
+    none.textContent = emptyText;
+    block.appendChild(none);
+    return block;
+  }
+
+  const wrap = document.createElement("div");
+  wrap.className = mode === "list" ? "relation-list" : "relation-chips";
+  items.forEach(it => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = mode === "list" ? "relation-link" : "relation-chip";
+    btn.textContent = it.label;
+    btn.addEventListener("click", (e) => { e.stopPropagation(); it.onClick(); });
+    wrap.appendChild(btn);
+  });
+  block.appendChild(wrap);
+  return block;
+}
+
+/* Apre un errore nella schermata Errori (un solo dettaglio aperto). */
+function goToError(code) {
+  const search = document.getElementById("errorSearch");
+  if (search) search.value = "";
+  switchSimMode("errors");
+  const row = document.querySelector(`#errorList [data-error-code="${code}"]`);
+  if (row) {
+    row.classList.add("open");
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+/* Apre un parametro nella schermata Parametri. */
+function goToParameter(name) {
+  const search = document.getElementById("paramSearch");
+  if (search) search.value = "";
+  switchSimMode("params");
+  const row = Array.from(document.querySelectorAll("#paramList .param-row"))
+    .find(r => r.querySelector(".param-name").textContent === name);
+  if (row) {
+    row.classList.add("open");
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+/* Apre la scheda di un componente in Tecnico → Componenti. */
+function goToComponent(id) {
+  switchSimMode("components");
+  openComponentDetail(id);
+}
 
 /* ---------------------------------------------------------------------
    TECNICO → COMPONENTI
@@ -504,7 +612,8 @@ const CAT_LABEL_KEY = {
   comandi: "cat_comandi", motori: "cat_motori", attuatori: "cat_attuatori",
   elettrovalvole: "cat_elettrovalvole", freni: "cat_freni", illuminazione: "cat_illuminazione",
   alimentazione: "cat_alimentazione", segnalazione: "cat_segnalazione",
-  comunicazione: "cat_comunicazione", altrisensori: "cat_altrisensori"
+  comunicazione: "cat_comunicazione", altrisensori: "cat_altrisensori",
+  schede: "cat_schede"
 };
 
 state.componentCategory = "all";
@@ -595,6 +704,19 @@ function openComponentDetail(id) {
   if (det.dove) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_collegamento}</span><span class="component-field-value">${det.dove}</span></div>`;
   if (html === "") html = `<div class="empty-state">${dict.component_no_details}</div>`;
   fields.innerHTML = html;
+
+  fields.appendChild(buildRelationBlock(
+    dict.relation_params_title,
+    getComponentParams(id).map(name => ({ label: name, onClick: () => goToParameter(name) })),
+    dict.relation_no_params,
+    "chips"
+  ));
+  fields.appendChild(buildRelationBlock(
+    dict.relation_errors_title,
+    getComponentErrors(id).map(code => ({ label: code, onClick: () => goToError(code) })),
+    dict.relation_no_errors,
+    "chips"
+  ));
 
   const mapLinkWrap = document.getElementById("componentMapLinkWrap");
   if (findComponentHotspot(id)) {
