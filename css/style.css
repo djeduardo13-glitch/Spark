@@ -1821,6 +1821,73 @@ button {
   line-height: 1.6;
 }
 
+/* Errori: titoli di sezione al posto dei tag di categoria su ogni riga */
+.error-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brand);
+  margin: 22px 0 4px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--tint);
+}
+.error-section-title:first-child { margin-top: 0; }
+
+/* Relazioni componenti ↔ parametri ↔ errori (dettaglio errore e dettaglio componente) */
+.relation-block {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.relation-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.relation-none {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.relation-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.relation-chip {
+  border: 1px solid var(--line);
+  background: var(--tint);
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 8px 13px;
+  border-radius: 999px;
+}
+.relation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.relation-link {
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+.relation-chip:hover,
+.relation-link:hover { background: var(--tint); }
+
 .procedure-steps {
   padding: 4px 0 20px;
   display: flex;
