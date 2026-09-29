@@ -152,6 +152,10 @@
             <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span>
             <span data-i18n="sim_mode_components">Componenti</span>
           </button>
+          <button class="sim-mode-pill" data-sim-mode="sequence">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
+            <span data-i18n="sim_mode_sequence">Logica di funzionamento</span>
+          </button>
         </div>
 
                 <!-- Modalità: Simulatore HMI -->
@@ -262,6 +266,36 @@
               </button>
             </div>
             <div id="componentDetailFields"></div>
+          </div>
+
+        </div>
+
+        <!-- Modalità: Logica di funzionamento -->
+        <div id="simSequenceMode" style="display:none;">
+
+          <!-- Vista lista -->
+          <div id="sequenceListView">
+            <p class="map-intro" data-i18n="sequence_intro">La sequenza di carico e scarico descritta nella documentazione tecnica, passo per passo.</p>
+
+            <div class="filter-chip-row" id="sequenceTypeRow">
+              <button class="filter-chip active" data-seq="carico" data-i18n="sequence_carico">Carico</button>
+              <button class="filter-chip" data-seq="scarico" data-i18n="sequence_scarico">Scarico</button>
+            </div>
+
+            <div id="sequenceContainer"></div>
+          </div>
+
+          <!-- Vista dettaglio passaggio -->
+          <div id="sequenceDetailView" style="display:none;">
+            <button class="back-to-list-btn" id="sequenceBackBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+              <span data-i18n="back_to_sequence">Torna alla sequenza</span>
+            </button>
+            <div class="view-header">
+              <h2 id="sequenceDetailTitle"></h2>
+              <p id="sequenceDetailSub"></p>
+            </div>
+            <div id="sequenceDetailFields"></div>
           </div>
 
         </div>
