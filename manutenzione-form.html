@@ -575,6 +575,59 @@
     color: var(--text-mute);
   }
 
+  .btn-print {
+    background: #fff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn:disabled { opacity: 0.6; cursor: wait; }
+
+  .pdf-busy {
+    position: fixed; inset: 0;
+    background: rgba(12, 30, 48, 0.55);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100000;
+  }
+  .pdf-busy.open { display: flex; }
+  .pdf-busy-box {
+    background: #fff; border-radius: 14px; padding: 22px 26px;
+    font-size: 0.85rem; font-weight: 600; color: var(--primary);
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .pdf-busy-spinner {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 3px solid var(--primary-light); border-top-color: var(--primary);
+    animation: pdfspin 0.8s linear infinite;
+  }
+  @keyframes pdfspin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: #fff; font-size: 0.78rem;
+    padding: 10px 16px; border-radius: 10px; max-width: 90vw; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+    z-index: 100001;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--nok); }
+
+  /* Durante la generazione del PDF le regole di @media print vengono
+     replicate sotto body.pdf-export (vedi buildPdfExportStyles nello script).
+     Qui solo gli aggiustamenti che la stampa non ha bisogno di fare. */
+  body.pdf-export .app { min-height: 0; }
+  body.pdf-export .check-item { flex-wrap: nowrap; }
+  body.pdf-export .option-group { width: auto; }
+  body.pdf-export .option { flex: 0 0 auto; }
+  /* Evita titoli orfani a fine pagina: prima di ogni titolo viene inserito
+     un elemento invisibile, alto zero nel layout, il cui box copre il titolo
+     e le prime righe che seguono. Se quel box finisce a cavallo di due
+     pagine, html2pdf sposta tutto alla pagina successiva. */
+  .pdf-keep { display: block; height: 0; pointer-events: none; }
+  .pdf-keep-product { padding-bottom: 90px; margin-bottom: -90px; }
+  .pdf-keep-section { padding-bottom: 42px; margin-bottom: -42px; }
+
   .save-note {
     text-align: center;
     font-size: 0.68rem;
@@ -2204,11 +2257,19 @@
 
   <div class="action-bar">
     <button class="btn btn-reset" id="btn-reset">&#8635; Reset</button>
-    <button class="btn btn-pdf" id="btn-pdf">&#8595; Esporta PDF</button>
+    <button class="btn btn-print" id="btn-print">&#128438; Stampa</button>
+    <button class="btn btn-pdf" id="btn-pdf">&#8595; Salva PDF</button>
   </div>
 
 </div>
 
+<div class="pdf-busy" id="pdf-busy" aria-live="polite">
+  <div class="pdf-busy-box"><span class="pdf-busy-spinner"></span><span>Generazione PDF in corso…</span></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="js/vendor/html2pdf.bundle.min.js"></script>
+<script src="js/storage.js"></script>
 <script>
 (function() {
   const tabs = document.querySelectorAll('.product-tab');
@@ -2324,43 +2385,219 @@
     document.getElementById('save-note').textContent = '';
   });
 
-  document.getElementById('btn-pdf').addEventListener('click', function() {
-    const originalTitle = document.title;
+  /* ------------------------------------------------------------------
+     NOME FILE / MATRICOLA
+     ------------------------------------------------------------------ */
+  const MATRICOLA_FIELD_BY_TAB = {
+    'spark-uc': 'matricola-spark-uc',
+    'spark-fs': 'matricola-spark-fs',
+    'str-000': 'matricola-str-000',
+    'parametri-uc': 'matricola-spark-uc'
+  };
+
+  function getExportInfo() {
     const pad = n => String(n).padStart(2, '0');
     const today = new Date();
     const dataStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
-
     const activeTabBtn = document.querySelector('.product-tab.active');
     const activeTab = activeTabBtn ? activeTabBtn.dataset.tab : 'spark-uc';
-    const MATRICOLA_FIELD_BY_TAB = {
-      'spark-uc': 'matricola-spark-uc',
-      'spark-fs': 'matricola-spark-fs',
-      'str-000': 'matricola-str-000',
-      'parametri-uc': 'matricola-spark-uc'
-    };
     const snFieldId = MATRICOLA_FIELD_BY_TAB[activeTab] || 'matricola-spark-uc';
     const snEl = document.getElementById(snFieldId);
-    const sn = snEl && snEl.value.trim() ? snEl.value.trim().replace(/[^a-zA-Z0-9_-]+/g, '') : '';
+    const sn = snEl && snEl.value.trim()
+      ? snEl.value.trim().replace(/[^a-zA-Z0-9_-]+/g, '').toUpperCase()
+      : '';
     let nomeFile = 'Manutenzione_' + dataStr;
     if (sn) nomeFile += '_SN' + sn;
-    document.title = nomeFile;
+    return { sn, snEl, nomeFile };
+  }
 
+  // Nasconde i riquadri note vuoti (usato sia dalla stampa che dal PDF)
+  function hideEmptyNotes() {
+    document.querySelectorAll('.notes-section').forEach(function(sec) {
+      const ta = sec.querySelector('textarea');
+      const empty = !ta || !ta.value.trim();
+      sec.classList.toggle('print-hide', empty);
+    });
+  }
+  window.addEventListener('beforeprint', hideEmptyNotes);
+
+  let toastTimer = null;
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  /* ------------------------------------------------------------------
+     STAMPA (come prima: dialogo di stampa del browser)
+     ------------------------------------------------------------------ */
+  document.getElementById('btn-print').addEventListener('click', function() {
+    const originalTitle = document.title;
+    document.title = getExportInfo().nomeFile;
     const restoreTitle = function() {
       document.title = originalTitle;
       window.removeEventListener('afterprint', restoreTitle);
     };
     window.addEventListener('afterprint', restoreTitle);
     setTimeout(restoreTitle, 3000);
-
     window.print();
   });
 
-  window.addEventListener('beforeprint', function() {
-    document.querySelectorAll('.notes-section').forEach(function(sec) {
-      const ta = sec.querySelector('textarea');
-      const empty = !ta || !ta.value.trim();
-      sec.classList.toggle('print-hide', empty);
+  /* ------------------------------------------------------------------
+     SALVA PDF
+     Genera il PDF con html2pdf usando lo stesso layout della stampa,
+     lo salva nella cartella dell'SN (IndexedDB, js/storage.js) e ne
+     scarica una copia.
+     ------------------------------------------------------------------ */
+
+  // Copia ogni regola dentro @media print come "body.pdf-export <selettore>",
+  // così il layout di stampa ha un'unica fonte di verità.
+  function buildPdfExportStyles() {
+    if (document.getElementById('pdf-export-style')) return;
+    const out = [];
+    Array.from(document.styleSheets).forEach(sheet => {
+      let rules;
+      try { rules = sheet.cssRules; } catch (e) { return; } // fogli esterni (font)
+      Array.from(rules || []).forEach(rule => {
+        if (!(rule instanceof CSSMediaRule) || !/\bprint\b/.test(rule.media.mediaText)) return;
+        Array.from(rule.cssRules).forEach(inner => {
+          if (!(inner instanceof CSSStyleRule)) return;
+          const sel = inner.selectorText.split(',').map(part => {
+            part = part.trim();
+            if (/^body\b/.test(part)) return part.replace(/^body/, 'body.pdf-export');
+            if (/^html\b/.test(part)) return part.replace(/^html/, 'html body.pdf-export');
+            return 'body.pdf-export ' + part;
+          }).join(', ');
+          out.push(sel + ' { ' + inner.style.cssText + ' }');
+        });
+      });
     });
+    const style = document.createElement('style');
+    style.id = 'pdf-export-style';
+    style.textContent = out.join('\n');
+    document.head.appendChild(style);
+  }
+
+  // I canvas su iOS hanno un limite di ~16,7 milioni di pixel:
+  // riduce la risoluzione se il documento è molto lungo.
+  function pickCanvasScale(el) {
+    const w = el.scrollWidth || 740;
+    const h = el.scrollHeight || 3000;
+    const maxPixels = 16000000;
+    return Math.max(1, Math.min(2, Math.sqrt(maxPixels / (w * h)) * 0.95));
+  }
+
+  async function generatePdfBlob(filename) {
+    const el = document.querySelector('.app');
+    // html2pdf clona il documento: i radio clonati "rubano" la selezione
+    // agli originali (stesso name), quindi la salviamo e la ripristiniamo.
+    const checkedRadios = Array.from(document.querySelectorAll('input[type=radio]:checked'));
+
+    buildPdfExportStyles();
+    hideEmptyNotes();
+    document.body.classList.add('pdf-export');
+    const keepers = [];
+    el.querySelectorAll('.print-product-title, .section-title').forEach(title => {
+      const k = document.createElement('div');
+      k.className = 'pdf-keep ' + (title.classList.contains('print-product-title') ? 'pdf-keep-product' : 'pdf-keep-section');
+      title.parentNode.insertBefore(k, title);
+      keepers.push(k);
+    });
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const opt = {
+        margin: [6, 8, 6, 8],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: { scale: pickCanvasScale(el), useCORS: true, backgroundColor: '#ffffff', logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        pagebreak: {
+          mode: ['css'],
+          avoid: ['.pdf-keep', '.check-item', '.notes-section', '.signature-block', '.extra-block',
+                  '.simple-check-item', '.param-item', '.info-grid']
+        }
+      };
+      return await html2pdf().set(opt).from(el).outputPdf('blob');
+    } finally {
+      document.body.classList.remove('pdf-export');
+      keepers.forEach(k => k.remove());
+      checkedRadios.forEach(r => { r.checked = true; });
+    }
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  let pdfBusy = false;
+  document.getElementById('btn-pdf').addEventListener('click', async function() {
+    if (pdfBusy) return;
+    const info = getExportInfo();
+
+    if (!info.sn) {
+      const ok = confirm('Matricola mancante: senza SN il PDF non può essere archiviato nella cronologia e verrà solo scaricato.\n\nPremi Annulla per inserire la matricola, OK per scaricarlo comunque.');
+      if (!ok) {
+        const wrapper = info.snEl && info.snEl.closest('.tab-wrapper');
+        if (wrapper) switchTab(wrapper.dataset.wrapper);
+        if (info.snEl) setTimeout(() => info.snEl.focus(), 50);
+        return;
+      }
+    }
+
+    const filename = info.nomeFile + '.pdf';
+    const btn = this;
+    const busy = document.getElementById('pdf-busy');
+    pdfBusy = true;
+    btn.disabled = true;
+    busy.classList.add('open');
+
+    try {
+      if (typeof html2pdf !== 'function') throw new Error('libreria PDF non caricata');
+      const blob = await generatePdfBlob(filename);
+
+      let saved = false;
+      if (info.sn && typeof sparkSaveFile === 'function') {
+        try {
+          await sparkSaveFile({ sn: info.sn, filename, mimeType: 'application/pdf', blob, kind: 'manutenzione' });
+          saved = true;
+          // Chiede al browser di non cancellare l'archivio quando serve spazio
+          if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+          if ('BroadcastChannel' in window) {
+            const bc = new BroadcastChannel('spark-maintenance');
+            bc.postMessage({ type: 'saved', sn: info.sn });
+            bc.close();
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('PDF creato ma non archiviato: ' + (err.message || err), true);
+        }
+      }
+
+      downloadBlob(blob, filename);
+      if (saved) {
+        showToast('PDF salvato nella cartella SN ' + info.sn + ' e scaricato.');
+        document.getElementById('save-note').textContent = 'Ultimo PDF: ' + filename;
+      } else if (!info.sn) {
+        showToast('PDF scaricato (non archiviato: matricola mancante).');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Errore nella generazione del PDF: ' + (err.message || err), true);
+    } finally {
+      busy.classList.remove('open');
+      btn.disabled = false;
+      pdfBusy = false;
+    }
   });
 
   /* FIRMA PAD */
