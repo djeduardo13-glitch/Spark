@@ -1273,6 +1273,8 @@ const I18N = {
     relation_no_params: "Nessun parametro associato",
     relation_no_errors: "Nessun errore associato",
     relation_no_components: "Nessun componente associato",
+    relation_sequence_title: "Utilizzo nella logica",
+    relation_no_sequence: "Nessun passaggio della sequenza associato a questo componente.",
     component_no_details: "Non è ancora disponibile una scheda tecnica dettagliata per questo componente.",
     component_field_codice: "Codice cavo",
     component_field_tipo: "Tipo",

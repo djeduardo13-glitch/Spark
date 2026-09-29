@@ -75,7 +75,11 @@ function applyRoute(route) {
       if (d.type === "procedure") openProcedureDetail(d.id);
       else if (d.type === "sn") openSnFolder(d.id);
       else if (d.type === "component") openComponentDetail(d.id);
-      else if (d.type === "sequence") openSequenceDetail(d.id);
+      else if (d.type === "sequence") {
+        const step = OPERATION_SEQUENCE.find(s => s.id === d.id);
+        if (step) syncSequenceType(step.tipo);
+        openSequenceDetail(d.id);
+      }
     }
   } finally {
     nav.applying = false;
@@ -835,6 +839,13 @@ function getComponentParams(id) {
 
 /* Blocco "titolo + elenco cliccabile" riusato in dettaglio errore e dettaglio
    componente. items: [{label, onClick}]. mode: "chips" (compatto) | "list" (una per riga). */
+/* Componente -> passaggi della sequenza: letto a runtime da OPERATION_SEQUENCE
+   (solo l'array "componenti" di ogni passaggio, nessuna tabella duplicata). */
+function getComponentSequenceSteps(id) {
+  if (typeof OPERATION_SEQUENCE === "undefined") return [];
+  return OPERATION_SEQUENCE.filter(step => (step.componenti || []).includes(id));
+}
+
 function buildRelationBlock(title, items, emptyText, mode) {
   const block = document.createElement("div");
   block.className = "relation-block";
@@ -926,6 +937,25 @@ function renderSequence() {
     tile.addEventListener("click", () => openSequenceDetail(step.id));
     container.appendChild(tile);
   });
+}
+
+// Allinea il selettore Carico/Scarico al passaggio aperto, così "Torna alla
+// sequenza" mostra la lista giusta
+function syncSequenceType(tipo) {
+  if (!tipo || state.sequenceType === tipo) return;
+  state.sequenceType = tipo;
+  document.querySelectorAll("#sequenceTypeRow .filter-chip").forEach(c => c.classList.toggle("active", c.dataset.seq === tipo));
+  renderSequence();
+}
+
+function goToSequenceStep(stepId) {
+  const step = OPERATION_SEQUENCE.find(s => s.id === stepId);
+  if (!step) return;
+  switchSimMode("sequence");
+  syncSequenceType(step.tipo);
+  openSequenceDetail(stepId);
+  document.querySelector(".content").scrollTo?.(0, 0);
+  window.scrollTo(0, 0);
 }
 
 function openSequenceDetail(stepId) {
@@ -1094,6 +1124,8 @@ function openComponentDetail(id) {
   if (html === "") html = `<div class="empty-state">${dict.component_no_details}</div>`;
   fields.innerHTML = html;
 
+  fields.appendChild(buildSequenceUsageBlock(id));
+
   fields.appendChild(buildRelationBlock(
     dict.relation_errors_title,
     getComponentErrors(id).map(code => ({ label: code, onClick: () => goToError(code) })),
@@ -1120,6 +1152,51 @@ function openComponentDetail(id) {
   state.detail = { type: "component", id: id };
   updateCompSubSwitch();
   scheduleHistorySync();
+}
+
+/* "Utilizzo nella logica": passaggi di Carico/Scarico in cui compare il
+   componente, raggruppati per tipo. Il clic apre il passaggio nella
+   Logica di funzionamento (stessa UI di sempre). */
+function buildSequenceUsageBlock(id) {
+  const dict = I18N[state.lang] || I18N.it;
+  const steps = getComponentSequenceSteps(id);
+  const block = document.createElement("div");
+  block.className = "relation-block";
+
+  const label = document.createElement("span");
+  label.className = "relation-label";
+  label.textContent = dict.relation_sequence_title;
+  block.appendChild(label);
+
+  if (steps.length === 0) {
+    const none = document.createElement("span");
+    none.className = "relation-none";
+    none.textContent = dict.relation_no_sequence;
+    block.appendChild(none);
+    return block;
+  }
+
+  [["carico", dict.sequence_carico], ["scarico", dict.sequence_scarico]].forEach(([tipo, tipoLabel]) => {
+    const group = steps.filter(st => st.tipo === tipo);
+    if (group.length === 0) return;
+    const head = document.createElement("span");
+    head.className = "relation-group-title";
+    head.textContent = tipoLabel;
+    block.appendChild(head);
+
+    const list = document.createElement("div");
+    list.className = "relation-list";
+    group.forEach(st => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "relation-link relation-step";
+      btn.innerHTML = `<span class="relation-step-num">${dict.sequence_step_label} ${st.numero}</span><span class="relation-step-desc">${st.descrizione}</span>`;
+      btn.addEventListener("click", (e) => { e.stopPropagation(); goToSequenceStep(st.id); });
+      list.appendChild(btn);
+    });
+    block.appendChild(list);
+  });
+  return block;
 }
 
 function closeComponentDetail() {
