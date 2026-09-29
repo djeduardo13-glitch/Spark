@@ -716,6 +716,9 @@ function renderParameters(filterText) {
   }
 
   list.innerHTML = "";
+  const block = document.createElement("div");
+  block.className = "code-list";
+  list.appendChild(block);
   items.forEach((pr, i) => {
     const row = document.createElement("div");
     row.className = "param-row";
@@ -734,7 +737,7 @@ function renderParameters(filterText) {
       </button>
       <div class="param-answer">${renderParamDesc(pr.desc)}</div>
     `;
-    list.appendChild(row);
+    block.appendChild(row);
   });
   bindAccordion(list, ".param-row", ".param-question");
 }
@@ -778,6 +781,10 @@ function renderErrors(filterText) {
     title.textContent = group[0].catLabel;
     list.appendChild(title);
 
+    const block = document.createElement("div");
+    block.className = "code-list";
+    list.appendChild(block);
+
     group.forEach(er => {
       const row = document.createElement("div");
       row.className = "param-row";
@@ -800,7 +807,7 @@ function renderErrors(filterText) {
         dict.relation_no_components,
         "list"
       ));
-      list.appendChild(row);
+      block.appendChild(row);
     });
   });
   /* bindAccordion agisce su tutte le righe della lista (anche tra sezioni
@@ -1064,7 +1071,9 @@ function openComponentDetail(id) {
   const catLabel = dict[CAT_LABEL_KEY[comp.categoria]] || comp.categoria;
 
   document.getElementById("componentDetailTitle").textContent = `${id} — ${nome}`;
-  document.getElementById("componentDetailSub").textContent = catLabel;
+  // Sotto il nome: il tipo specifico del componente (es. "Laser distanza"),
+  // oppure la categoria se il tipo non è indicato
+  document.getElementById("componentDetailSub").textContent = det.tipo ? det.tipo.replace(/\s+/g, " ").trim() : catLabel;
 
   const fields = document.getElementById("componentDetailFields");
   let html = "";
