@@ -1071,6 +1071,52 @@ const ERROR_COMPONENTS = {
    "category" vengono mostrate in un gruppo "Altre procedure" — nessuna
    procedura esistente è stata riclassificata a forza in questa fase.
    ------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------
+   LOGICA DI FUNZIONAMENTO (Tecnico → Logica di funzionamento)
+   Fonte: "Logica di funzionamento(1).pdf" (pagg. 11–35), fornito
+   dall'utente. Sequenza di carico e di scarico riportate fedelmente,
+   con la numerazione del documento originale.
+   Non duplica dati tecnici: "componenti" e "parametri" sono solo ID/nomi
+   già presenti in COMPONENTS/PARAMETERS, risolti a runtime dalla UI.
+   Rappresentazione della logica originale, non ancora diagnostica.
+   ------------------------------------------------------------------- */
+const OPERATION_SEQUENCE_NOTES = {
+  carico: {
+    testo: "Verificare che le slitte A e B siano in posizione di carico, completamente estratte e vincolate. Durante tutta l'operazione devono essere mantenuti attivi il pulsante IN (C_3) ed entrambe le coste sensibili (CS_1); il rilascio di uno qualsiasi di questi ingressi interrompe qualsiasi azione.",
+    componenti: ["C_3", "CS_1"]
+  }
+};
+
+const OPERATION_SEQUENCE = [
+  { id: "carico-00", tipo: "carico", numero: 0, descrizione: "Alla pressione del pulsante IN (C_3), la barella si porta automaticamente all'altezza di carico (posizione preimpostata).", componenti: ["C_3"], parametri: [] },
+  { id: "carico-01", tipo: "carico", numero: 1, descrizione: "La barella viene avanzata fino a quando la sfera del rostro entra in contatto con la slitta superiore A.", componenti: [], parametri: [] },
+  { id: "carico-02", tipo: "carico", numero: 2, descrizione: "Il raggiungimento del finecorsa orizzontale viene rilevato dal sensore FC_1.", componenti: ["FC_1"], parametri: [] },
+  { id: "carico-03", tipo: "carico", numero: 3, descrizione: "La barella viene abbassata automaticamente.", componenti: [], parametri: [] },
+  { id: "carico-04", tipo: "carico", numero: 4, descrizione: "Il sensore di finecorsa verticale FC_2 arresta l'abbassamento. In questa condizione la sfera si vincola nella posizione corretta e il sensore magnetico R_1 ne verifica la corretta presenza all'interno della slitta.", componenti: ["FC_2", "R_1"], parametri: [] },
+  { id: "carico-05", tipo: "carico", numero: 5, descrizione: "Le gambe lato testa vengono sollevate tramite motore M_6.", componenti: ["M_6"], parametri: ["MAX SPEED MT HEAD UP"] },
+  { id: "carico-06", tipo: "carico", numero: 6, descrizione: "Il sensore L_3 monitora continuamente l'inclinazione della barella rispetto alla slitta e comanda automaticamente le gambe lato piedi per mantenerne l'allineamento.", componenti: ["L_3"], parametri: ["LASER POS REF"] },
+  { id: "carico-07", tipo: "carico", numero: 7, descrizione: "Quando le gambe lato testa raggiungono la posizione di carico (verificata dal sensore angolare A_2), vengono attivati i perni verticali tramite attuatore AT_1. Questa azione sblocca il vincolo B1 e consente l'avanzamento della barella.", componenti: ["A_2", "AT_1"], parametri: ["ACT VER WORK POS"] },
+  { id: "carico-08", tipo: "carico", numero: 8, descrizione: "È consentito l'avanzamento della barella. Durante questa fase, l'allineamento tra slitta e barella è mantenuto dal giroscopio G_1 integrato nell'HMI.", componenti: ["G_1"], parametri: ["MIN INCLINATION IMU ERR"] },
+  { id: "carico-09", tipo: "carico", numero: 9, descrizione: "All'inizio dell'avanzamento, il sensore laser L_1 (funzione ON/OFF) verifica che la slitta A sia sbloccata e che sia stata raggiunta la posizione di slitta intermedia. In questa condizione, i perni verticali rientrano automaticamente in posizione di riposo.", componenti: ["L_1"], parametri: ["ACT VER IDLE POS"] },
+  { id: "carico-10", tipo: "carico", numero: 10, descrizione: "La barella continua ad avanzare fino a quando la slitta A raggiunge il finecorsa sulla slitta B. In questa condizione, il vincolo B2 si apre consentendo lo scorrimento della slitta B sulla rotaia.", componenti: [], parametri: [] },
+  { id: "carico-11", tipo: "carico", numero: 11, descrizione: "Durante l'avanzamento della slitta B sulla rotaia, la slitta A si vincola automaticamente tramite il dispositivo B3.", componenti: [], parametri: [] },
+  { id: "carico-12", tipo: "carico", numero: 12, descrizione: "Quando la slitta intermedia B è completamente posizionata sopra la rotaia fissa, si attiva il vincolo B4, che impedisce il movimento di arretramento oltre tale punto.", componenti: [], parametri: [] },
+  { id: "carico-13", tipo: "carico", numero: 13, descrizione: "L'avanzamento prosegue fino a quando il sensore laser L_2 rileva la striscia catarifrangente, confermando la posizione del piano di carico. Questa condizione abilita il sollevamento delle gambe lato piedi tramite motore M_5.", componenti: ["L_2", "M_5"], parametri: ["MAX SPEED MT FEET UP"] },
+  { id: "carico-14", tipo: "carico", numero: 14, descrizione: "Le gambe lato piedi vengono sollevate automaticamente fino al raggiungimento della posizione di finecorsa, verificata dal sensore angolare A_1.", componenti: ["A_1"], parametri: [] },
+  { id: "carico-15", tipo: "carico", numero: 15, descrizione: "L'avanzamento continua fino all'aggancio dei ganci 10G. I sensori magnetici R_2 (Dx e Sx) verificano il corretto aggancio della barella.", componenti: ["R_2"], parametri: [] },
+
+  { id: "scarico-01", tipo: "scarico", numero: 1, descrizione: "L'azionamento della leva rossa in prossimità della maniglia destra provoca lo sgancio della barella dai ganci 10G. I sensori magnetici R_2 (Dx e Sx) rilevano la condizione di sgancio.", componenti: ["R_2"], parametri: [] },
+  { id: "scarico-02", tipo: "scarico", numero: 2, descrizione: "Durante tutta l'operazione devono essere mantenuti attivi il pulsante OUT (C_4) ed entrambe le coste sensibili (CS_1); il rilascio di uno qualsiasi di questi ingressi interrompe il ciclo.", componenti: ["C_4", "CS_1"], parametri: [] },
+  { id: "scarico-03", tipo: "scarico", numero: 3, descrizione: "La barella può arretrare fino a quando il movimento viene arrestato dal vincolo B4.", componenti: [], parametri: [] },
+  { id: "scarico-04", tipo: "scarico", numero: 4, descrizione: "Il sensore laser L_2 rileva l'uscita dal piano di carico tramite la striscia riflettente. Questa condizione abilita l'abbassamento delle gambe lato piedi tramite motore M_5 fino al contatto con il suolo.", componenti: ["L_2", "M_5"], parametri: ["MAX SPEED MT FEET DOWN"] },
+  { id: "scarico-05", tipo: "scarico", numero: 5, descrizione: "Quando le ruote delle gambe lato piedi raggiungono il suolo, la pressione del circuito oleodinamico aumenta. Il sensore di pressione PR_1 rileva il superamento della soglia impostata e arresta automaticamente la discesa delle gambe.", componenti: ["PR_1"], parametri: ["LASER UNLOAD DELTA", "UNLOAD INCLINATION OFFSET"] },
+  { id: "scarico-06", tipo: "scarico", numero: 6, descrizione: "Vengono attivati i perni verticali tramite attuatore AT_1, che aprono il vincolo B4 e sbloccano la slitta B.", componenti: ["AT_1"], parametri: ["ACT VER WORK POS"] },
+  { id: "scarico-07", tipo: "scarico", numero: 7, descrizione: "La barella continua ad arretrare fino alla completa estrazione delle slitte A e B. Quando la slitta B raggiunge il finecorsa, il vincolo B3 si apre automaticamente, consentendo alla slitta A di arretrare. Durante l'arretramento della slitta A, il vincolo B2 si richiude automaticamente bloccando la slitta B. Il sensore laser L_1 rileva la completa estrazione della slitta A. In questa condizione, i perni verticali rientrano in posizione di riposo.", componenti: ["L_1"], parametri: ["ACT VER IDLE POS"] },
+  { id: "scarico-08", tipo: "scarico", numero: 8, descrizione: "Le gambe lato testa vengono abbassate automaticamente tramite motore M_6 fino al contatto con il suolo. Il movimento si arresta quando il finecorsa FC_2 risulta disattivato.", componenti: ["M_6", "FC_2"], parametri: ["MAX SPEED MT HEAD DOWN"] },
+  { id: "scarico-09", tipo: "scarico", numero: 9, descrizione: "La sfera del rostro viene svincolata dalla slitta A mediante l'azionamento del perno orizzontale tramite attuatore AT_2.", componenti: ["AT_2"], parametri: ["ACT HOR WORK POS"] },
+  { id: "scarico-10", tipo: "scarico", numero: 10, descrizione: "Le gambe lato testa vengono sollevate (inclinazione circa +1°) per consentire l'estrazione della barella dalla slitta A. Il perno orizzontale rientra tramite attuatore AT_2.", componenti: ["AT_2"], parametri: ["ACT HOR IDLE POS"] }
+];
+
 const PROCEDURES = [
   {
     id: "altezza-carico",
@@ -1209,6 +1255,18 @@ const I18N = {
     cat_comunicazione: "Comunicazione / identificazione",
     cat_altrisensori: "Altri sensori",
     cat_schede: "Schede elettroniche",
+    nav_sequence: "Logica di funzionamento",
+    sim_mode_sequence: "Logica di funzionamento",
+    sequence_intro: "La sequenza di carico e scarico descritta nella documentazione tecnica, passo per passo.",
+    sequence_carico: "Carico",
+    sequence_scarico: "Scarico",
+    sequence_step_label: "Passaggio",
+    sequence_field_componenti: "Componenti",
+    sequence_field_parametri: "Parametri",
+    sequence_field_condizione: "Condizione",
+    sequence_no_componenti: "Nessun componente citato esplicitamente",
+    sequence_no_parametri: "Nessun parametro citato esplicitamente",
+    back_to_sequence: "Torna alla sequenza",
     relation_params_title: "Parametri associati",
     relation_errors_title: "Errori associati",
     relation_components_title: "Componenti associati",

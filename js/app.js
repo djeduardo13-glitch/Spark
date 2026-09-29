@@ -44,6 +44,7 @@ function goToView(viewId) {
   closeDrawer();
   if (viewId === "checklist" && typeof closeProcedureDetail === "function") closeProcedureDetail();
   if (viewId !== "simulator" && typeof closeComponentDetail === "function") closeComponentDetail();
+  if (viewId !== "simulator" && typeof closeSequenceDetail === "function") closeSequenceDetail();
   document.querySelector(".content").scrollTo?.(0, 0);
   window.scrollTo(0, 0);
 }
@@ -387,11 +388,14 @@ function switchSimMode(mode) {
   document.getElementById("simParamsMode").style.display = mode === "params" ? "block" : "none";
   document.getElementById("simErrorsMode").style.display = mode === "errors" ? "block" : "none";
   document.getElementById("simComponentsMode").style.display = mode === "components" ? "block" : "none";
+  document.getElementById("simSequenceMode").style.display = mode === "sequence" ? "block" : "none";
   if (mode !== "components" && typeof closeComponentDetail === "function") closeComponentDetail();
+  if (mode !== "sequence" && typeof closeSequenceDetail === "function") closeSequenceDetail();
   if (mode === "map") renderMapView();
   if (mode === "params") renderParameters();
   if (mode === "errors") renderErrors();
   if (mode === "components") renderComponents();
+  if (mode === "sequence") renderSequence();
 }
 
 document.getElementById("simModeSwitch").addEventListener("click", (e) => {
@@ -600,6 +604,88 @@ function goToComponent(id) {
   switchSimMode("components");
   openComponentDetail(id);
 }
+
+/* ---------------------------------------------------------------------
+   TECNICO → LOGICA DI FUNZIONAMENTO
+   Legge OPERATION_SEQUENCE (e OPERATION_SEQUENCE_NOTES per la premessa
+   di carico). Componenti/parametri citati sono risolti a runtime tramite
+   goToComponent/goToParameter già usate da Componenti ed Errori.
+   ------------------------------------------------------------------- */
+state.sequenceType = "carico";
+
+function renderSequence() {
+  const container = document.getElementById("sequenceContainer");
+  if (!container || typeof OPERATION_SEQUENCE === "undefined") return;
+  const dict = I18N[state.lang] || I18N.it;
+  const steps = OPERATION_SEQUENCE.filter(s => s.tipo === state.sequenceType);
+
+  container.innerHTML = "";
+  steps.forEach(step => {
+    const tile = document.createElement("button");
+    tile.className = "procedure-tile";
+    tile.dataset.stepId = step.id;
+    tile.innerHTML = `
+      <span class="procedure-tile-text">
+        <span class="procedure-title">${dict.sequence_step_label} ${step.numero}</span>
+        <span class="procedure-intro">${step.descrizione}</span>
+      </span>
+      <svg class="procedure-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    `;
+    tile.addEventListener("click", () => openSequenceDetail(step.id));
+    container.appendChild(tile);
+  });
+}
+
+function openSequenceDetail(stepId) {
+  const step = OPERATION_SEQUENCE.find(s => s.id === stepId);
+  if (!step) return;
+  const dict = I18N[state.lang] || I18N.it;
+
+  document.getElementById("sequenceDetailTitle").textContent = `${dict.sequence_step_label} ${step.numero}`;
+  document.getElementById("sequenceDetailSub").textContent = step.tipo === "carico" ? dict.sequence_carico : dict.sequence_scarico;
+
+  const fields = document.getElementById("sequenceDetailFields");
+  let html = `<div class="component-field"><span class="component-field-value">${step.descrizione}</span></div>`;
+
+  const note = (step.numero === 0 && step.tipo === "carico") ? OPERATION_SEQUENCE_NOTES.carico : null;
+  if (note) {
+    html += `<div class="component-field"><span class="component-field-label">${dict.sequence_field_condizione}</span><span class="component-field-value">${note.testo}</span></div>`;
+  }
+  fields.innerHTML = html;
+
+  const componentIds = [...step.componenti, ...(note ? note.componenti : [])].filter((v, i, a) => a.indexOf(v) === i);
+  fields.appendChild(buildRelationBlock(
+    dict.sequence_field_componenti,
+    componentIds.map(id => ({ label: `${id} — ${UTENZE[id] || id}`, onClick: () => goToComponent(id) })),
+    dict.sequence_no_componenti,
+    "chips"
+  ));
+  fields.appendChild(buildRelationBlock(
+    dict.sequence_field_parametri,
+    step.parametri.map(name => ({ label: name, onClick: () => goToParameter(name) })),
+    dict.sequence_no_parametri,
+    "chips"
+  ));
+
+  document.getElementById("sequenceListView").style.display = "none";
+  document.getElementById("sequenceDetailView").style.display = "block";
+}
+
+function closeSequenceDetail() {
+  document.getElementById("sequenceDetailView").style.display = "none";
+  document.getElementById("sequenceListView").style.display = "block";
+}
+
+document.getElementById("sequenceBackBtn").addEventListener("click", closeSequenceDetail);
+
+document.getElementById("sequenceTypeRow").addEventListener("click", (e) => {
+  const chip = e.target.closest(".filter-chip");
+  if (!chip) return;
+  state.sequenceType = chip.dataset.seq;
+  document.querySelectorAll("#sequenceTypeRow .filter-chip").forEach(c => c.classList.toggle("active", c === chip));
+  closeSequenceDetail();
+  renderSequence();
+});
 
 /* ---------------------------------------------------------------------
    TECNICO → COMPONENTI
@@ -1272,6 +1358,7 @@ function init() {
   renderProcedures();
   renderDocuments();
   renderComponents();
+  renderSequence();
   renderDevice();
   renderMapView();
 }
