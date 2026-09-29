@@ -209,36 +209,164 @@ document.getElementById("procedureBackBtn").addEventListener("click", closeProce
 
 /* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per SN
+   Unisce due sorgenti:
+   - MAINTENANCE_RECORDS in data.js (PDF pubblicati sul sito, statici)
+   - i PDF salvati dal form su questo dispositivo (IndexedDB, js/storage.js)
    ------------------------------------------------------------------- */
-function renderMaintenance() {
-  const container = document.getElementById("checklistContainer");
-  const dict = I18N[state.lang] || I18N.it;
-  const sns = Object.keys(MAINTENANCE_RECORDS);
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
 
+function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return "";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1).replace(".", ",") + " MB";
+}
+
+function formatDateIt(value) {
+  const d = new Date(value);
+  if (isNaN(d)) return String(value || "");
+  const hasTime = String(value).includes("T");
+  return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+    (hasTime ? " · " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "");
+}
+
+// Tiene i file locali già letti, per aprirli/scaricarli senza rileggere il DB.
+const localMaintFiles = new Map();
+
+const DOC_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg>';
+const TRASH_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/></svg>';
+
+let maintRenderSeq = 0;
+
+async function renderMaintenance() {
+  const container = document.getElementById("checklistContainer");
+  if (!container) return;
+  const dict = I18N[state.lang] || I18N.it;
+  const seq = ++maintRenderSeq;
+
+  let localFolders = {};
+  if (typeof sparkGetAllFolders === "function") {
+    try { localFolders = await sparkGetAllFolders(); }
+    catch (err) { console.warn("Impossibile leggere l'archivio locale:", err); }
+  }
+  if (seq !== maintRenderSeq) return; // è partito un render più recente
+
+  // Unisce le due sorgenti in { SN: [voci...] }
+  const folders = {};
+  Object.keys(MAINTENANCE_RECORDS).forEach(sn => {
+    folders[sn] = (folders[sn] || []).concat(MAINTENANCE_RECORDS[sn].map(rec => ({
+      source: "static", title: rec.title, date: rec.date, url: rec.url
+    })));
+  });
+  localMaintFiles.clear();
+  Object.keys(localFolders).forEach(sn => {
+    folders[sn] = (folders[sn] || []).concat(localFolders[sn].map(f => {
+      localMaintFiles.set(f.id, f);
+      return { source: "local", id: f.id, title: f.filename, date: f.addedAt, size: f.blob && f.blob.size };
+    }));
+  });
+
+  const sns = Object.keys(folders);
   if (sns.length === 0) {
-    container.innerHTML = `<div class="empty-state">${dict.maint_empty || dict.empty_state}</div>`;
+    container.innerHTML = `<div class="empty-state">${escapeHtml(dict.maint_empty || dict.empty_state)}</div>`;
     return;
   }
 
-  container.innerHTML = "";
-  sns.forEach(sn => {
-    const records = MAINTENANCE_RECORDS[sn].slice().sort((a, b) => (a.date < b.date ? 1 : -1));
-    const card = document.createElement("div");
-    card.className = "sn-card";
-    const rows = records.map(rec => `
-      <a class="doc-row" href="${rec.url}" target="_blank" rel="noopener" style="text-decoration:none;">
-        <span class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg></span>
+  sns.forEach(sn => folders[sn].sort((a, b) => (a.date < b.date ? 1 : -1)));
+  // Cartella con la manutenzione più recente in cima
+  sns.sort((a, b) => (folders[a][0].date < folders[b][0].date ? 1 : -1));
+
+  function rowHtml(item) {
+    if (item.source === "static") {
+      return `
+        <a class="doc-row" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" style="text-decoration:none;">
+          <span class="doc-icon">${DOC_ICON_SVG}</span>
+          <span class="doc-meta">
+            <span class="doc-title">${escapeHtml(item.title)}</span><br>
+            <span class="doc-type">${escapeHtml(formatDateIt(item.date))}</span>
+          </span>
+          <span class="doc-action">${escapeHtml(dict.maint_open || "Apri")}</span>
+        </a>`;
+    }
+    const meta = [formatDateIt(item.date), formatFileSize(item.size), dict.maint_local_badge || "su questo dispositivo"]
+      .filter(Boolean).join(" · ");
+    return `
+      <div class="doc-row">
+        <span class="doc-icon">${DOC_ICON_SVG}</span>
         <span class="doc-meta">
-          <span class="doc-title">${rec.title}</span><br>
-          <span class="doc-type">${rec.date}</span>
+          <span class="doc-title">${escapeHtml(item.title)}</span><br>
+          <span class="doc-type">${escapeHtml(meta)}</span>
         </span>
-        <span class="doc-action">Apri</span>
-      </a>
-    `).join("");
-    card.innerHTML = `<h3 class="sn-card-title">SN ${sn}</h3>${rows}`;
-    container.appendChild(card);
-  });
+        <span class="doc-row-actions">
+          <button type="button" class="doc-action" data-maint-open="${item.id}">${escapeHtml(dict.maint_open || "Apri")}</button>
+          <button type="button" class="doc-action doc-action-secondary" data-maint-download="${item.id}">${escapeHtml(dict.maint_download || "Scarica")}</button>
+          <button type="button" class="doc-icon-btn" data-maint-delete="${item.id}" title="${escapeHtml(dict.maint_delete || "Elimina")}" aria-label="${escapeHtml(dict.maint_delete || "Elimina")}">${TRASH_ICON_SVG}</button>
+        </span>
+      </div>`;
+  }
+
+  const hasLocal = localMaintFiles.size > 0;
+  container.innerHTML =
+    sns.map(sn => `
+      <div class="sn-card">
+        <h3 class="sn-card-title">SN ${escapeHtml(sn)}</h3>
+        ${folders[sn].map(rowHtml).join("")}
+      </div>`).join("") +
+    (hasLocal ? `<p class="maint-storage-note">${escapeHtml(dict.maint_storage_note || "")}</p>` : "");
 }
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+document.getElementById("checklistContainer").addEventListener("click", async (e) => {
+  const dict = I18N[state.lang] || I18N.it;
+  const openBtn = e.target.closest("[data-maint-open]");
+  const dlBtn = e.target.closest("[data-maint-download]");
+  const delBtn = e.target.closest("[data-maint-delete]");
+
+  if (openBtn) {
+    const f = localMaintFiles.get(Number(openBtn.dataset.maintOpen));
+    if (!f) return;
+    const url = URL.createObjectURL(f.blob);
+    const win = window.open(url, "_blank");
+    if (!win) downloadBlob(f.blob, f.filename); // popup bloccato: scarica
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } else if (dlBtn) {
+    const f = localMaintFiles.get(Number(dlBtn.dataset.maintDownload));
+    if (f) downloadBlob(f.blob, f.filename);
+  } else if (delBtn) {
+    const id = Number(delBtn.dataset.maintDelete);
+    const f = localMaintFiles.get(id);
+    if (!f) return;
+    const msg = (dict.maint_delete_confirm || "Eliminare {file}?").replace("{file}", f.filename);
+    if (!confirm(msg)) return;
+    try {
+      await sparkDeleteFile(id);
+    } catch (err) {
+      alert("Errore durante l'eliminazione: " + (err && err.message ? err.message : err));
+    }
+    renderMaintenance();
+  }
+});
+
+// Aggiorna la cronologia quando il form (aperto in un'altra scheda) salva un PDF,
+// o quando si torna su questa scheda.
+if ("BroadcastChannel" in window) {
+  new BroadcastChannel("spark-maintenance").addEventListener("message", () => renderMaintenance());
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") renderMaintenance();
+});
 
 /* ---------------------------------------------------------------------
    COLLAUDO
