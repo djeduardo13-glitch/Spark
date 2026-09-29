@@ -692,6 +692,43 @@ button {
   white-space: nowrap;
 }
 
+.doc-action { cursor: pointer; font-family: inherit; }
+.doc-action-secondary { border-color: var(--line); color: var(--ink-soft); }
+
+.doc-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.doc-icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.doc-icon-btn svg { width: 15px; height: 15px; }
+.doc-icon-btn:hover { color: #c0392b; border-color: #c0392b; }
+
+.maint-storage-note {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 4px 2px 0;
+}
+
+@media (max-width: 560px) {
+  .sn-card .doc-row { flex-wrap: wrap; }
+  .sn-card .doc-row-actions { width: 100%; justify-content: flex-end; }
+}
+
 /* -------------------------------------------------------------------
    EMPTY STATE
    ------------------------------------------------------------------- */
