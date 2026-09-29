@@ -792,11 +792,11 @@ function renderErrors(filterText) {
       row.innerHTML = `
         <button class="param-question">
           <span class="param-q-left">
-            <span class="param-name error-code">${er.code}</span>
+            <span class="error-headline"><span class="param-name error-code">${er.code}</span><span class="error-sep"> – </span><span class="error-desc">${er.text}</span></span>
           </span>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>
-        <div class="param-answer"><p class="param-p">${er.text}</p></div>
+        <div class="param-answer"></div>
       `;
       row.querySelector(".param-answer").appendChild(buildRelationBlock(
         dict.relation_components_title,
@@ -1073,7 +1073,11 @@ function openComponentDetail(id) {
   document.getElementById("componentDetailTitle").textContent = `${id} — ${nome}`;
   // Sotto il nome: il tipo specifico del componente (es. "Laser distanza"),
   // oppure la categoria se il tipo non è indicato
-  document.getElementById("componentDetailSub").textContent = det.tipo ? det.tipo.replace(/\s+/g, " ").trim() : catLabel;
+  // Se il tipo è generico ("Analogico") lo si affianca al tipo di sensore
+  const TIPO_PREFIX = { angolari: "Sensore angolare", pressione: "Sensore di pressione" };
+  let sub = det.tipo ? det.tipo.replace(/\s+/g, " ").trim() : catLabel;
+  if (det.tipo && sub.toLowerCase() === "analogico" && TIPO_PREFIX[comp.categoria]) sub = TIPO_PREFIX[comp.categoria] + " · " + sub;
+  document.getElementById("componentDetailSub").textContent = sub;
 
   const fields = document.getElementById("componentDetailFields");
   let html = "";
