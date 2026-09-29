@@ -311,16 +311,28 @@
             <p data-i18n="checklist_intro">Cronologia delle manutenzioni già effettuate, organizzata per numero di serie (SN).</p>
           </div>
 
-          <a class="new-maint-btn" href="manutenzione-form.html" target="_blank" rel="noopener">
+          <a class="new-maint-btn" href="manutenzione-form.html">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             <span data-i18n="new_maint_btn">Nuova manutenzione</span>
           </a>
 
-          <h3 class="sub-heading" data-i18n="procedures_heading">Procedure guidate</h3>
-          <div id="proceduresContainer"></div>
-
-          <h3 class="sub-heading" data-i18n="sn_history_heading">Cronologia per numero di serie</h3>
+          <h3 class="sub-heading" data-i18n="sn_history_heading">S/N</h3>
           <div id="checklistContainer"></div>
+
+          <h3 class="sub-heading" data-i18n="procedures_heading">Procedure</h3>
+          <div id="proceduresContainer"></div>
+        </div>
+
+        <!-- Vista cartella S/N -->
+        <div id="snFolderView" style="display:none;">
+          <button class="back-to-list-btn" id="snFolderBackBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+            <span data-i18n="back_to_sn">Torna agli S/N</span>
+          </button>
+          <div class="view-header">
+            <h2 id="snFolderTitle"></h2>
+          </div>
+          <div id="snFolderFiles"></div>
         </div>
 
         <!-- Vista dettaglio procedura -->

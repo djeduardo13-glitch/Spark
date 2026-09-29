@@ -616,7 +616,9 @@
   /* Durante la generazione del PDF le regole di @media print vengono
      replicate sotto body.pdf-export (vedi buildPdfExportStyles nello script).
      Qui solo gli aggiustamenti che la stampa non ha bisogno di fare. */
-  body.pdf-export .app { min-height: 0; }
+  /* Stessa larghezza del foglio A4 al netto dei margini (210 - 2×8 mm):
+     il layout misurato è identico a quello stampato su PC e su telefono. */
+  body.pdf-export .app { min-height: 0; width: 194mm !important; max-width: none !important; margin: 0 !important; }
   body.pdf-export .check-item { flex-wrap: nowrap; }
   body.pdf-export .option-group { width: auto; }
   body.pdf-export .option { flex: 0 0 auto; }
@@ -625,6 +627,9 @@
      e le prime righe che seguono. Se quel box finisce a cavallo di due
      pagine, html2pdf sposta tutto alla pagina successiva. */
   .pdf-keep { display: block; height: 0; pointer-events: none; }
+  /* Firma leggibile nel PDF (in stampa resta com'è) */
+  body.pdf-export .firma-btn { height: 34px !important; }
+  body.pdf-export .firma-preview { max-height: 30px !important; }
   .pdf-keep-product { padding-bottom: 90px; margin-bottom: -90px; }
   .pdf-keep-section { padding-bottom: 42px; margin-bottom: -42px; }
 
@@ -2490,6 +2495,58 @@
     return Math.max(1, Math.min(2, Math.sqrt(maxPixels / (w * h)) * 0.95));
   }
 
+  function swapFieldsForPdf(root) {
+    const swaps = [];
+    const COPY = ['width', 'maxWidth', 'borderTop', 'borderRight', 'borderBottom', 'borderLeft', 'borderRadius',
+                  'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+                  'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+                  'fontFamily', 'fontWeight', 'color', 'backgroundColor', 'textAlign'];
+    root.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea').forEach(field => {
+      if (field.getClientRects().length === 0) return; // non visibile (es. modale firma)
+      const cs = getComputedStyle(field);
+      const box = document.createElement('div');
+      box.className = 'pdf-value';
+      COPY.forEach(prop => { box.style[prop] = cs[prop]; });
+      box.style.maxWidth = '100%';
+      box.style.boxSizing = 'border-box';
+      // Stessa altezza del campo originale (il PDF non si allunga), testo
+      // centrato verticalmente e non più piccolo di 11px.
+      const fontPx = Math.max(parseFloat(cs.fontSize) || 0, 11);
+      const borders = (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+      const h = parseFloat(cs.height) || 0;
+      box.style.fontSize = fontPx + 'px';
+      if (field.tagName === 'TEXTAREA') {
+        box.style.minHeight = cs.height;
+        box.style.lineHeight = '1.3';
+      } else {
+        let inner = h - borders - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+        if (inner < fontPx + 1) {            // campo troppo basso: tolgo il padding verticale
+          box.style.paddingTop = '0px';
+          box.style.paddingBottom = '0px';
+          inner = h - borders;
+        }
+        box.style.minHeight = cs.height;
+        box.style.lineHeight = Math.max(inner, fontPx + 1) + 'px';
+      }
+      box.style.display = cs.display.indexOf('inline') === 0 ? 'inline-block' : 'block';
+      box.style.verticalAlign = 'middle';
+      // Testo lungo: va a capo invece di essere tagliato
+      box.style.whiteSpace = 'pre-wrap';
+      box.style.overflowWrap = 'anywhere';
+      let value = field.value;
+      if (field.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split('-');
+        value = d + '/' + m + '/' + y;
+      }
+      box.textContent = value || '\u00a0';
+      swaps.push({ field, box, display: field.style.display });
+      field.parentNode.insertBefore(box, field.nextSibling);
+    });
+    // Nasconde i campi solo dopo aver misurato tutto
+    swaps.forEach(({ field }) => { field.style.display = 'none'; });
+    return swaps;
+  }
+
   async function generatePdfBlob(filename) {
     const el = document.querySelector('.app');
     // html2pdf clona il documento: i radio clonati "rubano" la selezione
@@ -2506,6 +2563,10 @@
       title.parentNode.insertBefore(k, title);
       keepers.push(k);
     });
+    // html2canvas disegna male il testo dentro <input>/<textarea> bassi
+    // (lettere tagliate a metà): durante l'export ogni campo viene sostituito
+    // da un riquadro di testo con lo stesso aspetto, poi ripristinato.
+    const swaps = swapFieldsForPdf(el);
     try {
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const opt = {
@@ -2524,6 +2585,7 @@
     } finally {
       document.body.classList.remove('pdf-export');
       keepers.forEach(k => k.remove());
+      swaps.forEach(({ field, box, display }) => { box.remove(); field.style.display = display; });
       checkedRadios.forEach(r => { r.checked = true; });
     }
   }
@@ -2689,6 +2751,17 @@
   });
 
   restore();
+
+  // "Torna al sito": se si arriva dall'app, torna indietro nella cronologia
+  // (ritrovi la pagina Manutenzione com'era) invece di aprire una nuova pagina.
+  document.querySelector('.back-to-site').addEventListener('click', function(e) {
+    let fromApp = false;
+    try { fromApp = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (err) {}
+    if (fromApp && history.length > 1) {
+      e.preventDefault();
+      history.back();
+    }
+  });
 })();
 </script>
 <script>
