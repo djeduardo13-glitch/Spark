@@ -1928,6 +1928,12 @@ button {
 
 .code-list .param-q-left { min-width: 0; overflow-wrap: anywhere; }
 
+/* Errori: codice e descrizione sulla stessa riga */
+.error-headline { font-size: 13.5px; line-height: 1.45; }
+.error-headline .param-name { font-size: inherit; }
+.error-sep { color: var(--ink-soft); }
+.error-desc { color: var(--ink); font-weight: 400; }
+
 /* Dettaglio aperto: dentro la stessa riga, con un leggero stacco di sfondo */
 .code-list > .param-row.open .param-answer {
   background: var(--paper);
@@ -1936,6 +1942,7 @@ button {
 .code-list .param-answer > :first-child { margin-top: 12px; }
 .code-list .param-answer > :last-child { margin-bottom: 12px; }
 .code-list .param-answer .relation-block { margin-left: 16px; margin-right: 16px; }
+.code-list .param-answer > .relation-block:first-child { border-top: none; padding-top: 0; }
 
 /* Errori: titoli di sezione al posto dei tag di categoria su ogni riga */
 .error-section-title {
