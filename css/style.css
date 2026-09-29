@@ -1748,6 +1748,21 @@ button {
   color: var(--ink-soft);
 }
 
+.sn-folder-tile { justify-content: flex-start; }
+.sn-folder-tile .procedure-tile-arrow { margin-left: auto; }
+.sn-folder-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--tint);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sn-folder-icon svg { width: 19px; height: 19px; }
+
 .procedure-tile-arrow {
   width: 18px;
   height: 18px;
