@@ -255,7 +255,6 @@ function renderProcedures() {
 
   const uncategorized = PROCEDURES.filter(p => !CATEGORY_ORDER.some(c => c.key === p.category));
   if (uncategorized.length > 0) {
-    html += `<h4 class="category-heading">${dict.proc_cat_altro}</h4>`;
     html += uncategorized.map(tileHtml).join("");
   }
 
@@ -655,7 +654,10 @@ Object.assign(state, { simMode: "panel", mapViewIndex: 0 });
 function switchSimMode(mode) {
   state.simMode = mode;
   scheduleHistorySync();
-  document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === mode));
+  // La Mappa è una sotto-sezione di Componenti
+  const pillMode = mode === "map" ? "components" : mode;
+  document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === pillMode));
+  document.querySelectorAll(".comp-sub-pill").forEach(p => p.classList.toggle("active", p.dataset.subMode === mode));
   document.getElementById("simPanelMode").style.display = mode === "panel" ? "block" : "none";
   document.getElementById("simMapMode").style.display = mode === "map" ? "block" : "none";
   document.getElementById("simParamsMode").style.display = mode === "params" ? "block" : "none";
@@ -669,7 +671,23 @@ function switchSimMode(mode) {
   if (mode === "errors") renderErrors();
   if (mode === "components") renderComponents();
   if (mode === "sequence") renderSequence();
+  updateCompSubSwitch();
 }
+
+// Mostra "Elenco / Mappa" solo in Componenti, e non dentro la scheda di un componente
+function updateCompSubSwitch() {
+  const el = document.getElementById("compSubSwitch");
+  if (!el) return;
+  const inComponents = state.simMode === "components" || state.simMode === "map";
+  const inDetail = state.detail && state.detail.type === "component";
+  el.style.display = inComponents && !inDetail ? "inline-flex" : "none";
+}
+
+document.getElementById("compSubSwitch").addEventListener("click", (e) => {
+  const btn = e.target.closest(".comp-sub-pill");
+  if (!btn || btn.dataset.subMode === state.simMode) return;
+  switchSimMode(btn.dataset.subMode);
+});
 
 document.getElementById("simModeSwitch").addEventListener("click", (e) => {
   const btn = e.target.closest(".sim-mode-pill");
@@ -721,9 +739,6 @@ function renderParameters(filterText) {
   bindAccordion(list, ".param-row", ".param-question");
 }
 
-document.getElementById("paramSearch").addEventListener("input", (e) => {
-  renderParameters(e.target.value);
-});
 
 /* ---------------------------------------------------------------------
    ERRORI
@@ -793,9 +808,6 @@ function renderErrors(filterText) {
   bindAccordion(list, ".param-row", ".param-question");
 }
 
-document.getElementById("errorSearch").addEventListener("input", (e) => {
-  renderErrors(e.target.value);
-});
 
 /* ---------------------------------------------------------------------
    RELAZIONI COMPONENTI ↔ PARAMETRI ↔ ERRORI
@@ -1056,28 +1068,29 @@ function openComponentDetail(id) {
 
   const fields = document.getElementById("componentDetailFields");
   let html = "";
+  // Ordine: Codice cavo, Collegamento, Funzione, Logica, Errori, Parametri
+  // ("Tipo" non viene mostrato: la categoria è già sotto il titolo)
   if (det.cavo) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_codice}</span><span class="component-field-value">${det.cavo}</span></div>`;
-  if (det.tipo) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_tipo}</span><span class="component-field-value">${det.tipo}</span></div>`;
+  if (det.dove) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_collegamento}</span><span class="component-field-value">${det.dove}</span></div>`;
   if (det.intro) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_funzione}</span><span class="component-field-value">${det.intro}</span></div>`;
   if (det.bullets && det.bullets.length) {
     html += `<div class="component-field"><span class="component-field-label">${dict.component_field_logica}</span><ul class="component-field-list">`;
     det.bullets.forEach(b => { html += `<li>${b}</li>`; });
     html += `</ul></div>`;
   }
-  if (det.dove) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_collegamento}</span><span class="component-field-value">${det.dove}</span></div>`;
   if (html === "") html = `<div class="empty-state">${dict.component_no_details}</div>`;
   fields.innerHTML = html;
 
   fields.appendChild(buildRelationBlock(
-    dict.relation_params_title,
-    getComponentParams(id).map(name => ({ label: name, onClick: () => goToParameter(name) })),
-    dict.relation_no_params,
-    "chips"
-  ));
-  fields.appendChild(buildRelationBlock(
     dict.relation_errors_title,
     getComponentErrors(id).map(code => ({ label: code, onClick: () => goToError(code) })),
     dict.relation_no_errors,
+    "chips"
+  ));
+  fields.appendChild(buildRelationBlock(
+    dict.relation_params_title,
+    getComponentParams(id).map(name => ({ label: name, onClick: () => goToParameter(name) })),
+    dict.relation_no_params,
     "chips"
   ));
 
@@ -1092,6 +1105,7 @@ function openComponentDetail(id) {
   document.getElementById("componentsListView").style.display = "none";
   document.getElementById("componentDetailView").style.display = "block";
   state.detail = { type: "component", id: id };
+  updateCompSubSwitch();
   scheduleHistorySync();
 }
 
@@ -1099,21 +1113,19 @@ function closeComponentDetail() {
   document.getElementById("componentDetailView").style.display = "none";
   document.getElementById("componentsListView").style.display = "block";
   if (state.detail && state.detail.type === "component") state.detail = null;
+  updateCompSubSwitch();
   scheduleHistorySync();
 }
 
 document.getElementById("componentBackBtn").addEventListener("click", () => navBack(closeComponentDetail));
 
-document.getElementById("componentSearch").addEventListener("input", (e) => {
-  renderComponents(e.target.value);
-});
 
 document.getElementById("componentFilterRow").addEventListener("click", (e) => {
   const chip = e.target.closest(".filter-chip");
   if (!chip) return;
   state.componentCategory = chip.dataset.cat;
   document.querySelectorAll("#componentFilterRow .filter-chip").forEach(c => c.classList.toggle("active", c === chip));
-  renderComponents(document.getElementById("componentSearch").value);
+  renderComponents();
 });
 
 /* ---------------------------------------------------------------------
@@ -1139,8 +1151,15 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
     const paramMatches = PARAMETERS.filter(pr =>
       pr.name.toLowerCase().includes(query)
     ).slice(0, 8);
+    // Componenti (sostituisce la ricerca che c'era dentro Componenti):
+    // stessi campi di prima — ID, nome, codice cavo, tipo, categoria
+    const componentMatches = (typeof COMPONENTS === "undefined" ? [] : COMPONENTS).filter(c => {
+      const det = SENSOR_DETAILS[c.id] || {};
+      const catLabel = dict[CAT_LABEL_KEY[c.categoria]] || c.categoria;
+      return [c.id, UTENZE[c.id] || "", det.tipo || "", det.cavo || "", catLabel].join(" ").toLowerCase().includes(query);
+    }).slice(0, 8);
 
-    if (errorMatches.length === 0 && paramMatches.length === 0) {
+    if (errorMatches.length === 0 && paramMatches.length === 0 && componentMatches.length === 0) {
       results.innerHTML = `<div class="gsr-empty">${dict.global_search_no_results || "Nessun risultato"}</div>`;
       results.style.display = "block";
       return;
@@ -1163,6 +1182,14 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
           <span class="gsr-snippet">Default ${pr.default} ${pr.unit}</span>
         </button>`;
     });
+    componentMatches.forEach(c => {
+      html += `
+        <button class="gsr-item" data-gsr-type="component" data-gsr-key="${c.id}">
+          <span class="gsr-tag component">${dict.global_search_component_tag || "Componente"}</span>
+          <span class="gsr-title">${c.id}</span>
+          <span class="gsr-snippet">${UTENZE[c.id] || ""}</span>
+        </button>`;
+    });
     results.innerHTML = html;
     results.style.display = "block";
 
@@ -1172,44 +1199,9 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
         const key = btn.dataset.gsrKey;
         closeResults();
         input.value = "";
-        scheduleHistorySync();
-
-        if (type === "param") {
-          state.simMode = "params";
-          document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === "params"));
-          document.getElementById("simPanelMode").style.display = "none";
-          document.getElementById("simMapMode").style.display = "none";
-          document.getElementById("simParamsMode").style.display = "block";
-          document.getElementById("simErrorsMode").style.display = "none";
-          document.getElementById("simComponentsMode").style.display = "none";
-          if (typeof closeComponentDetail === "function") closeComponentDetail();
-          renderParameters();
-          setTimeout(() => {
-            const row = Array.from(document.querySelectorAll("#paramList .param-row"))
-              .find(r => r.querySelector(".param-name").textContent === key);
-            if (row) {
-              row.classList.add("open");
-              row.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-          }, 30);
-        } else {
-          state.simMode = "errors";
-          document.querySelectorAll(".sim-mode-pill").forEach(p => p.classList.toggle("active", p.dataset.simMode === "errors"));
-          document.getElementById("simPanelMode").style.display = "none";
-          document.getElementById("simMapMode").style.display = "none";
-          document.getElementById("simParamsMode").style.display = "none";
-          document.getElementById("simErrorsMode").style.display = "block";
-          document.getElementById("simComponentsMode").style.display = "none";
-          if (typeof closeComponentDetail === "function") closeComponentDetail();
-          renderErrors();
-          setTimeout(() => {
-            const row = document.querySelector(`#errorList [data-error-code="${key}"]`);
-            if (row) {
-              row.classList.add("open");
-              row.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-          }, 30);
-        }
+        if (type === "param") goToParameter(key);
+        else if (type === "error") goToError(key);
+        else if (type === "component") goToComponent(key);
       });
     });
   });
