@@ -1160,6 +1160,32 @@ button {
   color: #fff;
 }
 
+.comp-sub-switch {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--tint);
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.comp-sub-pill {
+  border: none;
+  background: transparent;
+  color: var(--brand);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.comp-sub-pill.active {
+  background: var(--paper-raised);
+  box-shadow: 0 1px 3px rgba(20, 33, 46, 0.15);
+}
+
 .map-intro {
   font-size: 13px;
   color: var(--ink-soft);
@@ -1591,6 +1617,7 @@ button {
 
 .gsr-tag.error { background: #c0392b; }
 .gsr-tag.param { background: var(--brand-mid); }
+.gsr-tag.component { background: var(--ok); }
 
 .gsr-title {
   font-size: 12.5px;
