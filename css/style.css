@@ -2011,6 +2011,30 @@ button {
 .relation-chip:hover,
 .relation-link:hover { background: var(--tint); }
 
+/* Utilizzo nella logica (scheda componente) */
+.relation-group-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin: 10px 0 6px;
+}
+.relation-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+.relation-step-num { font-weight: 700; color: var(--brand); }
+.relation-step-desc {
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .procedure-steps {
   padding: 4px 0 20px;
   display: flex;
