@@ -5,7 +5,7 @@
    la pulizia della cache vecchia nei dispositivi degli utenti.
    ========================================================================= */
 
-const CACHE_NAME = "spark-doc-hub-v4";
+const CACHE_NAME = "spark-doc-hub-v5";
 
 // File essenziali per far partire l'app anche offline.
 const PRECACHE_URLS = [

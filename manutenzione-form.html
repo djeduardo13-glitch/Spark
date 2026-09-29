@@ -537,6 +537,42 @@
   .btn-firma-clear { background: var(--nv-bg); color: #7a5a10; }
   .btn-firma-confirm { background: var(--primary); color: #fff; }
 
+  /* MODALE USCITA SENZA SALVARE */
+  .exit-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 30, 45, 0.55);
+    z-index: 100002;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .exit-modal-overlay.open { display: flex; }
+  .exit-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .exit-modal-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 8px;
+  }
+  .exit-modal-text {
+    font-size: 0.78rem;
+    color: var(--text-mute);
+    margin: 0 0 16px;
+  }
+  .exit-modal-actions { display: flex; gap: 10px; }
+  .btn-exit-no { background: #f1f4f7; color: var(--text); }
+  .btn-exit-yes { background: var(--nok); color: #fff; }
+  @media print { .exit-modal-overlay { display: none !important; } }
+
   /* ACTION BAR */
   .action-bar {
     position: sticky;
@@ -2272,6 +2308,16 @@
   <div class="pdf-busy-box"><span class="pdf-busy-spinner"></span><span>Generazione PDF in corso…</span></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<div class="exit-modal-overlay" id="exit-modal" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+  <div class="exit-modal">
+    <h3 class="exit-modal-title" id="exit-modal-title">Sei sicuro di voler uscire senza salvare?</h3>
+    <p class="exit-modal-text">Sì: esci e la checklist viene cancellata.<br>No: esci e la checklist resta in memoria, la ritrovi compilata quando rientri.</p>
+    <div class="exit-modal-actions">
+      <button type="button" class="btn-firma-action btn-exit-no" id="exit-no">No, tienila in memoria</button>
+      <button type="button" class="btn-firma-action btn-exit-yes" id="exit-yes">Sì, cancella tutto</button>
+    </div>
+  </div>
+</div>
 
 <script src="js/vendor/html2pdf.bundle.min.js"></script>
 <script src="js/storage.js"></script>
@@ -2280,6 +2326,13 @@
   const tabs = document.querySelectorAll('.product-tab');
   const wrappers = document.querySelectorAll('.tab-wrapper');
   const STORE_KEY = 'manutenzioneSparkData';
+  // Stato della checklist in memoria: 'bozza' = modifiche non salvate,
+  // 'salvata' = PDF già creato (alla prossima "Nuova manutenzione" si riparte da zero).
+  const STATUS_KEY = 'manutenzioneSparkStato';
+  function getStatus() { try { return localStorage.getItem(STATUS_KEY); } catch (e) { return null; } }
+  function setStatus(v) {
+    try { if (v) localStorage.setItem(STATUS_KEY, v); else localStorage.removeItem(STATUS_KEY); } catch (e) {}
+  }
 
   function switchTab(id) {
     tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === id));
@@ -2329,6 +2382,7 @@
     });
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      setStatus('bozza');
       const note = document.getElementById('save-note');
       note.textContent = 'Salvato ' + new Date().toLocaleTimeString('it-IT');
     } catch(e) {}
@@ -2372,7 +2426,12 @@
 
   document.getElementById('btn-reset').addEventListener('click', function() {
     if (!confirm('Cancellare tutti i dati inseriti in questa checklist?')) return;
+    clearForm();
+  });
+
+  function clearForm() {
     try { localStorage.removeItem(STORE_KEY); } catch(e) {}
+    setStatus(null);
     document.querySelectorAll('[data-store]').forEach(el => el.value = '');
     document.querySelectorAll('.check-item').forEach(item => {
       item.classList.remove('state-ok', 'state-nok', 'state-nv');
@@ -2388,7 +2447,7 @@
     firmaPreview.style.display = 'none';
     firmaPreview.src = '';
     document.getElementById('save-note').textContent = '';
-  });
+  }
 
   /* ------------------------------------------------------------------
      NOME FILE / MATRICOLA
@@ -2646,6 +2705,7 @@
       }
 
       downloadBlob(blob, filename);
+      setStatus('salvata');
       if (saved) {
         showToast('PDF salvato nella cartella SN ' + info.sn + ' e scaricato.');
         document.getElementById('save-note').textContent = 'Ultimo PDF: ' + filename;
@@ -2750,17 +2810,57 @@
     persist();
   });
 
-  restore();
+  // Apertura: checklist già salvata in PDF -> si riparte vuoti;
+  // bozza lasciata in sospeso -> si ritrova compilata.
+  if (getStatus() === 'salvata') clearForm();
+  else restore();
 
-  // "Torna al sito": se si arriva dall'app, torna indietro nella cronologia
-  // (ritrovi la pagina Manutenzione com'era) invece di aprire una nuova pagina.
+  /* ------------------------------------------------------------------
+     USCITA DAL FORM ("Torna al sito" o tasto indietro)
+     Con modifiche non salvate chiede conferma:
+     Sì = esce e cancella tutto, No = esce e tiene la bozza in memoria.
+     ------------------------------------------------------------------ */
+  let fromApp = false;
+  try { fromApp = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (err) {}
+
+  // Voce "trappola" nella cronologia: il tasto indietro resta nella pagina
+  // e ci permette di mostrare la domanda prima di uscire.
+  if (!(history.state && history.state.sparkFormTrap)) {
+    history.replaceState({ sparkFormBase: true }, '');
+    history.pushState({ sparkFormTrap: true }, '');
+  }
+
+  function hasUnsavedChanges() { return getStatus() === 'bozza'; }
+
+  function leaveForm() {
+    const steps = (history.state && history.state.sparkFormTrap) ? 2 : 1;
+    if (fromApp && history.length > steps) history.go(-steps);
+    else location.replace('index.html');
+  }
+
+  const exitModal = document.getElementById('exit-modal');
+  function askBeforeLeaving() {
+    if (!hasUnsavedChanges()) { leaveForm(); return; }
+    exitModal.classList.add('open');
+  }
+  document.getElementById('exit-yes').addEventListener('click', function() {
+    exitModal.classList.remove('open');
+    clearForm();
+    leaveForm();
+  });
+  document.getElementById('exit-no').addEventListener('click', function() {
+    exitModal.classList.remove('open');
+    leaveForm(); // la bozza è già salvata automaticamente in memoria
+  });
+
   document.querySelector('.back-to-site').addEventListener('click', function(e) {
-    let fromApp = false;
-    try { fromApp = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (err) {}
-    if (fromApp && history.length > 1) {
-      e.preventDefault();
-      history.back();
-    }
+    e.preventDefault();
+    askBeforeLeaving();
+  });
+
+  window.addEventListener('popstate', function(e) {
+    // Tasto indietro: dalla voce "trappola" si torna alla base del form
+    if (e.state && e.state.sparkFormBase) askBeforeLeaving();
   });
 })();
 </script>
