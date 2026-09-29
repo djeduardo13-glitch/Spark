@@ -1900,6 +1900,43 @@ button {
   line-height: 1.6;
 }
 
+/* Liste a righe (Errori, Parametri): un solo blocco per sezione,
+   righe separate da una linea sottile, alternanza di sfondo */
+.code-list {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.code-list > .param-row {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+}
+
+.code-list > .param-row:nth-child(even) { background: #f6f9fc; }
+.code-list > .param-row:last-child { border-bottom: none; }
+
+.code-list .param-question {
+  padding: 11px 16px;
+  min-height: 44px;
+}
+
+.code-list .param-q-left { min-width: 0; overflow-wrap: anywhere; }
+
+/* Dettaglio aperto: dentro la stessa riga, con un leggero stacco di sfondo */
+.code-list > .param-row.open .param-answer {
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+.code-list .param-answer > :first-child { margin-top: 12px; }
+.code-list .param-answer > :last-child { margin-bottom: 12px; }
+.code-list .param-answer .relation-block { margin-left: 16px; margin-right: 16px; }
+
 /* Errori: titoli di sezione al posto dei tag di categoria su ogni riga */
 .error-section-title {
   font-size: 13px;
