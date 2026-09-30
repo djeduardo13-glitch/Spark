@@ -1209,6 +1209,31 @@ const DOCUMENTS = {
 };
 
 /* ---------------------------------------------------------------------
+   VERSIONI FW — versioni dei componenti per ogni workcode
+   (Documenti → Versioni FW). null = versione non tracciata.
+   ------------------------------------------------------------------- */
+const FW_COMPONENT_COLUMNS = [
+  { key: "hmi", label: "HMI Images" },
+  { key: "ecuLeft", label: "ECU Motor Left" },
+  { key: "ecuRight", label: "ECU Motor Right" },
+  { key: "ecuRostro", label: "ECU Rostro" },
+  { key: "ble", label: "BLE" }
+];
+
+const FW_COMPONENT_VERSIONS = [
+  { workcode: "7.9",     hmi: "7.9",     ecuLeft: null,      ecuRight: null,      ecuRostro: null,      ble: null },
+  { workcode: "8.2",     hmi: "8.2",     ecuLeft: "4.1",     ecuRight: "4.1",     ecuRostro: "3.1",     ble: null },
+  { workcode: "8.2.0.1", hmi: "8.2.0.1", ecuLeft: "4.1.0.0", ecuRight: "4.1.0.0", ecuRostro: "3.1.0.0", ble: "2.04" },
+  { workcode: "8.2.0.2", hmi: "8.2.0.2", ecuLeft: "4.1.0.1", ecuRight: "4.1.0.1", ecuRostro: "3.1.0.0", ble: "2.04" },
+  { workcode: "8.2.0.3", hmi: "8.2.0.2", ecuLeft: "4.1.0.2", ecuRight: "4.1.0.2", ecuRostro: "3.1.0.0", ble: "2.05" },
+  { workcode: "8.2.0.4", hmi: "8.2.0.2", ecuLeft: "4.1.0.2", ecuRight: "4.1.0.2", ecuRostro: "3.1.0.0", ble: "2.05" },
+  { workcode: "8.2.0.5", hmi: "8.2.0.2", ecuLeft: "4.1.0.2", ecuRight: "4.1.0.2", ecuRostro: "3.1.0.0", ble: "2.05" },
+  { workcode: "8.2.0.6", hmi: "8.2.0.2", ecuLeft: "4.1.0.2", ecuRight: "4.1.0.2", ecuRostro: "3.1.0.0", ble: "2.05" },
+  { workcode: "8.2.0.7", hmi: "8.2.0.2", ecuLeft: "4.1.0.3", ecuRight: "4.1.0.3", ecuRostro: "3.1.0.0", ble: "2.05" },
+  { workcode: "8.2.1.0", hmi: "8.2.0.2", ecuLeft: "4.1.0.3", ecuRight: "4.1.0.3", ecuRostro: "3.1.0.0", ble: "2.05" }
+];
+
+/* ---------------------------------------------------------------------
    TESTI INTERFACCIA (predisposizione multilingua)
    ------------------------------------------------------------------- */
 const I18N = {
@@ -1320,6 +1345,10 @@ const I18N = {
     maint_storage_note: "I PDF salvati dal form restano solo in questo browser, su questo dispositivo: non vengono caricati online e non si vedono da altri dispositivi. Scarica una copia dei documenti importanti.",
     collaudo_intro: "La procedura di collaudo del prodotto.",
     documents_intro: "Documentazione disponibile per la versione firmware selezionata.",
+    fw_table_title: "Versioni FW",
+    fw_table_workcode: "Workcode",
+    fw_table_not_tracked: "non tracciato",
+    back_to_documents: "Torna ai documenti",
     doc_cat_manuali: "Manuali",
     doc_cat_tecnica: "Documentazione tecnica",
     doc_cat_firmware: "Firmware / Release",

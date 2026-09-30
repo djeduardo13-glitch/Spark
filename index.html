@@ -344,7 +344,21 @@
           <h2 data-i18n="nav_documents">Documenti</h2>
           <p data-i18n="documents_intro">Documentazione disponibile per la versione firmware selezionata.</p>
         </div>
-        <div id="documentsContainer"></div>
+        <div id="documentsListView">
+          <div id="documentsContainer"></div>
+        </div>
+
+        <!-- Cartella Versioni FW -->
+        <div id="fwTableView" style="display:none;">
+          <button class="back-to-list-btn" id="fwTableBackBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+            <span data-i18n="back_to_documents">Torna ai documenti</span>
+          </button>
+          <div class="view-header">
+            <h2 data-i18n="fw_table_title">Versioni FW</h2>
+          </div>
+          <div id="fwTableContainer"></div>
+        </div>
       </section>
 
     </div>

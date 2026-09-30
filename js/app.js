@@ -70,11 +70,13 @@ function applyRoute(route) {
     closeSnFolder();
     closeComponentDetail();
     closeSequenceDetail();
+    closeFwTable();
     const d = route.detail;
     if (d) {
       if (d.type === "procedure") openProcedureDetail(d.id);
       else if (d.type === "sn") openSnFolder(d.id);
       else if (d.type === "component") openComponentDetail(d.id);
+      else if (d.type === "fwtable") openFwTable();
       else if (d.type === "sequence") {
         const step = OPERATION_SEQUENCE.find(s => s.id === d.id);
         if (step) syncSequenceType(step.tipo);
@@ -137,6 +139,7 @@ function goToView(viewId) {
   closeDrawer();
   if (viewId === "checklist" && typeof closeProcedureDetail === "function") closeProcedureDetail();
   if (viewId === "checklist" && typeof closeSnFolder === "function") closeSnFolder();
+  if (viewId === "documents" && typeof closeFwTable === "function") closeFwTable();
   if (viewId !== "simulator" && typeof closeComponentDetail === "function") closeComponentDetail();
   if (viewId !== "simulator" && typeof closeSequenceDetail === "function") closeSequenceDetail();
   document.querySelector(".content").scrollTo?.(0, 0);
@@ -552,12 +555,23 @@ function renderCollaudo() {
 /* ---------------------------------------------------------------------
    DOCUMENTI
    ------------------------------------------------------------------- */
+// Cartella "Versioni FW": sempre in cima, vale per tutti i firmware
+function fwFolderTileHtml() {
+  const dict = I18N[state.lang] || I18N.it;
+  return `
+    <button class="procedure-tile sn-folder-tile" id="fwFolderTile">
+      <span class="sn-folder-icon">${FOLDER_ICON_SVG}</span>
+      <span class="procedure-tile-text"><span class="procedure-title">${dict.fw_table_title}</span></span>
+      ${CHEVRON_SVG}
+    </button>`;
+}
+
 function renderDocuments() {
   const container = document.getElementById("documentsContainer");
   const docs = DOCUMENTS[state.fw] || [];
 
   if (docs.length === 0) {
-    container.innerHTML = `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
+    container.innerHTML = fwFolderTileHtml() + `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
     return;
   }
 
@@ -582,7 +596,7 @@ function renderDocuments() {
     `;
   }
 
-  let html = "";
+  let html = fwFolderTileHtml();
   CATEGORY_ORDER.forEach(cat => {
     const items = docs.filter(d => d.category === cat.key);
     if (items.length === 0) return;
@@ -598,6 +612,44 @@ function renderDocuments() {
 
   container.innerHTML = html;
 }
+
+/* Tabella Versioni FW: una riga per workcode, colonna Workcode fissa
+   (su telefono le altre colonne scorrono in orizzontale). */
+function renderFwTable() {
+  const dict = I18N[state.lang] || I18N.it;
+  const cell = v => v
+    ? `<td>${escapeHtml(v)}</td>`
+    : `<td class="fw-not-tracked">${escapeHtml(dict.fw_table_not_tracked)}</td>`;
+  const head = `<tr><th scope="col">${escapeHtml(dict.fw_table_workcode)}</th>` +
+    FW_COMPONENT_COLUMNS.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("") + `</tr>`;
+  const body = FW_COMPONENT_VERSIONS.map(r =>
+    `<tr><th scope="row">${escapeHtml(r.workcode)}</th>` + FW_COMPONENT_COLUMNS.map(c => cell(r[c.key])).join("") + `</tr>`
+  ).join("");
+  document.getElementById("fwTableContainer").innerHTML =
+    `<div class="fw-table-wrap"><table class="fw-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function openFwTable() {
+  renderFwTable();
+  document.getElementById("documentsListView").style.display = "none";
+  document.getElementById("fwTableView").style.display = "block";
+  document.querySelector(".content").scrollTo?.(0, 0);
+  window.scrollTo(0, 0);
+  state.detail = { type: "fwtable", id: "fw" };
+  scheduleHistorySync();
+}
+
+function closeFwTable() {
+  document.getElementById("fwTableView").style.display = "none";
+  document.getElementById("documentsListView").style.display = "block";
+  if (state.detail && state.detail.type === "fwtable") state.detail = null;
+  scheduleHistorySync();
+}
+
+document.getElementById("documentsContainer").addEventListener("click", (e) => {
+  if (e.target.closest("#fwFolderTile")) openFwTable();
+});
+document.getElementById("fwTableBackBtn").addEventListener("click", () => navBack(closeFwTable));
 
 /* ---------------------------------------------------------------------
    SIMULATORE
