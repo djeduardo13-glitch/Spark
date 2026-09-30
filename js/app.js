@@ -71,12 +71,15 @@ function applyRoute(route) {
     closeComponentDetail();
     closeSequenceDetail();
     closeFwTable();
+    closeDiagnostic();
     const d = route.detail;
     if (d) {
       if (d.type === "procedure") openProcedureDetail(d.id);
       else if (d.type === "sn") openSnFolder(d.id);
       else if (d.type === "component") openComponentDetail(d.id);
       else if (d.type === "fwtable") openFwTable();
+      else if (d.type === "diaglist") openDiagList(d.id);
+      else if (d.type === "diagstep") openDiagStep(d.id);
       else if (d.type === "sequence") {
         const step = OPERATION_SEQUENCE.find(s => s.id === d.id);
         if (step) syncSequenceType(step.tipo);
@@ -142,6 +145,7 @@ function goToView(viewId) {
   if (viewId === "documents" && typeof closeFwTable === "function") closeFwTable();
   if (viewId !== "simulator" && typeof closeComponentDetail === "function") closeComponentDetail();
   if (viewId !== "simulator" && typeof closeSequenceDetail === "function") closeSequenceDetail();
+  if (viewId !== "simulator" && typeof closeDiagnostic === "function") closeDiagnostic();
   document.querySelector(".content").scrollTo?.(0, 0);
   window.scrollTo(0, 0);
   scheduleHistorySync();
@@ -720,6 +724,8 @@ function switchSimMode(mode) {
   document.getElementById("simErrorsMode").style.display = mode === "errors" ? "block" : "none";
   document.getElementById("simComponentsMode").style.display = mode === "components" ? "block" : "none";
   document.getElementById("simSequenceMode").style.display = mode === "sequence" ? "block" : "none";
+  document.getElementById("simDiagnosticMode").style.display = mode === "diagnostic" ? "block" : "none";
+  if (mode !== "diagnostic" && typeof closeDiagnostic === "function") closeDiagnostic();
   if (mode !== "components" && typeof closeComponentDetail === "function") closeComponentDetail();
   if (mode !== "sequence" && typeof closeSequenceDetail === "function") closeSequenceDetail();
   if (mode === "map") renderMapView();
@@ -727,6 +733,7 @@ function switchSimMode(mode) {
   if (mode === "errors") renderErrors();
   if (mode === "components") renderComponents();
   if (mode === "sequence") renderSequence();
+  if (mode === "diagnostic" && !state.diagType) renderDiagStart();
   updateCompSubSwitch();
 }
 
@@ -1064,6 +1071,187 @@ document.getElementById("sequenceTypeRow").addEventListener("click", (e) => {
   closeSequenceDetail();
   renderSequence();
 });
+
+/* ---------------------------------------------------------------------
+   TECNICO → DIAGNOSTICA GUIDATA
+   Percorso di consultazione: Carico/Scarico → passaggio → componenti →
+   parametri collegati → errori dei componenti.
+   Nessun dato è duplicato: tutto è letto a runtime da OPERATION_SEQUENCE
+   (+ OPERATION_SEQUENCE_NOTES), UTENZE, PARAM_COMPONENTS / ERROR_COMPONENTS
+   (tramite getComponentErrors). Le relazioni sono SOLO:
+       passaggio → componenti / parametri   (dati della sequenza)
+       componente → errori                  (ERROR_COMPONENTS)
+   Non esiste, e qui non viene presentata, una relazione passaggio → errori.
+   Il clic su componente/parametro/errore riusa goToComponent,
+   goToParameter e goToError già presenti.
+   ------------------------------------------------------------------- */
+state.diagType = null;
+
+function diagTypeLabel(tipo) {
+  const dict = I18N[state.lang] || I18N.it;
+  return tipo === "carico" ? dict.sequence_carico : dict.sequence_scarico;
+}
+
+function diagShowView(which) {
+  document.getElementById("diagStartView").style.display = which === "start" ? "block" : "none";
+  document.getElementById("diagListView").style.display = which === "list" ? "block" : "none";
+  document.getElementById("diagStepView").style.display = which === "step" ? "block" : "none";
+}
+
+function diagScrollTop() {
+  document.querySelector(".content").scrollTo?.(0, 0);
+  window.scrollTo(0, 0);
+}
+
+function renderDiagStart() {
+  const dict = I18N[state.lang] || I18N.it;
+  const box = document.getElementById("diagTypeTiles");
+  box.innerHTML = "";
+  ["carico", "scarico"].forEach(tipo => {
+    const n = OPERATION_SEQUENCE.filter(s => s.tipo === tipo).length;
+    const tile = document.createElement("button");
+    tile.className = "procedure-tile";
+    tile.dataset.diagType = tipo;
+    tile.innerHTML = `
+      <span class="procedure-tile-text">
+        <span class="procedure-title">${diagTypeLabel(tipo)}</span>
+        <span class="procedure-intro">${dict.diag_steps_count.replace("{n}", n)}</span>
+      </span>${CHEVRON_SVG}`;
+    tile.addEventListener("click", () => openDiagList(tipo));
+    box.appendChild(tile);
+  });
+}
+
+function renderDiagList() {
+  const container = document.getElementById("diagStepsContainer");
+  const dict = I18N[state.lang] || I18N.it;
+  document.querySelectorAll("#diagTypeRow .filter-chip").forEach(c =>
+    c.classList.toggle("active", c.dataset.diagType === state.diagType));
+  container.innerHTML = "";
+  OPERATION_SEQUENCE.filter(s => s.tipo === state.diagType).forEach(step => {
+    const tile = document.createElement("button");
+    tile.className = "procedure-tile";
+    tile.dataset.stepId = step.id;
+    tile.innerHTML = `
+      <span class="procedure-tile-text">
+        <span class="procedure-title">${dict.sequence_step_label} ${step.numero}</span>
+        <span class="procedure-intro">${step.descrizione}</span>
+      </span>${CHEVRON_SVG}`;
+    tile.addEventListener("click", () => openDiagStep(step.id));
+    container.appendChild(tile);
+  });
+}
+
+function openDiagList(tipo) {
+  state.diagType = tipo;
+  renderDiagList();
+  diagShowView("list");
+  diagScrollTop();
+  state.detail = { type: "diaglist", id: tipo };
+  scheduleHistorySync();
+}
+
+function closeDiagList() {
+  state.diagType = null;
+  diagShowView("start");
+  if (state.detail && state.detail.type === "diaglist") state.detail = null;
+  scheduleHistorySync();
+}
+
+function openDiagStep(stepId) {
+  const step = OPERATION_SEQUENCE.find(s => s.id === stepId);
+  if (!step) return;
+  const dict = I18N[state.lang] || I18N.it;
+  state.diagType = step.tipo;
+  renderDiagList(); // così "Torna ai passaggi" mostra la sequenza giusta
+
+  document.getElementById("diagStepTitle").textContent = `${dict.sequence_step_label} ${step.numero}`;
+  document.getElementById("diagStepSub").textContent = diagTypeLabel(step.tipo);
+
+  const fields = document.getElementById("diagStepFields");
+  // Cosa dovrebbe succedere + eventuale condizione già presente nei dati
+  // (stessa regola della Logica di funzionamento: premessa del Carico al passaggio 0)
+  const note = (step.numero === 0 && step.tipo === "carico") ? OPERATION_SEQUENCE_NOTES.carico : null;
+  let html = `<div class="component-field"><span class="component-field-value">${step.descrizione}</span></div>`;
+  if (note) {
+    html += `<div class="component-field"><span class="component-field-label">${dict.sequence_field_condizione}</span><span class="component-field-value">${note.testo}</span></div>`;
+  }
+  fields.innerHTML = html;
+
+  // PASSAGGIO → COMPONENTI
+  const componentIds = [...step.componenti, ...(note ? note.componenti : [])].filter((v, i, a) => a.indexOf(v) === i);
+  fields.appendChild(buildRelationBlock(
+    dict.diag_components_title,
+    componentIds.map(id => ({ label: `${id} — ${UTENZE[id] || id}`, onClick: () => goToComponent(id) })),
+    dict.diag_no_components,
+    "list"
+  ));
+
+  // PASSAGGIO → PARAMETRI (solo quelli esplicitamente indicati nel passaggio)
+  fields.appendChild(buildRelationBlock(
+    dict.diag_params_title,
+    step.parametri.map(name => ({ label: name, onClick: () => goToParameter(name) })),
+    dict.diag_no_params,
+    "chips"
+  ));
+
+  // COMPONENTE → ERRORI ASSOCIATI (separati per componente, mai "errori del passaggio")
+  const errBlock = document.createElement("div");
+  errBlock.className = "relation-block";
+  const errLabel = document.createElement("span");
+  errLabel.className = "relation-label";
+  errLabel.textContent = dict.diag_errors_title;
+  errBlock.appendChild(errLabel);
+  const hint = document.createElement("p");
+  hint.className = "diag-errors-hint";
+  hint.textContent = dict.diag_errors_hint;
+  errBlock.appendChild(hint);
+  if (componentIds.length === 0) {
+    const none = document.createElement("span");
+    none.className = "relation-none";
+    none.textContent = dict.diag_errors_no_components;
+    errBlock.appendChild(none);
+  } else {
+    componentIds.forEach(id => {
+      const sub = buildRelationBlock(
+        `${dict.diag_component_label} ${id} — ${UTENZE[id] || id}`,
+        getComponentErrors(id).map(code => ({ label: code, onClick: () => goToError(code) })),
+        dict.diag_no_errors,
+        "chips"
+      );
+      sub.classList.add("diag-nested");
+      errBlock.appendChild(sub);
+    });
+  }
+  fields.appendChild(errBlock);
+
+  diagShowView("step");
+  diagScrollTop();
+  state.detail = { type: "diagstep", id: stepId };
+  scheduleHistorySync();
+}
+
+function closeDiagStep() {
+  diagShowView("list");
+  state.detail = { type: "diaglist", id: state.diagType };
+  scheduleHistorySync();
+}
+
+// Azzera la Diagnostica (uscendo dalla modalità o dalla sezione Tecnico)
+function closeDiagnostic() {
+  state.diagType = null;
+  diagShowView("start");
+  if (state.detail && (state.detail.type === "diaglist" || state.detail.type === "diagstep")) state.detail = null;
+}
+
+document.getElementById("diagListBackBtn").addEventListener("click", () => navBack(closeDiagList));
+document.getElementById("diagStepBackBtn").addEventListener("click", () => navBack(closeDiagStep));
+document.getElementById("diagTypeRow").addEventListener("click", (e) => {
+  const chip = e.target.closest(".filter-chip");
+  if (!chip || chip.dataset.diagType === state.diagType) return;
+  openDiagList(chip.dataset.diagType);
+});
+
 
 /* ---------------------------------------------------------------------
    TECNICO → COMPONENTI

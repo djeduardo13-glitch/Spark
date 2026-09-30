@@ -151,6 +151,10 @@
             <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
             <span data-i18n="sim_mode_sequence">Logica di funzionamento</span>
           </button>
+          <button class="sim-mode-pill" data-sim-mode="diagnostic">
+            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
+            <span data-i18n="sim_mode_diagnostic">Diagnostica</span>
+          </button>
         </div>
 
                 <!-- Modalità: Simulatore HMI -->
@@ -285,6 +289,43 @@
               <p id="sequenceDetailSub"></p>
             </div>
             <div id="sequenceDetailFields"></div>
+          </div>
+
+        </div>
+
+        <!-- Modalità: Diagnostica guidata -->
+        <div id="simDiagnosticMode" style="display:none;">
+
+          <!-- 1. Scelta Carico / Scarico -->
+          <div id="diagStartView">
+            <p class="map-intro" data-i18n="diag_intro">Scegli la sequenza in cui si verifica il problema, poi il passaggio: vedrai cosa dovrebbe succedere, quali componenti intervengono e quali parametri sono collegati.</p>
+            <div id="diagTypeTiles"></div>
+          </div>
+
+          <!-- 2. Elenco passaggi -->
+          <div id="diagListView" style="display:none;">
+            <button class="back-to-list-btn" id="diagListBackBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+              <span data-i18n="diag_back_to_choice">Torna alla scelta</span>
+            </button>
+            <div class="filter-chip-row" id="diagTypeRow">
+              <button class="filter-chip" data-diag-type="carico" data-i18n="sequence_carico">Carico</button>
+              <button class="filter-chip" data-diag-type="scarico" data-i18n="sequence_scarico">Scarico</button>
+            </div>
+            <div id="diagStepsContainer"></div>
+          </div>
+
+          <!-- 3. Scheda diagnostica del passaggio -->
+          <div id="diagStepView" style="display:none;">
+            <button class="back-to-list-btn" id="diagStepBackBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+              <span data-i18n="diag_back_to_steps">Torna ai passaggi</span>
+            </button>
+            <div class="view-header">
+              <h2 id="diagStepTitle"></h2>
+              <p id="diagStepSub"></p>
+            </div>
+            <div id="diagStepFields"></div>
           </div>
 
         </div>

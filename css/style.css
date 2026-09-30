@@ -2057,6 +2057,25 @@ button {
 .relation-chip:hover,
 .relation-link:hover { background: var(--tint); }
 
+/* Diagnostica guidata */
+.diag-errors-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 4px;
+}
+.relation-block.diag-nested {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.relation-block.diag-nested .relation-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12.5px;
+  color: var(--brand);
+}
+
 /* Utilizzo nella logica (scheda componente) */
 .relation-group-title {
   display: block;
