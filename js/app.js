@@ -1361,6 +1361,25 @@ function openComponentDetail(id) {
     det.bullets.forEach(b => { html += `<li>${b}</li>`; });
     html += `</ul></div>`;
   }
+  // Configurazione corretta del sensore (es. passaggi della scheda tecnica)
+  if (det.configurazione && det.configurazione.length) {
+    html += `<div class="component-field"><span class="component-field-label">${dict.component_field_configurazione || I18N.it.component_field_configurazione}</span><ul class="component-field-list">`;
+    det.configurazione.forEach(c => { html += `<li>${c}</li>`; });
+    html += `</ul></div>`;
+  }
+  // Documenti allegati al componente (schede tecniche PDF in assets/docs/componenti)
+  if (det.allegati && det.allegati.length) {
+    html += `<div class="component-field"><span class="component-field-label">${dict.component_field_allegati || I18N.it.component_field_allegati}</span>`;
+    det.allegati.forEach(a => {
+      html += `
+      <a class="doc-row" href="${escapeHtml(a.url)}" target="_blank" rel="noopener" style="text-decoration:none;margin-top:6px;">
+        <span class="doc-icon">${DOC_ICON_SVG}</span>
+        <span class="doc-meta"><span class="doc-title">${escapeHtml(a.title)}</span><br><span class="doc-type">PDF</span></span>
+        <span class="doc-action">${escapeHtml(dict.maint_open || "Apri")}</span>
+      </a>`;
+    });
+    html += `</div>`;
+  }
   if (html === "") html = `<div class="empty-state">${dict.component_no_details}</div>`;
   fields.innerHTML = html;
 
