@@ -1282,7 +1282,7 @@ function renderComponents(filterText) {
     const nome = (UTENZE[c.id] || "").toLowerCase();
     const det = SENSOR_DETAILS[c.id] || {};
     const catLabel = (dict[CAT_LABEL_KEY[c.categoria]] || c.categoria).toLowerCase();
-    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", catLabel].join(" ").toLowerCase();
+    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", det.modello || "", det.codice || "", catLabel].join(" ").toLowerCase();
     return haystack.includes(query);
   });
 
@@ -1340,63 +1340,196 @@ function openComponentDetail(id) {
   const det = SENSOR_DETAILS[id] || {};
   const catLabel = dict[CAT_LABEL_KEY[comp.categoria]] || comp.categoria;
 
-  document.getElementById("componentDetailTitle").textContent = `${id} — ${nome}`;
-  // Sotto il nome: il tipo specifico del componente (es. "Laser distanza"),
-  // oppure la categoria se il tipo non è indicato
+  const t = k => dict[k] || I18N.it[k] || k;
+
+  // Intestazione: sigla grande + nome, sotto i badge (tipo, configurazione)
+  document.getElementById("componentDetailTitle").innerHTML =
+    `<span class="cd-id">${escapeHtml(id)}</span><span class="cd-name">${escapeHtml(nome)}</span>`;
   // Se il tipo è generico ("Analogico") lo si affianca al tipo di sensore
   const TIPO_PREFIX = { angolari: "Sensore angolare", pressione: "Sensore di pressione" };
   let sub = det.tipo ? det.tipo.replace(/\s+/g, " ").trim() : catLabel;
   if (det.tipo && sub.toLowerCase() === "analogico" && TIPO_PREFIX[comp.categoria]) sub = TIPO_PREFIX[comp.categoria] + " · " + sub;
-  document.getElementById("componentDetailSub").textContent = sub;
+  let badges = `<span class="cd-badge">${escapeHtml(sub)}</span>`;
+  if (det.badge) badges += `<span class="cd-badge ok">${escapeHtml(det.badge)}</span>`;
+  document.getElementById("componentDetailSub").innerHTML = `<span class="cd-badges">${badges}</span>`;
 
   const fields = document.getElementById("componentDetailFields");
-  let html = "";
-  // Ordine: Codice cavo, Collegamento, Funzione, Logica, Errori, Parametri
-  // ("Tipo" non viene mostrato: la categoria è già sotto il titolo)
-  if (det.cavo) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_codice}</span><span class="component-field-value">${det.cavo}</span></div>`;
-  if (det.dove) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_collegamento}</span><span class="component-field-value">${det.dove}</span></div>`;
-  if (det.intro) html += `<div class="component-field"><span class="component-field-label">${dict.component_field_funzione}</span><span class="component-field-value">${det.intro}</span></div>`;
-  if (det.bullets && det.bullets.length) {
-    html += `<div class="component-field"><span class="component-field-label">${dict.component_field_logica}</span><ul class="component-field-list">`;
-    det.bullets.forEach(b => { html += `<li>${b}</li>`; });
-    html += `</ul></div>`;
+  fields.innerHTML = "";
+
+  // ---- Scheda rapida: modello, codice, cavo, collegamento + funzione ----
+  // Cavo "DIS0019382 - Laser 1 (SENDISLAS)" → cavo DIS0019382, codice SENDISLAS
+  // Collegamento "Scheda rostro - DIS0016202" → nome scheda + codice scheda
+  const cavoStr = det.cavo || "";
+  const cavoMatch = cavoStr.match(/DIS\d+/);
+  const parenMatch = cavoStr.match(/\(([^)]+)\)/);
+  const codice = det.codice || (parenMatch ? parenMatch[1].trim() : "");
+  const doveParts = (det.dove || "").split(/\s+-\s+/);
+  const facts = [];
+  if (det.modello) facts.push({ k: t("comp_fact_modello"), v: det.modello, wide: true });
+  if (codice) facts.push({ k: t("comp_fact_codice"), v: codice });
+  if (cavoMatch) facts.push({ k: t("comp_fact_cavo"), v: cavoMatch[0] });
+  else if (cavoStr && !parenMatch) facts.push({ k: t("comp_fact_cavo"), v: cavoStr });
+  if (doveParts[0]) facts.push({ k: t("comp_fact_collegato"), v: doveParts[0] });
+  if (doveParts[1]) facts.push({ k: t("comp_fact_scheda"), v: doveParts.slice(1).join(" - ") });
+  // Con un numero dispari di celle "strette", l'ultima occupa tutta la riga
+  const narrow = facts.filter(f => !f.wide);
+  if (narrow.length % 2 === 1) narrow[narrow.length - 1].wide = true;
+
+  if (facts.length || det.intro) {
+    const card = document.createElement("div");
+    card.className = "cd-card";
+    let h = "";
+    if (facts.length) {
+      h += `<div class="cd-facts">` + facts.map(f =>
+        `<div class="cd-fact${f.wide ? " wide" : ""}"><span class="cd-k">${f.k}</span><span class="cd-v">${f.v}</span></div>`).join("") + `</div>`;
+    }
+    if (det.intro) h += `<div class="cd-func${facts.length ? "" : " solo"}">${det.intro}</div>`;
+    card.innerHTML = h;
+    fields.appendChild(card);
   }
-  // Configurazione corretta del sensore (es. passaggi della scheda tecnica)
+
+  // ---- Schede: Configura | Ciclo | Errori | Doc (solo quelle con contenuto) ----
+  const tabs = [];
+
+  // Configura
   if (det.configurazione && det.configurazione.length) {
-    html += `<div class="component-field"><span class="component-field-label">${dict.component_field_configurazione || I18N.it.component_field_configurazione}</span><ul class="component-field-list">`;
-    det.configurazione.forEach(c => { html += `<li>${c}</li>`; });
-    html += `</ul></div>`;
+    const p = document.createElement("div");
+    let h = `<span class="cd-sec">${t("comp_config_title")}</span><div class="cd-card">`;
+    det.configurazione.forEach(c => {
+      if (typeof c === "string") { h += `<div class="cd-step"><div class="cd-step-body">${c}</div></div>`; return; }
+      const leds = (c.led || []).map(l => {
+        const col = l.colore === "verde" ? "g" : l.colore === "giallo" ? "y" : "off";
+        const cls = l.stato === "spento" ? "off" : col + (l.stato === "lampeggia" ? " blink" : "");
+        return `<span class="cd-led"><span class="cd-dot ${cls}"></span>${l.colore} ${l.stato}</span>`;
+      }).join("");
+      h += `<div class="cd-step">
+        ${c.passo ? `<span class="cd-step-letter">${escapeHtml(c.passo)}</span>` : ""}
+        <div class="cd-step-body">
+          <span class="cd-step-title">${c.titolo || ""}</span>
+          <span class="cd-step-val">${c.valore || ""}</span>
+          ${leds ? `<span class="cd-leds">${leds}</span>` : ""}
+        </div></div>`;
+    });
+    h += `</div>`;
+    if (det.configurazioneNota) h += `<div class="cd-warn">${det.configurazioneNota}</div>`;
+    p.innerHTML = h;
+    tabs.push({ key: "cfg", label: t("comp_tab_config"), panel: p });
   }
-  // Documenti allegati al componente (schede tecniche PDF in assets/docs/componenti)
+
+  // Ciclo: passaggi di carico/scarico + dettagli logica + parametri
+  const steps = getComponentSequenceSteps(id);
+  const params = getComponentParams(id);
+  const hasBullets = det.bullets && det.bullets.length;
+  if (steps.length || hasBullets || params.length) {
+    const p = document.createElement("div");
+    if (steps.length) {
+      const sec = document.createElement("span");
+      sec.className = "cd-sec"; sec.textContent = t("comp_cycle_title");
+      p.appendChild(sec);
+      const card = document.createElement("div");
+      card.className = "cd-card cd-flow";
+      steps.forEach(st => {
+        const r = (det.cicloRiassunto || {})[st.id];
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "cd-flow-row";
+        row.innerHTML = `
+          <span class="cd-phase ${st.tipo}">${st.tipo === "carico" ? t("sequence_carico") : t("sequence_scarico")}<br>${t("comp_step_short")} ${st.numero}</span>
+          <span class="cd-flow-text">
+            <span class="cd-flow-what${r ? "" : " clamp"}">${r ? r.cosa : st.descrizione}</span>
+            ${r && r.dettaglio ? `<span class="cd-flow-why">${r.dettaglio}</span>` : ""}
+          </span>
+          <span class="cd-go">›</span>`;
+        row.addEventListener("click", () => goToSequenceStep(st.id));
+        card.appendChild(row);
+      });
+      p.appendChild(card);
+    }
+    if (hasBullets) {
+      const card = document.createElement("div");
+      card.className = "cd-card";
+      const list = `<ul class="cd-list">${det.bullets.map(b => `<li>${b}</li>`).join("")}</ul>`;
+      card.innerHTML = steps.length
+        ? `<details class="cd-details"><summary>${t("comp_logic_details")}</summary>${list}</details>`
+        : `<span class="cd-sec inner">${t("component_field_logica")}</span>${list}`;
+      p.appendChild(card);
+    }
+    if (params.length) {
+      p.appendChild(buildRelationBlock(
+        t("relation_params_title"),
+        params.map(name => ({ label: name, onClick: () => goToParameter(name) })),
+        "", "chips"
+      ));
+    }
+    tabs.push({ key: "cycle", label: t("comp_tab_cycle"), panel: p });
+  }
+
+  // Errori: codice + descrizione, tocco → apre l'errore
+  const errCodes = getComponentErrors(id);
+  if (errCodes.length) {
+    const p = document.createElement("div");
+    const sec = document.createElement("span");
+    sec.className = "cd-sec"; sec.textContent = t("comp_errors_title").replace("{id}", id);
+    p.appendChild(sec);
+    const card = document.createElement("div");
+    card.className = "cd-card";
+    errCodes.forEach(code => {
+      const er = ERRORS.find(e => e.code === code) || {};
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "cd-err";
+      row.innerHTML = `<span class="cd-err-code">${escapeHtml(code)}</span><span class="cd-err-txt">${er.text || ""}</span><span class="cd-go">›</span>`;
+      row.addEventListener("click", () => goToError(code));
+      card.appendChild(row);
+    });
+    p.appendChild(card);
+    tabs.push({ key: "err", label: t("comp_tab_errors"), count: errCodes.length, panel: p });
+  }
+
+  // Doc: schede tecniche allegate (assets/docs/componenti)
   if (det.allegati && det.allegati.length) {
-    html += `<div class="component-field"><span class="component-field-label">${dict.component_field_allegati || I18N.it.component_field_allegati}</span>`;
+    const p = document.createElement("div");
+    let h = `<span class="cd-sec">${t("comp_docs_title")}</span>`;
     det.allegati.forEach(a => {
-      html += `
-      <a class="doc-row" href="${escapeHtml(a.url)}" target="_blank" rel="noopener" style="text-decoration:none;margin-top:6px;">
+      h += `
+      <a class="doc-row" href="${escapeHtml(a.url)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:8px;">
         <span class="doc-icon">${DOC_ICON_SVG}</span>
-        <span class="doc-meta"><span class="doc-title">${escapeHtml(a.title)}</span><br><span class="doc-type">PDF</span></span>
-        <span class="doc-action">${escapeHtml(dict.maint_open || "Apri")}</span>
+        <span class="doc-meta"><span class="doc-title">${escapeHtml(a.title)}</span><br><span class="doc-type">${escapeHtml(a.type || "PDF")}</span></span>
+        <span class="doc-action">${escapeHtml(t("maint_open"))}</span>
       </a>`;
     });
-    html += `</div>`;
+    p.innerHTML = h;
+    tabs.push({ key: "doc", label: t("comp_tab_docs"), count: det.allegati.length, panel: p });
   }
-  if (html === "") html = `<div class="empty-state">${dict.component_no_details}</div>`;
-  fields.innerHTML = html;
 
-  fields.appendChild(buildSequenceUsageBlock(id));
+  if (tabs.length === 1) {
+    // Una sola scheda: niente barra, il contenuto si mostra direttamente
+    tabs[0].panel.className = "cd-panel on";
+    fields.appendChild(tabs[0].panel);
+  } else if (tabs.length) {
+    const bar = document.createElement("div");
+    bar.className = "cd-tabs";
+    bar.setAttribute("role", "tablist");
+    const panels = document.createElement("div");
+    tabs.forEach((tb, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cd-tab" + (i === 0 ? " on" : "");
+      b.setAttribute("role", "tab");
+      b.innerHTML = escapeHtml(tb.label) + (tb.count ? `<span class="cd-n">${tb.count}</span>` : "");
+      tb.panel.className = "cd-panel" + (i === 0 ? " on" : "");
+      b.addEventListener("click", () => {
+        bar.querySelectorAll(".cd-tab").forEach(x => x.classList.toggle("on", x === b));
+        panels.querySelectorAll(".cd-panel").forEach(x => x.classList.toggle("on", x === tb.panel));
+      });
+      bar.appendChild(b);
+      panels.appendChild(tb.panel);
+    });
+    fields.appendChild(bar);
+    fields.appendChild(panels);
+  }
 
-  fields.appendChild(buildRelationBlock(
-    dict.relation_errors_title,
-    getComponentErrors(id).map(code => ({ label: code, onClick: () => goToError(code) })),
-    dict.relation_no_errors,
-    "chips"
-  ));
-  fields.appendChild(buildRelationBlock(
-    dict.relation_params_title,
-    getComponentParams(id).map(name => ({ label: name, onClick: () => goToParameter(name) })),
-    dict.relation_no_params,
-    "chips"
-  ));
+  if (!fields.children.length) fields.innerHTML = `<div class="empty-state">${dict.component_no_details}</div>`;
 
   const mapLinkWrap = document.getElementById("componentMapLinkWrap");
   if (findComponentHotspot(id)) {
