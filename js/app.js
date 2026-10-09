@@ -1356,24 +1356,24 @@ function openComponentDetail(id) {
   const fields = document.getElementById("componentDetailFields");
   fields.innerHTML = "";
 
-  // ---- Scheda rapida: modello, codice, cavo, collegamento + funzione ----
-  // Cavo "DIS0019382 - Laser 1 (SENDISLAS)" → cavo DIS0019382, codice SENDISLAS
-  // Collegamento "Scheda rostro - DIS0016202" → nome scheda + codice scheda
-  const cavoStr = det.cavo || "";
-  const cavoMatch = cavoStr.match(/DIS\d+/);
+  // ---- Scheda rapida: modello, codice cavo, collegamento + funzione ----
+  // Codice cavo: "DIS0019382 - Laser 1 (SENDISLAS)" → "DIS0019382 - SENDISLAS"
+  //   (codice DIS + codice articolo da `codice` o tra parentesi);
+  //   senza codice articolo si mostra il dato così com'è.
+  // Collegato a: "Scheda rostro - DIS0016202" → "DIS0016202 - Scheda rostro"
+  const cavoStr = (det.cavo || "").trim();
+  const cavoDis = (cavoStr.match(/DIS\d+/) || [])[0] || "";
   const parenMatch = cavoStr.match(/\(([^)]+)\)/);
-  const codice = det.codice || (parenMatch ? parenMatch[1].trim() : "");
-  const doveParts = (det.dove || "").split(/\s+-\s+/);
+  const articolo = det.codice || (parenMatch ? parenMatch[1].trim() : "");
+  let codiceCavo = cavoStr;
+  if (articolo) codiceCavo = cavoDis ? `${cavoDis} - ${articolo}` : articolo;
+  const doveStr = (det.dove || "").trim();
+  const doveMatch = doveStr.match(/^(.*?)\s*-\s*(DIS\d+)$/);
+  const collegato = doveMatch ? `${doveMatch[2]} - ${doveMatch[1]}` : doveStr;
   const facts = [];
   if (det.modello) facts.push({ k: t("comp_fact_modello"), v: det.modello, wide: true });
-  if (codice) facts.push({ k: t("comp_fact_codice"), v: codice });
-  if (cavoMatch) facts.push({ k: t("comp_fact_cavo"), v: cavoMatch[0] });
-  else if (cavoStr && !parenMatch) facts.push({ k: t("comp_fact_cavo"), v: cavoStr });
-  if (doveParts[0]) facts.push({ k: t("comp_fact_collegato"), v: doveParts[0] });
-  if (doveParts[1]) facts.push({ k: t("comp_fact_scheda"), v: doveParts.slice(1).join(" - ") });
-  // Con un numero dispari di celle "strette", l'ultima occupa tutta la riga
-  const narrow = facts.filter(f => !f.wide);
-  if (narrow.length % 2 === 1) narrow[narrow.length - 1].wide = true;
+  if (codiceCavo) facts.push({ k: t("component_field_codice"), v: codiceCavo, wide: true });
+  if (collegato) facts.push({ k: t("comp_fact_collegato"), v: collegato, wide: true });
 
   if (facts.length || det.intro) {
     const card = document.createElement("div");
