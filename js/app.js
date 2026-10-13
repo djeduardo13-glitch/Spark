@@ -367,6 +367,13 @@ async function loadMaintenanceFolders() {
       return { source: "local", id: f.id, title: f.filename, date: f.addedAt, size: f.blob && f.blob.size };
     }));
   });
+  // Ogni SPARK-UC del parco ha la sua cartella, anche senza report
+  if (typeof SPARK_FLEET !== "undefined") {
+    SPARK_FLEET.forEach(u => {
+      const key = sparkSnKey(u.sn);
+      if (key && !folders[key]) folders[key] = [];
+    });
+  }
   Object.keys(folders).forEach(sn => folders[sn].sort((a, b) => (a.date < b.date ? 1 : -1)));
   return folders;
 }
@@ -412,20 +419,64 @@ async function renderMaintenance() {
   if (seq !== maintRenderSeq) return; // è partito un render più recente
   maintFolders = folders;
 
-  const sns = Object.keys(folders).sort((a, b) => (folders[a][0].date < folders[b][0].date ? 1 : -1));
+  // Prima le cartelle con report (dal più recente), poi le altre per cliente
+  const lastDate = sn => (folders[sn][0] ? folders[sn][0].date : "");
+  const unitOf = sn => (typeof sparkFindUnit === "function" ? sparkFindUnit(sn) : null);
+  const sns = Object.keys(folders).sort((a, b) => {
+    const da = lastDate(a), db = lastDate(b);
+    if (da !== db) return da < db ? 1 : -1;
+    const ca = (unitOf(a) || {}).cliente || "~", cb = (unitOf(b) || {}).cliente || "~";
+    return ca.localeCompare(cb) || a.localeCompare(b);
+  });
   if (sns.length === 0) {
     container.innerHTML = `<div class="empty-state">${escapeHtml(dict.maint_empty || dict.empty_state)}</div>`;
   } else {
-    container.innerHTML = sns.map(sn => `
+    container.innerHTML = sns.map(sn => {
+      const unit = unitOf(sn);
+      const n = folders[sn].length;
+      const sub = [unit && unit.cliente, n ? n + " report" : (dict.maint_no_reports || "nessun report")]
+        .filter(Boolean).join(" · ");
+      return `
       <button class="procedure-tile sn-folder-tile" data-sn-folder="${escapeHtml(sn)}">
         <span class="sn-folder-icon">${FOLDER_ICON_SVG}</span>
-        <span class="procedure-tile-text"><span class="procedure-title">${escapeHtml(sn)}</span></span>
+        <span class="procedure-tile-text">
+          <span class="procedure-title">${escapeHtml(unit ? unit.sn : sn)}</span>
+          <span class="procedure-intro">${escapeHtml(sub)}</span>
+        </span>
         ${CHEVRON_SVG}
-      </button>`).join("");
+      </button>`;
+    }).join("");
   }
 
   // Se una cartella è aperta, aggiorna anche il suo contenuto
   if (state.detail && state.detail.type === "sn") renderSnFolderFiles(state.detail.id);
+}
+
+/* Scheda del singolo SPARK (dati da js/fleet.js) + pulsante nuova manutenzione */
+function snUnitCardHtml(sn) {
+  const dict = I18N[state.lang] || I18N.it;
+  const unit = typeof sparkFindUnit === "function" ? sparkFindUnit(sn) : null;
+  const newBtn = `
+    <a class="new-maint-btn" href="manutenzione-form.html?sn=${encodeURIComponent(unit ? unit.sn : sn)}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span>${escapeHtml(dict.new_maint_sn_btn || "Nuova manutenzione per questo SN")}</span>
+    </a>`;
+  if (!unit) return newBtn;
+  const row = (label, value) => value
+    ? `<div class="sn-unit-row"><span class="sn-unit-label">${escapeHtml(label)}</span><span class="sn-unit-value">${escapeHtml(value)}</span></div>`
+    : "";
+  const withSn = (tipo, s) => [tipo, s ? "SN " + s : ""].filter(Boolean).join(" · ");
+  const barellini = (unit.barellini || []).map(b => withSn(b.tipo, b.sn)).join(" / ");
+  return `
+    <div class="sn-unit-card">
+      ${row("Cliente", unit.cliente)}
+      ${row("SPARK-UC", unit.sn)}
+      ${row("SPARK-FS", unit.fs)}
+      ${row("Supporto", unit.supporto ? withSn(unit.supporto.tipo, unit.supporto.sn) : "")}
+      ${row("Barellino", barellini)}
+      ${row("Power-Pack189", unit.powerPack)}
+      ${row("Elementi aggiuntivi", (unit.extra || []).join(", "))}
+    </div>` + newBtn;
 }
 
 function renderSnFolderFiles(sn) {
@@ -433,16 +484,18 @@ function renderSnFolderFiles(sn) {
   const files = maintFolders[sn] || [];
   const box = document.getElementById("snFolderFiles");
   if (files.length === 0) {
-    box.innerHTML = `<div class="empty-state">${escapeHtml(dict.maint_folder_empty || dict.empty_state)}</div>`;
+    box.innerHTML = snUnitCardHtml(sn) +
+      `<div class="empty-state">${escapeHtml(dict.maint_folder_empty || dict.empty_state)}</div>`;
     return;
   }
   const hasLocal = files.some(f => f.source === "local");
-  box.innerHTML = files.map(maintRowHtml).join("") +
+  box.innerHTML = snUnitCardHtml(sn) + files.map(maintRowHtml).join("") +
     (hasLocal ? `<p class="maint-storage-note">${escapeHtml(dict.maint_storage_note || "")}</p>` : "");
 }
 
 function openSnFolder(sn) {
-  document.getElementById("snFolderTitle").textContent = "S/N " + sn;
+  const unit = typeof sparkFindUnit === "function" ? sparkFindUnit(sn) : null;
+  document.getElementById("snFolderTitle").textContent = "S/N " + (unit ? unit.sn : sn);
   renderSnFolderFiles(sn);
   document.getElementById("maintenanceListView").style.display = "none";
   document.getElementById("procedureDetailView").style.display = "none";

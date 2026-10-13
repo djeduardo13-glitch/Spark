@@ -159,7 +159,7 @@
     white-space: normal;
     line-height: 1.2;
   }
-  .info-field input {
+  .info-field input, .info-field select {
     width: 100%;
     border: none;
     border-bottom: 1px solid var(--border);
@@ -170,6 +170,8 @@
     outline: none;
     padding: 2px 0 1px;
   }
+  .info-field select { -webkit-appearance: none; appearance: none; border-radius: 0; cursor: pointer;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0 center / 14px; padding-right: 16px; }
   .info-field:focus-within { border-color: var(--primary); }
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -704,7 +706,8 @@
     .info-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 3px; }
     .info-field { padding: 3px 8px; border-radius: 4px; gap: 1px; }
     .info-field label { font-size: 0.48rem; }
-    .info-field input { font-size: 0.6rem; padding: 0; }
+    .info-field input, .info-field select { font-size: 0.6rem; padding: 0; }
+    .info-field select { background-image: none; }
 
     .section { margin-bottom: 2px; }
     .section-title { padding: 2.5px 6px 2.5px 8px; font-size: 0.6rem; border-radius: 4px; margin-bottom: 2px; break-after: avoid; break-inside: avoid; }
@@ -801,7 +804,8 @@
         
         <div class="info-field">
           <label for="matricola-spark-uc">Matricola SPARK-UC</label>
-          <input type="text" id="matricola-spark-uc" data-store="matricola-spark-uc">
+          <input type="text" id="matricola-spark-uc" data-store="matricola-spark-uc" list="fleet-sn-list" autocomplete="off">
+          <datalist id="fleet-sn-list"></datalist>
         </div>
         <div class="info-field">
           <label for="versione-fw-uc">Versione FW</label>
@@ -1341,7 +1345,7 @@
         </div>
         <div class="info-field">
           <label for="nome-supporto-fs">Tipo Supporto</label>
-          <input type="text" id="nome-supporto-fs" data-store="nome-supporto-fs">
+          <select id="nome-supporto-fs" data-store="nome-supporto-fs" data-options="TIPI_SUPPORTO"><option value=""></option></select>
         </div>
         <div class="info-field">
           <label for="matricola-supporto-fs">Matricola Supporto</label>
@@ -1491,7 +1495,7 @@
         </div>
         <div class="info-field">
           <label for="tipo-barellino-str">Tipo Barellino</label>
-          <input type="text" id="tipo-barellino-str" data-store="tipo-barellino-str">
+          <select id="tipo-barellino-str" data-store="tipo-barellino-str" data-options="TIPI_BARELLINO"><option value=""></option></select>
         </div>
         <div class="info-field">
           <label for="udi-str">Codice UDI</label>
@@ -2322,11 +2326,46 @@
 
 <script src="js/vendor/html2pdf.bundle.min.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/fleet.js"></script>
 <script>
 (function() {
   const tabs = document.querySelectorAll('.product-tab');
   const wrappers = document.querySelectorAll('.tab-wrapper');
   const STORE_KEY = 'manutenzioneSparkData';
+
+  /* ------------------------------------------------------------------
+     MENU A TENDINA (Tipo Supporto / Tipo Barellino) e PARCO SPARK-UC
+     Le liste e i dati di ogni SPARK sono in js/fleet.js.
+     ------------------------------------------------------------------ */
+  const OPTION_LISTS = {
+    TIPI_SUPPORTO: typeof TIPI_SUPPORTO !== 'undefined' ? TIPI_SUPPORTO : [],
+    TIPI_BARELLINO: typeof TIPI_BARELLINO !== 'undefined' ? TIPI_BARELLINO : []
+  };
+  const FLEET = typeof SPARK_FLEET !== 'undefined' ? SPARK_FLEET : [];
+  function addOption(sel, value) {
+    if (!value || Array.from(sel.options).some(o => o.value === value)) return;
+    const o = document.createElement('option');
+    o.value = o.textContent = value;
+    sel.appendChild(o);
+  }
+  // Imposta il valore di una tendina; un valore fuori elenco viene aggiunto.
+  function setSelectValue(sel, value) {
+    addOption(sel, value);
+    sel.value = value || '';
+  }
+  document.querySelectorAll('select[data-options]').forEach(sel => {
+    (OPTION_LISTS[sel.dataset.options] || []).forEach(v => addOption(sel, v));
+  });
+  (function fillFleetList() {
+    const dl = document.getElementById('fleet-sn-list');
+    if (!dl) return;
+    FLEET.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.sn;
+      o.label = u.cliente;
+      dl.appendChild(o);
+    });
+  })();
   // Stato della checklist in memoria: 'bozza' = modifiche non salvate,
   // 'salvata' = PDF già creato (alla prossima "Nuova manutenzione" si riparte da zero).
   const STATUS_KEY = 'manutenzioneSparkStato';
@@ -2396,7 +2435,10 @@
     let data;
     try { data = JSON.parse(raw); } catch(e) { return; }
     document.querySelectorAll('[data-store]').forEach(el => {
-      if (data[el.dataset.store] !== undefined) el.value = data[el.dataset.store];
+      const v = data[el.dataset.store];
+      if (v === undefined) return;
+      if (el.tagName === 'SELECT') setSelectValue(el, v);
+      else el.value = v;
     });
     document.querySelectorAll('[data-store-check]').forEach(el => {
       const key = 'chk:' + el.dataset.storeCheck;
@@ -2466,8 +2508,12 @@
     const dataStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
     const activeTabBtn = document.querySelector('.product-tab.active');
     const activeTab = activeTabBtn ? activeTabBtn.dataset.tab : 'spark-uc';
-    const snFieldId = MATRICOLA_FIELD_BY_TAB[activeTab] || 'matricola-spark-uc';
-    const snEl = document.getElementById(snFieldId);
+    // La cartella è sempre quella dell'SN SPARK-UC; senza, si usa la
+    // matricola della scheda aperta.
+    const ucEl = document.getElementById('matricola-spark-uc');
+    const snEl = ucEl && ucEl.value.trim()
+      ? ucEl
+      : document.getElementById(MATRICOLA_FIELD_BY_TAB[activeTab] || 'matricola-spark-uc');
     const sn = snEl && snEl.value.trim()
       ? snEl.value.trim().replace(/[^a-zA-Z0-9_-]+/g, '').toUpperCase()
       : '';
@@ -2586,7 +2632,7 @@
                   'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
                   'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
                   'fontFamily', 'fontWeight', 'color', 'backgroundColor', 'textAlign'];
-    root.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea').forEach(field => {
+    root.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea, select').forEach(field => {
       if (field.getClientRects().length === 0) return; // non visibile (es. modale firma)
       const cs = getComputedStyle(field);
       const box = document.createElement('div');
@@ -2840,6 +2886,75 @@
   // bozza lasciata in sospeso -> si ritrova compilata.
   if (getStatus() === 'salvata') clearForm();
   else restore();
+
+  /* ------------------------------------------------------------------
+     PRECOMPILAZIONE DAI DATI DEL PARCO (js/fleet.js)
+     Riempie solo i campi vuoti: quello che il tecnico ha già scritto
+     non viene toccato. Gli elementi aggiuntivi presenti vengono spuntati.
+     ------------------------------------------------------------------ */
+  function applyFleetUnit(unit) {
+    const bar = (unit.barellini && unit.barellini[0]) || {};
+    const values = {
+      'matricola-spark-uc': unit.sn,
+      'matricola-power-uc': unit.powerPack,
+      'matricola-spark-fs': unit.fs,
+      'nome-supporto-fs': unit.supporto && unit.supporto.tipo,
+      'matricola-supporto-fs': unit.supporto && unit.supporto.sn,
+      'tipo-barellino-str': bar.tipo,
+      'matricola-str-000': bar.sn,
+      'cliente': unit.cliente
+    };
+    Object.keys(values).forEach(id => {
+      const el = document.getElementById(id);
+      const v = values[id];
+      if (!el || !v || el.value.trim()) return;
+      if (el.tagName === 'SELECT') setSelectValue(el, v);
+      else el.value = v;
+    });
+    (unit.extra || []).forEach(code => {
+      const cb = document.querySelector('[data-store-check="' + sparkExtraKey(code) + '"]');
+      if (cb) cb.checked = true;
+    });
+  }
+
+  // Scrivendo/scegliendo l'SN SPARK-UC si precompila il resto
+  document.getElementById('matricola-spark-uc').addEventListener('change', function() {
+    const unit = typeof sparkFindUnit === 'function' ? sparkFindUnit(this.value) : null;
+    if (!unit) return;
+    applyFleetUnit(unit);
+    persist();
+    showToast('Dati di SN ' + unit.sn + ' (' + unit.cliente + ') precompilati.');
+  });
+
+  // Aperto da una cartella S/N: manutenzione-form.html?sn=XXXX
+  (function prefillFromUrl() {
+    let urlSn = null;
+    try { urlSn = new URLSearchParams(location.search).get('sn'); } catch (e) {}
+    if (!urlSn) return;
+    try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+    const unit = typeof sparkFindUnit === 'function' ? sparkFindUnit(urlSn) : null;
+    const ucEl = document.getElementById('matricola-spark-uc');
+    const current = ucEl.value.trim();
+    const label = unit ? unit.sn : urlSn;
+    if (sparkSnKey(current) !== sparkSnKey(urlSn)) {
+      if (getStatus() === 'bozza') {
+        const ok = confirm('C\'è una manutenzione in corso' + (current ? ' (SN ' + current + ')' : '') +
+          ' non ancora salvata in PDF.\n\nOK = la cancello e inizio quella per SN ' + label +
+          '\nAnnulla = riprendo quella in corso');
+        if (!ok) return;
+      }
+      clearForm();
+    }
+    if (unit) applyFleetUnit(unit);
+    else if (!ucEl.value.trim()) ucEl.value = urlSn;
+    // Salva i dati precompilati senza segnarli come "modifiche da salvare"
+    const wasDraft = getStatus() === 'bozza';
+    persist();
+    if (!wasDraft) {
+      setStatus(null);
+      document.getElementById('save-note').textContent = '';
+    }
+  })();
 
   /* ------------------------------------------------------------------
      USCITA DAL FORM ("Torna al sito" o tasto indietro)
