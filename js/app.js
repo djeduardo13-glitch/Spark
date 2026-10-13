@@ -275,6 +275,54 @@ function renderProcedures() {
   });
 }
 
+/* Valori inseriti nelle procedure guidate (es. taratura peso): restano
+   su questo dispositivo finché non si premono "Azzera i valori inseriti". */
+function loadProcValues(procId) {
+  try { return JSON.parse(localStorage.getItem("sparkProcValues:" + procId) || "{}") || {}; }
+  catch (e) { return {}; }
+}
+function saveProcValues(procId, values) {
+  try { localStorage.setItem("sparkProcValues:" + procId, JSON.stringify(values)); } catch (e) {}
+}
+function parseProcNumber(raw) {
+  const t = String(raw || "").trim().replace(/\s/g, "").replace(",", ".");
+  if (t === "") return null;
+  return /^[-+]?\d*\.?\d+$/.test(t) ? parseFloat(t) : NaN;
+}
+
+/* Calcolo GAIN/OFFSET (formule di "00. Gain_e_Offset_Calculator.html"),
+   mostrato con 2 decimali come la risoluzione dei parametri. */
+function updateProcCalc(proc) {
+  if (proc.calc !== "gainOffset") return;
+  const box = document.getElementById("procedureDetailSteps");
+  const v = loadProcValues(proc.id);
+  const n = {};
+  ["kg1", "pg1", "pt1", "kg2", "pg2", "pt2"].forEach(k => { n[k] = parseProcNumber(v[k]); });
+
+  const warn = box.querySelector('[data-proc-check="kg2Double"]');
+  if (warn) {
+    warn.textContent = (n.kg1 > 0 && typeof n.kg2 === "number" && !isNaN(n.kg2) && n.kg2 < 2 * n.kg1)
+      ? `KG2 deve essere almeno il doppio di KG1 (almeno ${(2 * n.kg1).toString().replace(".", ",")} kg).` : "";
+  }
+  const offEl = box.querySelector('[data-proc-result="offset"]');
+  const gainEl = box.querySelector('[data-proc-result="gain"]');
+  const errEl = box.querySelector("[data-proc-error]");
+  if (!offEl) return;
+  const show = (off, gain, err) => {
+    offEl.textContent = off; gainEl.textContent = gain; errEl.textContent = err || "";
+    offEl.classList.toggle("empty", off === "–"); gainEl.classList.toggle("empty", gain === "–");
+  };
+  const keys = Object.keys(n);
+  const missing = keys.filter(k => n[k] === null);
+  if (missing.length) { show("–", "–", ""); return; }
+  if (keys.some(k => isNaN(n[k]))) { show("–", "–", "Controlla i valori inseriti: uno o più campi non sono numeri."); return; }
+  if (n.kg1 === n.kg2) { show("–", "–", "KG1 e KG2 devono essere diversi."); return; }
+  const den = n.kg2 - n.kg1;
+  const s1 = n.pg1 + n.pt1, s2 = n.pg2 + n.pt2;
+  const fmt = x => { const r = x.toFixed(2); return r === "-0.00" ? "0.00" : r; };
+  show(fmt((n.kg2 * s1 - n.kg1 * s2) / den), fmt((s2 - s1) / den), "");
+}
+
 function openProcedureDetail(procId) {
   const proc = PROCEDURES.find(p => p.id === procId);
   if (!proc) return;
@@ -282,6 +330,15 @@ function openProcedureDetail(procId) {
   document.getElementById("procedureDetailTitle").textContent = proc.title;
   document.getElementById("procedureDetailIntro").textContent = proc.intro;
 
+  const values = loadProcValues(proc.id);
+  const fieldHtml = f => `
+    <label class="proc-field">
+      <span class="proc-field-label">${escapeHtml(f.label)}</span>
+      <span class="proc-field-input">
+        <input type="text" inputmode="decimal" autocomplete="off" data-proc-field="${escapeHtml(f.key)}" value="${escapeHtml(values[f.key] || "")}">
+        ${f.unit ? `<span class="proc-field-unit">${escapeHtml(f.unit)}</span>` : ""}
+      </span>
+    </label>`;
   const stepsHtml = proc.steps.map((s, i) => `
     <div class="procedure-step">
       <div class="step-num">${i + 1}</div>
@@ -289,16 +346,38 @@ function openProcedureDetail(procId) {
         <h4>${s.title}</h4>
         <p>${s.detail}</p>
         ${s.img ? `<img class="procedure-step-img" src="${s.img}" alt="${s.title}">` : ""}
+        ${s.fields ? `<div class="proc-fields">${s.fields.map(fieldHtml).join("")}</div>` : ""}
+        ${s.check ? `<div class="proc-msg warn" data-proc-check="${escapeHtml(s.check)}"></div>` : ""}
+        ${s.result ? `
+          <div class="proc-result">
+            <div class="proc-result-item"><span class="proc-result-label">WEIGHT OFFSET</span><span class="proc-result-value" data-proc-result="offset">–</span></div>
+            <div class="proc-result-item"><span class="proc-result-label">WEIGHT GAIN</span><span class="proc-result-value" data-proc-result="gain">–</span></div>
+          </div>
+          <div class="proc-msg err" data-proc-error></div>
+          <button type="button" class="proc-reset-btn" id="procResetBtn">Azzera i valori inseriti</button>` : ""}
       </div>
     </div>
   `).join("");
-  // Collegamento opzionale a un modulo (es. Taratura peso)
-  const linkHtml = proc.link ? `
-    <a class="new-maint-btn procedure-link-btn" href="${escapeHtml(proc.link.href)}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-      <span>${escapeHtml(proc.link.label)}</span>
-    </a>` : "";
-  document.getElementById("procedureDetailSteps").innerHTML = stepsHtml + linkHtml;
+  const hasFields = proc.steps.some(s => s.fields);
+  const stepsBox = document.getElementById("procedureDetailSteps");
+  stepsBox.innerHTML = stepsHtml;
+  if (hasFields) {
+    stepsBox.querySelectorAll("[data-proc-field]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const v = loadProcValues(proc.id);
+        v[inp.dataset.procField] = inp.value;
+        saveProcValues(proc.id, v);
+        updateProcCalc(proc);
+      });
+    });
+    const resetBtn = document.getElementById("procResetBtn");
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+      saveProcValues(proc.id, {});
+      stepsBox.querySelectorAll("[data-proc-field]").forEach(inp => { inp.value = ""; });
+      updateProcCalc(proc);
+    });
+    updateProcCalc(proc);
+  }
 
   document.getElementById("maintenanceListView").style.display = "none";
   document.getElementById("procedureDetailView").style.display = "block";
@@ -316,6 +395,8 @@ function closeProcedureDetail() {
 }
 
 document.getElementById("procedureBackBtn").addEventListener("click", () => navBack(closeProcedureDetail));
+// Manutenzione → "Taratura peso": apre la procedura guidata
+document.getElementById("weightCalBtn").addEventListener("click", () => openProcedureDetail("taratura-peso"));
 
 /* ---------------------------------------------------------------------
    MANUTENZIONE — cronologia per SN
@@ -466,10 +547,6 @@ function snUnitCardHtml(sn) {
     <a class="new-maint-btn" href="manutenzione-form.html?sn=${encodeURIComponent(unit ? unit.sn : sn)}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       <span>${escapeHtml(dict.new_maint_sn_btn || "Nuova manutenzione per questo SN")}</span>
-    </a>
-    <a class="new-maint-btn secondary" href="taratura-peso.html?sn=${encodeURIComponent(unit ? unit.sn : sn)}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0Z"/><path d="M19 7l-3 7a3 3 0 0 0 6 0Z"/></svg>
-      <span>${escapeHtml(dict.new_weight_cal_sn_btn || "Nuova taratura peso per questo SN")}</span>
     </a>`;
   if (!unit) return newBtn;
   const row = (label, value) => value

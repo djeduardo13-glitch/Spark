@@ -1159,16 +1159,27 @@ const PROCEDURES = [
     id: "taratura-peso",
     category: "calibrazioni",
     title: "Calibrazione GAIN e OFFSET (taratura peso)",
-    source: "Procedura di calibrazione GAIN e OFFSET.docx",
-    intro: "Rilevare le pressioni PR_1 e PR_2 con due pesi di riferimento (KG1 e KG2) e calcolare GAIN e OFFSET con il modulo Taratura peso.",
-    link: { href: "taratura-peso.html", label: "Apri il modulo Taratura peso" },
+    source: "Procedura di calibrazione GAIN e OFFSET.docx + 00. Gain_e_Offset_Calculator.html (passi 7 e 8 aggiunti, da validare)",
+    intro: "Guida passo per passo: inserisci i dati nei passaggi indicati e al passaggio 7 trovi OFFSET e GAIN già calcolati.",
+    /* Calcolo (formule del calcolatore originale):
+       OFFSET = (KG2 × (PR_1₁ + PR_2₁) − KG1 × (PR_1₂ + PR_2₂)) ÷ (KG2 − KG1)
+       GAIN   = ((PR_1₂ + PR_2₂) − (PR_1₁ + PR_2₁)) ÷ (KG2 − KG1)
+       Risultato mostrato con 2 decimali (risoluzione parametro 0,01). */
+    calc: "gainOffset",
     steps: [
-      { title: "Posiziona il primo peso", detail: "Posizionare il primo peso sulla barella (peso consigliato: circa 50 kg) e annotarlo nel campo KG1." },
+      { title: "Posiziona il primo peso", detail: "Posizionare il primo peso sulla barella (peso consigliato: circa 50 kg) e annotarlo nel campo KG1.",
+        fields: [{ key: "kg1", label: "KG1 – Peso 1", unit: "kg" }] },
       { title: "Avvia la funzione peso", detail: "Sul display, premere la funzione peso e tenere premute le coste sensibili fino al fermo automatico dello Spark." },
-      { title: "Leggi PR_1 e PR_2 (KG1)", detail: "Una volta che il fermo automatico è scattato, entrare nel menu parametri, leggere le pressioni rilevate (PR_1 e PR_2) e riportarle nella sezione KG1." },
-      { title: "Posiziona il secondo peso", detail: "Togliere il primo peso e posizionare il secondo peso sulla barella (almeno il doppio di KG1) e annotarlo nel campo KG2." },
+      { title: "Leggi PR_1 e PR_2 (KG1)", detail: "Una volta che il fermo automatico è scattato, entrare nel menu parametri, leggere le pressioni rilevate (PR_1 e PR_2) e riportarle nella sezione KG1.",
+        fields: [{ key: "pg1", label: "PR_1 – Pressione gambe piedi" }, { key: "pt1", label: "PR_2 – Pressione gambe testa" }] },
+      { title: "Posiziona il secondo peso", detail: "Togliere il primo peso e posizionare il secondo peso sulla barella (almeno il doppio di KG1) e annotarlo nel campo KG2.",
+        fields: [{ key: "kg2", label: "KG2 – Peso 2", unit: "kg" }], check: "kg2Double" },
       { title: "Ripeti la funzione peso", detail: "Ripetere il passaggio 2: premere la funzione peso sul display e tenere premute le coste sensibili fino al fermo automatico." },
-      { title: "Leggi PR_1 e PR_2 (KG2)", detail: "Ripetere il passaggio 3: leggere PR_1 e PR_2 e riportarle questa volta nella sezione KG2." }
+      { title: "Leggi PR_1 e PR_2 (KG2)", detail: "Ripetere il passaggio 3: leggere PR_1 e PR_2 e riportarle questa volta nella sezione KG2.",
+        fields: [{ key: "pg2", label: "PR_1 – Pressione gambe piedi" }, { key: "pt2", label: "PR_2 – Pressione gambe testa" }] },
+      { title: "Imposta OFFSET e GAIN", detail: "Entrare nel menu parametri, impostare WEIGHT OFFSET e WEIGHT GAIN con i valori calcolati qui sotto e salvare.",
+        result: true },
+      { title: "Verifica con un peso noto", detail: "Posizionare sulla barella un peso noto e ripetere il passaggio 2: il peso indicato sul display deve corrispondere al peso posizionato. Se non corrisponde, ripetere la procedura dal passaggio 1." }
     ]
   },
   {
@@ -1415,7 +1426,6 @@ const I18N = {
     maint_card_desc: "Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.",
     new_maint_btn: "Nuova manutenzione",
     new_weight_cal_btn: "Taratura peso",
-    new_weight_cal_sn_btn: "Nuova taratura peso per questo SN",
     comp_fact_codice_scheda: "Codice scheda",
     procedures_heading: "Procedure",
     proc_cat_calibrazioni: "Calibrazioni",

@@ -2268,4 +2268,41 @@ button {
   border: 1.5px solid var(--brand);
 }
 .new-maint-btn.secondary:hover { background: var(--brand); color: #fff; }
-.procedure-link-btn { margin-top: 18px; }
+button.new-maint-btn { font-family: inherit; border: none; cursor: pointer; width: 100%; }
+button.new-maint-btn.secondary { border: 1.5px solid var(--brand); }
+
+/* Procedure guidate: campi da compilare dentro i passaggi */
+.proc-fields { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2px; }
+.proc-field {
+  display: flex; flex-direction: column; gap: 4px;
+  flex: 1 1 170px; max-width: 260px;
+}
+.proc-field-label { font-size: 11.5px; font-weight: 700; color: var(--brand); }
+.proc-field-input {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--paper-raised); padding: 0 12px;
+}
+.proc-field-input:focus-within { border-color: var(--brand); }
+.proc-field-input input {
+  flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 16px; font-weight: 600; color: var(--ink); padding: 10px 0;
+}
+.proc-field-unit { font-size: 13px; font-weight: 600; color: var(--ink-soft); padding-left: 6px; }
+.proc-msg { font-size: 12.5px; font-weight: 500; border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 10px; }
+.proc-msg:empty { display: none; }
+.proc-msg.warn { background: #fdf5e6; color: #8a5a12; border: 1px solid #f0d9a8; }
+.proc-msg.err { background: #fceaea; color: #b03333; border: 1px solid #f3c3c3; }
+.proc-result { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 420px; }
+.proc-result-item {
+  background: var(--brand); color: #fff; border-radius: var(--radius-sm);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 2px;
+}
+.proc-result-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; opacity: 0.85; }
+.proc-result-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.proc-result-value.empty { opacity: 0.55; }
+.proc-reset-btn {
+  display: block; margin-top: 10px; background: none; border: none; padding: 4px 0;
+  font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+  text-decoration: underline; cursor: pointer;
+}
