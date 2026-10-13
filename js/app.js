@@ -292,7 +292,13 @@ function openProcedureDetail(procId) {
       </div>
     </div>
   `).join("");
-  document.getElementById("procedureDetailSteps").innerHTML = stepsHtml;
+  // Collegamento opzionale a un modulo (es. Taratura peso)
+  const linkHtml = proc.link ? `
+    <a class="new-maint-btn procedure-link-btn" href="${escapeHtml(proc.link.href)}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      <span>${escapeHtml(proc.link.label)}</span>
+    </a>` : "";
+  document.getElementById("procedureDetailSteps").innerHTML = stepsHtml + linkHtml;
 
   document.getElementById("maintenanceListView").style.display = "none";
   document.getElementById("procedureDetailView").style.display = "block";
@@ -460,6 +466,10 @@ function snUnitCardHtml(sn) {
     <a class="new-maint-btn" href="manutenzione-form.html?sn=${encodeURIComponent(unit ? unit.sn : sn)}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       <span>${escapeHtml(dict.new_maint_sn_btn || "Nuova manutenzione per questo SN")}</span>
+    </a>
+    <a class="new-maint-btn secondary" href="taratura-peso.html?sn=${encodeURIComponent(unit ? unit.sn : sn)}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0Z"/><path d="M19 7l-3 7a3 3 0 0 0 6 0Z"/></svg>
+      <span>${escapeHtml(dict.new_weight_cal_sn_btn || "Nuova taratura peso per questo SN")}</span>
     </a>`;
   if (!unit) return newBtn;
   const row = (label, value) => value
@@ -1321,6 +1331,20 @@ const CAT_LABEL_KEY = {
   schede: "cat_schede"
 };
 
+/* Filtri della lista componenti: raggruppano le categorie fini di
+   COMPONENTS.categoria (che restano invariate e continuano a comparire
+   come sottotitolo di ogni componente). Per spostare una categoria basta
+   cambiarla di gruppo qui. */
+const COMPONENT_FILTER_GROUPS = {
+  sensori:     { label: "grp_sensori",     cats: ["magnetici", "finecorsa", "laser", "potenziometri", "angolari", "pressione", "altrisensori"] },
+  movimento:   { label: "grp_movimento",   cats: ["motori", "attuatori", "elettrovalvole", "freni"] },
+  interfaccia: { label: "grp_interfaccia", cats: ["comandi", "illuminazione", "segnalazione"] },
+  elettronica: { label: "grp_elettronica", cats: ["schede", "alimentazione", "comunicazione"] }
+};
+function componentGroupOf(categoria) {
+  return Object.keys(COMPONENT_FILTER_GROUPS).find(g => COMPONENT_FILTER_GROUPS[g].cats.includes(categoria)) || null;
+}
+
 state.componentCategory = "all";
 
 function renderComponents(filterText) {
@@ -1330,11 +1354,12 @@ function renderComponents(filterText) {
   const query = (filterText || "").trim().toLowerCase();
 
   const items = COMPONENTS.filter(c => {
-    if (state.componentCategory !== "all" && c.categoria !== state.componentCategory) return false;
+    if (state.componentCategory !== "all" && componentGroupOf(c.categoria) !== state.componentCategory) return false;
     if (query === "") return true;
     const nome = (UTENZE[c.id] || "").toLowerCase();
     const det = SENSOR_DETAILS[c.id] || {};
-    const catLabel = (dict[CAT_LABEL_KEY[c.categoria]] || c.categoria).toLowerCase();
+    const grp = COMPONENT_FILTER_GROUPS[componentGroupOf(c.categoria)];
+    const catLabel = ((dict[CAT_LABEL_KEY[c.categoria]] || c.categoria) + " " + (grp ? (dict[grp.label] || "") : "")).toLowerCase();
     const haystack = [c.id, nome, det.tipo || "", det.cavo || "", det.modello || "", det.codice || "", catLabel].join(" ").toLowerCase();
     return haystack.includes(query);
   });
@@ -1424,6 +1449,7 @@ function openComponentDetail(id) {
   const doveMatch = doveStr.match(/^(.*?)\s*-\s*(DIS\d+)$/);
   const collegato = doveMatch ? `${doveMatch[2]} - ${doveMatch[1]}` : doveStr;
   const facts = [];
+  if (det.codiceScheda) facts.push({ k: t("comp_fact_codice_scheda"), v: escapeHtml(det.codiceScheda), wide: true });
   if (det.modello) facts.push({ k: t("comp_fact_modello"), v: det.modello, wide: true });
   if (codiceCavo) facts.push({ k: t("component_field_codice"), v: codiceCavo, wide: true });
   if (collegato) facts.push({ k: t("comp_fact_collegato"), v: collegato, wide: true });

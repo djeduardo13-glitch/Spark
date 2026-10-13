@@ -2250,3 +2250,22 @@ button {
 .sn-unit-label { color: var(--ink-soft); flex-shrink: 0; }
 .sn-unit-value { color: var(--ink); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
 #snFolderFiles .new-maint-btn { margin-bottom: 16px; }
+
+/* Manutenzione: pulsanti "Nuova manutenzione" + "Taratura peso" */
+.maint-actions {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.maint-actions .new-maint-btn { margin-bottom: 0; }
+@media (max-width: 480px) {
+  .maint-actions { grid-template-columns: 1fr; }
+}
+.new-maint-btn.secondary {
+  background: var(--paper-raised);
+  color: var(--brand);
+  border: 1.5px solid var(--brand);
+}
+.new-maint-btn.secondary:hover { background: var(--brand); color: #fff; }
+.procedure-link-btn { margin-top: 18px; }

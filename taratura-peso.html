@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Taratura peso SPARK - GAIN e OFFSET</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#004682">
+<link rel="icon" href="assets/icons/app/favicon.ico">
+<link rel="apple-touch-icon" href="assets/icons/app/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spark">
+<!--
+  TARATURA PESO (GAIN e OFFSET)
+  Stesso funzionamento di manutenzione-form.html: bozza salvata in automatico,
+  precompilazione da SN (js/fleet.js, anche con ?sn=), firma, stampa e PDF
+  archiviato nella cartella dell'SN SPARK-UC (js/storage.js, kind "taratura").
+  Istruzioni lette da PROCEDURES["taratura-peso"] in js/data.js (unica fonte).
+  Formule riprese da "00. Gain_e_Offset_Calculator.html":
+    OFFSET = (KG2 × (PR_1(KG1) + PR_2(KG1)) − KG1 × (PR_1(KG2) + PR_2(KG2))) ÷ (KG2 − KG1)
+    GAIN   = ((PR_1(KG2) + PR_2(KG2)) − (PR_1(KG1) + PR_2(KG1))) ÷ (KG2 − KG1)
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary: #004082;
+    --primary-dark: #003463;
+    --primary-light: #e7eff7;
+    --primary-lighter: #f4f8fb;
+    --border: #d7e2ec;
+    --ok: #1e9e5a;
+    --nok: #d64545;
+    --nok-bg: #fceaea;
+    --warn: #b7791f;
+    --warn-bg: #fdf5e6;
+    --nv-bg: #eef1f4;
+    --text: #1c2b3a;
+    --text-mute: #6b7f91;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: #eef3f8;
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #ffffff;
+    min-height: 100vh;
+    box-shadow: 0 0 40px rgba(0,70,130,0.08);
+  }
+
+  /* HEADER (come manutenzione-form.html) */
+  header.top {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 20px 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  header.top .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  header.top .brand img { height: 26px; filter: brightness(0) invert(1); display: block; }
+  header.top h1 { font-size: 1.05rem; font-weight: 600; margin: 10px 0 2px; letter-spacing: 0.2px; }
+  header.top .back-to-site {
+    display: inline-block; color: rgba(255,255,255,0.85); font-size: 0.7rem; font-weight: 500;
+    text-decoration: none; margin-top: 2px;
+  }
+  header.top .back-to-site:hover { color: #fff; text-decoration: underline; }
+
+  main { padding: 18px 16px 8px; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .info-field {
+    background: var(--primary-lighter);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px 8px;
+    display: flex; flex-direction: column; gap: 2px; justify-content: center;
+  }
+  .info-field label {
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px;
+    color: var(--primary); line-height: 1.2;
+  }
+  .info-field input {
+    width: 100%; border: none; border-bottom: 1px solid var(--border); background: transparent;
+    font-size: 0.88rem; font-family: inherit; color: var(--text); outline: none; padding: 2px 0 1px;
+  }
+  .info-field:focus-within { border-color: var(--primary); }
+  .info-field .helper { font-size: 0.62rem; color: var(--text-mute); line-height: 1.25; margin-top: 2px; }
+  .info-field.unit-kg input, .info-field.unit-bar input { font-weight: 600; }
+
+  /* ISTRUZIONI (dalla procedura) */
+  .instructions {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--primary-lighter);
+    margin-bottom: 16px;
+  }
+  .instructions summary {
+    cursor: pointer; padding: 11px 14px; font-size: 0.8rem; font-weight: 700; color: var(--primary);
+    list-style: none; display: flex; justify-content: space-between; align-items: center;
+  }
+  .instructions summary::-webkit-details-marker { display: none; }
+  .instructions summary::after { content: '▾'; transition: transform .15s ease; }
+  .instructions[open] summary::after { transform: rotate(180deg); }
+  .instructions ol { margin: 0; padding: 0 14px 12px 34px; }
+  .instructions li { font-size: 0.78rem; margin-bottom: 6px; }
+  .instructions li strong { display: block; font-size: 0.78rem; color: var(--text); }
+  .instructions li span { color: var(--text-mute); }
+
+  /* SEZIONI */
+  .section { margin-bottom: 16px; }
+  .section-title {
+    background: var(--primary); color: #fff; padding: 8px 8px 8px 14px;
+    font-size: 0.82rem; font-weight: 600; border-radius: 9px; margin-bottom: 8px;
+  }
+  .section .info-grid { grid-template-columns: repeat(3, 1fr); margin-bottom: 0; }
+  @media (max-width: 520px) { .section .info-grid { grid-template-columns: 1fr; } }
+
+  .msg { border-radius: 9px; padding: 9px 12px; font-size: 0.76rem; font-weight: 500; margin: 8px 0 0; }
+  .msg.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid #f0d9a8; }
+  .msg.err { background: var(--nok-bg); color: var(--nok); border: 1px solid #f3c3c3; }
+  .msg:empty { display: none; }
+
+  /* RISULTATI */
+  .results {
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .results-title { font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .result-item { background: var(--primary-light); border-radius: 10px; padding: 12px; text-align: center; }
+  .result-label { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.3px; }
+  .result-value { font-size: 1.45rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; word-break: break-all; }
+  .result-value.empty { color: var(--text-mute); }
+  .formulas { margin-top: 12px; font-size: 0.66rem; color: var(--text-mute); }
+  .formulas code {
+    display: block; font-family: 'Courier New', monospace; font-size: 0.68rem; color: var(--text);
+    background: var(--nv-bg); border-radius: 6px; padding: 6px 8px; margin-top: 4px; overflow-x: auto; white-space: nowrap;
+  }
+
+  /* NOTE */
+  .notes-section {
+    background: var(--primary-lighter); border: 1px solid var(--border); border-left: 4px solid #e08b1f;
+    border-radius: var(--radius); padding: 14px; margin: 4px 0 18px;
+  }
+  .notes-section label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+  .notes-section textarea {
+    width: 100%; min-height: 60px; border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+    font-family: inherit; font-size: 0.85rem; resize: vertical; outline: none;
+  }
+  .notes-section textarea:focus { border-color: var(--primary); }
+
+  /* FIRMA */
+  .signature-block {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; margin: 4px 16px 18px;
+  }
+  .signature-block-title { font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+  .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sig-firma { grid-column: 1 / -1; }
+  .sig-field label {
+    display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 4px;
+  }
+  .sig-field input {
+    width: 100%; border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px;
+    font-family: inherit; font-size: 0.85rem; outline: none;
+  }
+  .sig-field input:focus { border-color: var(--primary); }
+  .firma-btn {
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    border: 1.5px dashed var(--border); border-radius: 7px; height: 48px; background: var(--primary-lighter);
+    cursor: pointer; padding: 0; font-family: inherit;
+  }
+  .firma-btn:hover { border-color: var(--primary); }
+  .firma-btn-placeholder { font-size: 0.72rem; font-weight: 600; color: var(--text-mute); }
+  .firma-btn.signed { border: 1px solid var(--ok); background: #fff; }
+  .firma-preview { max-height: 42px; max-width: 100%; object-fit: contain; }
+
+  .firma-modal-overlay, .exit-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(15, 30, 45, 0.55);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .firma-modal-overlay { z-index: 100; }
+  .exit-modal-overlay { z-index: 100002; }
+  .firma-modal-overlay.open, .exit-modal-overlay.open { display: flex; }
+  .firma-modal, .exit-modal {
+    background: #fff; border-radius: 16px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .firma-modal { padding: 16px; max-width: 480px; }
+  .exit-modal { padding: 20px; max-width: 420px; }
+  .firma-modal-title, .exit-modal-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin: 0 0 10px; }
+  .exit-modal-text { font-size: 0.78rem; color: var(--text-mute); margin: 0 0 16px; }
+  .firma-canvas-wrap { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; touch-action: none; }
+  .firma-canvas { display: block; width: 100%; height: 220px; touch-action: none; cursor: crosshair; }
+  .firma-modal-actions, .exit-modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-firma-action {
+    flex: 1; border: none; border-radius: 9px; padding: 11px 8px; font-family: inherit;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  }
+  .btn-firma-cancel { background: #f1f4f7; color: var(--text-mute); }
+  .btn-firma-clear { background: var(--nv-bg); color: #7a5a10; }
+  .btn-firma-confirm { background: var(--primary); color: #fff; }
+  .btn-exit-no { background: #f1f4f7; color: var(--text); }
+  .btn-exit-yes { background: var(--nok); color: #fff; }
+
+  /* BARRA AZIONI */
+  .action-bar {
+    position: sticky; bottom: 0; background: #fff; border-top: 1px solid var(--border);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 10px; z-index: 30;
+  }
+  .btn {
+    flex: 1; border: none; border-radius: 10px; padding: 13px 10px; font-family: inherit;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-pdf { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; flex: 2; box-shadow: 0 4px 10px rgba(0,70,130,0.25); }
+  .btn-reset { background: #f1f4f7; color: var(--text-mute); }
+  .btn-print { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn:disabled { opacity: 0.6; cursor: wait; }
+
+  .pdf-busy {
+    position: fixed; inset: 0; background: rgba(12, 30, 48, 0.55);
+    display: none; align-items: center; justify-content: center; z-index: 100000;
+  }
+  .pdf-busy.open { display: flex; }
+  .pdf-busy-box {
+    background: #fff; border-radius: 14px; padding: 22px 26px; font-size: 0.85rem; font-weight: 600;
+    color: var(--primary); display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .pdf-busy-spinner {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 3px solid var(--primary-light); border-top-color: var(--primary);
+    animation: pdfspin 0.8s linear infinite;
+  }
+  @keyframes pdfspin { to { transform: rotate(360deg); } }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; font-size: 0.78rem;
+    padding: 10px 16px; border-radius: 10px; max-width: 90vw; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 100001;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--nok); }
+  .save-note { text-align: center; font-size: 0.68rem; color: var(--text-mute); padding: 6px 0 2px; }
+
+  body.pdf-export .app { min-height: 0; width: 194mm !important; max-width: none !important; margin: 0 !important; }
+  body.pdf-export .firma-btn { height: 34px !important; }
+  body.pdf-export .firma-preview { max-height: 30px !important; }
+
+  /* STAMPA / PDF (le regole vengono replicate sotto body.pdf-export) */
+  @media print {
+    @page { size: A4; margin: 6mm 8mm; }
+    header.top { position: static; padding: 0 0 6px; background: none !important; color: var(--primary) !important; border-bottom: 2px solid var(--primary); }
+    header.top .brand img { filter: none; height: 20px; }
+    header.top h1 { font-size: 0.9rem; margin: 4px 0 0; color: var(--primary); }
+    header.top .back-to-site { display: none !important; }
+    .instructions { display: none !important; }
+    .action-bar, .save-note { display: none !important; }
+    .firma-modal-overlay, .exit-modal-overlay { display: none !important; }
+    .app { box-shadow: none; max-width: 100%; }
+    body { background: #fff; }
+    main { padding: 8px 0 0; }
+    .section { break-inside: avoid; }
+    .section .info-grid { grid-template-columns: repeat(3, 1fr); }
+    .info-field .helper { display: none; }
+    .msg.warn { break-inside: avoid; }
+    .results { break-inside: avoid; }
+    .notes-section { break-inside: avoid; }
+    .notes-section.print-hide { display: none !important; }
+    .signature-block { margin: 4px 0 0; break-inside: avoid; }
+    .signature-grid { grid-template-columns: 1.1fr 1fr 0.8fr 1.3fr; gap: 8px; align-items: end; }
+    .sig-firma { grid-column: auto; }
+    .firma-btn { height: 30px; }
+    .firma-preview { max-height: 28px; }
+  }
+
+  @media (max-width: 380px) {
+    .signature-grid { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="top-row">
+      <div class="brand"><img src="data:image/png;base64,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" alt="STEM"></div>
+    </div>
+    <a href="index.html" class="back-to-site">&larr; Torna al sito</a>
+    <h1>Taratura peso SPARK&#8209;UC &nbsp;&middot;&nbsp; GAIN e OFFSET</h1>
+  </header>
+
+  <main>
+    <div class="info-grid">
+      <div class="info-field">
+        <label for="matricola-spark-uc">Matricola SPARK-UC</label>
+        <input type="text" id="matricola-spark-uc" data-store="matricola-spark-uc" list="fleet-sn-list" autocomplete="off">
+        <datalist id="fleet-sn-list"></datalist>
+      </div>
+      <div class="info-field">
+        <label for="cliente">Cliente</label>
+        <input type="text" id="cliente" data-store="cliente">
+      </div>
+    </div>
+
+    <details class="instructions" id="instructions">
+      <summary>Istruzioni: procedura di calibrazione</summary>
+      <ol id="instructions-list"></ol>
+    </details>
+
+    <div class="section">
+      <div class="section-title">Peso 1 &middot; KG1</div>
+      <div class="info-grid">
+        <div class="info-field unit-kg">
+          <label for="kg1">KG1 &ndash; Peso 1 (kg)</label>
+          <input type="text" inputmode="decimal" id="kg1" data-store="kg1" data-num autocomplete="off">
+          <span class="helper">Consigliato circa 50 kg</span>
+        </div>
+        <div class="info-field unit-bar">
+          <label for="pg1">PR_1 &ndash; Pressione gambe piedi</label>
+          <input type="text" inputmode="decimal" id="pg1" data-store="pg1" data-num autocomplete="off">
+          <span class="helper">Letta nel menu parametri con KG1</span>
+        </div>
+        <div class="info-field unit-bar">
+          <label for="pt1">PR_2 &ndash; Pressione gambe testa</label>
+          <input type="text" inputmode="decimal" id="pt1" data-store="pt1" data-num autocomplete="off">
+          <span class="helper">Letta nel menu parametri con KG1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Peso 2 &middot; KG2</div>
+      <div class="info-grid">
+        <div class="info-field unit-kg">
+          <label for="kg2">KG2 &ndash; Peso 2 (kg)</label>
+          <input type="text" inputmode="decimal" id="kg2" data-store="kg2" data-num autocomplete="off">
+          <span class="helper">Almeno il doppio di KG1</span>
+        </div>
+        <div class="info-field unit-bar">
+          <label for="pg2">PR_1 &ndash; Pressione gambe piedi</label>
+          <input type="text" inputmode="decimal" id="pg2" data-store="pg2" data-num autocomplete="off">
+          <span class="helper">Letta nel menu parametri con KG2</span>
+        </div>
+        <div class="info-field unit-bar">
+          <label for="pt2">PR_2 &ndash; Pressione gambe testa</label>
+          <input type="text" inputmode="decimal" id="pt2" data-store="pt2" data-num autocomplete="off">
+          <span class="helper">Letta nel menu parametri con KG2</span>
+        </div>
+      </div>
+      <div class="msg warn" id="msg-warn"></div>
+    </div>
+
+    <div class="results">
+      <div class="results-title">Risultato del calcolo</div>
+      <div class="results-grid">
+        <div class="result-item">
+          <div class="result-label">OFFSET</div>
+          <div class="result-value empty" id="offset-result">&ndash;</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">GAIN</div>
+          <div class="result-value empty" id="gain-result">&ndash;</div>
+        </div>
+      </div>
+      <div class="msg err" id="msg-err"></div>
+      <div class="formulas">
+        Formule utilizzate
+        <code>OFFSET = (KG2 × (PR_1₁ + PR_2₁) − KG1 × (PR_1₂ + PR_2₂)) ÷ (KG2 − KG1)</code>
+        <code>GAIN = ((PR_1₂ + PR_2₂) − (PR_1₁ + PR_2₁)) ÷ (KG2 − KG1)</code>
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <label for="note">Note</label>
+      <textarea id="note" data-store="note"></textarea>
+    </div>
+  </main>
+
+  <div class="signature-block">
+    <div class="signature-block-title">Informazioni taratura</div>
+    <div class="signature-grid">
+      <div class="sig-field">
+        <label for="inspector">Taratura eseguita da</label>
+        <input type="text" id="inspector" data-store="inspector" placeholder="Nome e cognome">
+      </div>
+      <div class="sig-field">
+        <label for="location">Luogo</label>
+        <input type="text" id="location" data-store="location" placeholder="Luogo">
+      </div>
+      <div class="sig-field">
+        <label for="control-date">Data</label>
+        <input type="date" id="control-date" data-store="control-date">
+      </div>
+      <div class="sig-field sig-firma">
+        <label>Firma</label>
+        <button type="button" class="firma-btn" id="firma-btn">
+          <span class="firma-btn-placeholder" id="firma-btn-placeholder">&#9999; Tocca per firmare</span>
+          <img id="firma-preview" class="firma-preview" alt="Firma" style="display:none;">
+        </button>
+        <input type="hidden" id="signature-data" data-store="signature-data">
+      </div>
+    </div>
+  </div>
+
+  <div class="firma-modal-overlay" id="firma-modal-overlay">
+    <div class="firma-modal">
+      <div class="firma-modal-title">Firma</div>
+      <div class="firma-canvas-wrap"><canvas id="firma-canvas" class="firma-canvas"></canvas></div>
+      <div class="firma-modal-actions">
+        <button type="button" class="btn-firma-action btn-firma-cancel" id="firma-cancel">Cancella</button>
+        <button type="button" class="btn-firma-action btn-firma-clear" id="firma-clear">Ripeti</button>
+        <button type="button" class="btn-firma-action btn-firma-confirm" id="firma-confirm">Conferma</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-note" id="save-note"></div>
+
+  <div class="action-bar">
+    <button class="btn btn-reset" id="btn-reset">&#8635; Reset</button>
+    <button class="btn btn-print" id="btn-print">&#128438; Stampa</button>
+    <button class="btn btn-pdf" id="btn-pdf">&#8595; Salva PDF</button>
+  </div>
+</div>
+
+<div class="pdf-busy" id="pdf-busy" aria-live="polite">
+  <div class="pdf-busy-box"><span class="pdf-busy-spinner"></span><span>Generazione PDF in corso…</span></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="exit-modal-overlay" id="exit-modal" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+  <div class="exit-modal">
+    <h3 class="exit-modal-title" id="exit-modal-title">Sei sicuro di voler uscire senza salvare?</h3>
+    <p class="exit-modal-text">Sì: esci e la taratura viene cancellata.<br>No: esci e la taratura resta in memoria, la ritrovi compilata quando rientri.</p>
+    <div class="exit-modal-actions">
+      <button type="button" class="btn-firma-action btn-exit-no" id="exit-no">No, tienila in memoria</button>
+      <button type="button" class="btn-firma-action btn-exit-yes" id="exit-yes">Sì, cancella tutto</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/vendor/html2pdf.bundle.min.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/fleet.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function() {
+  const STORE_KEY = 'taraturaPesoSparkData';
+  const STATUS_KEY = 'taraturaPesoSparkStato';
+  const FLEET = typeof SPARK_FLEET !== 'undefined' ? SPARK_FLEET : [];
+
+  function getStatus() { try { return localStorage.getItem(STATUS_KEY); } catch (e) { return null; } }
+  function setStatus(v) {
+    try { if (v) localStorage.setItem(STATUS_KEY, v); else localStorage.removeItem(STATUS_KEY); } catch (e) {}
+  }
+
+  /* Elenco SN del parco (js/fleet.js) */
+  (function fillFleetList() {
+    const dl = document.getElementById('fleet-sn-list');
+    FLEET.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.sn;
+      o.label = u.cliente;
+      dl.appendChild(o);
+    });
+  })();
+
+  /* Istruzioni: stessa procedura mostrata in Manutenzione → Procedure */
+  (function fillInstructions() {
+    const proc = typeof PROCEDURES !== 'undefined' ? PROCEDURES.find(p => p.id === 'taratura-peso') : null;
+    const box = document.getElementById('instructions');
+    if (!proc) { box.style.display = 'none'; return; }
+    const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    document.getElementById('instructions-list').innerHTML = proc.steps
+      .map(s => `<li><strong>${esc(s.title)}</strong><span>${esc(s.detail)}</span></li>`).join('');
+  })();
+
+  /* ------------------------------------------------------------------
+     CALCOLO GAIN / OFFSET (formule di "00. Gain_e_Offset_Calculator.html")
+     Accetta sia la virgola che il punto come separatore decimale.
+     ------------------------------------------------------------------ */
+  function num(id) {
+    const raw = document.getElementById(id).value.trim().replace(/\s/g, '').replace(',', '.');
+    if (raw === '') return NaN;
+    return /^[-+]?\d*\.?\d+$/.test(raw) ? parseFloat(raw) : NaN;
+  }
+
+  function calculate() {
+    const ids = ['kg1', 'pg1', 'pt1', 'kg2', 'pg2', 'pt2'];
+    const v = {};
+    ids.forEach(id => { v[id] = num(id); });
+    const offEl = document.getElementById('offset-result');
+    const gainEl = document.getElementById('gain-result');
+    const err = document.getElementById('msg-err');
+    const warn = document.getElementById('msg-warn');
+    const setResult = (off, gain) => {
+      offEl.textContent = off; gainEl.textContent = gain;
+      offEl.classList.toggle('empty', off === '–');
+      gainEl.classList.toggle('empty', gain === '–');
+    };
+
+    // Avviso (non bloccante) dalla procedura: KG2 almeno il doppio di KG1
+    warn.textContent = (!isNaN(v.kg1) && !isNaN(v.kg2) && v.kg1 > 0 && v.kg2 < 2 * v.kg1)
+      ? 'La procedura indica KG2 almeno il doppio di KG1 (qui KG2 = ' + v.kg2 + ' kg, KG1 = ' + v.kg1 + ' kg).'
+      : '';
+
+    const filled = ids.filter(id => document.getElementById(id).value.trim() !== '');
+    if (filled.length < ids.length) { err.textContent = ''; setResult('–', '–'); return; }
+    const bad = ids.filter(id => isNaN(v[id]));
+    if (bad.length) {
+      err.textContent = 'Valore non numerico in: ' + bad.map(id => document.querySelector('label[for="' + id + '"]').textContent.split('–')[0].trim() + (id.endsWith('1') ? ' (KG1)' : ' (KG2)')).join(', ');
+      setResult('–', '–');
+      return;
+    }
+    if (v.kg2 === v.kg1) {
+      err.textContent = 'KG1 e KG2 devono essere diversi (divisione per zero).';
+      setResult('–', '–');
+      return;
+    }
+    const den = v.kg2 - v.kg1;
+    const s1 = v.pg1 + v.pt1;
+    const s2 = v.pg2 + v.pt2;
+    const offset = (v.kg2 * s1 - v.kg1 * s2) / den;
+    const gain = (s2 - s1) / den;
+    err.textContent = '';
+    setResult(offset.toFixed(6), gain.toFixed(6));
+  }
+
+  /* ------------------------------------------------------------------
+     BOZZA AUTOMATICA (come manutenzione-form.html)
+     ------------------------------------------------------------------ */
+  function persist() {
+    const data = {};
+    document.querySelectorAll('[data-store]').forEach(el => { data[el.dataset.store] = el.value; });
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      setStatus('bozza');
+      document.getElementById('save-note').textContent = 'Salvato ' + new Date().toLocaleTimeString('it-IT');
+    } catch (e) {}
+  }
+
+  function restore() {
+    let data;
+    try { data = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return; }
+    if (!data) return;
+    document.querySelectorAll('[data-store]').forEach(el => {
+      if (data[el.dataset.store] !== undefined) el.value = data[el.dataset.store];
+    });
+    if (signatureData.value) showSignature(signatureData.value);
+  }
+
+  document.querySelectorAll('[data-store]').forEach(el => {
+    el.addEventListener('input', () => { persist(); if (el.hasAttribute('data-num')) calculate(); });
+    el.addEventListener('change', persist);
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function() {
+    if (!confirm('Cancellare tutti i dati inseriti in questa taratura?')) return;
+    clearForm();
+  });
+
+  function clearForm() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setStatus(null);
+    document.querySelectorAll('[data-store]').forEach(el => { el.value = ''; });
+    firmaBtn.classList.remove('signed');
+    firmaPlaceholder.style.display = '';
+    firmaPreview.style.display = 'none';
+    firmaPreview.src = '';
+    document.getElementById('save-note').textContent = '';
+    calculate();
+  }
+
+  /* ------------------------------------------------------------------
+     NOME FILE / SN (cartella dell'SN SPARK-UC)
+     ------------------------------------------------------------------ */
+  function getExportInfo() {
+    const pad = n => String(n).padStart(2, '0');
+    const d = new Date();
+    const dataStr = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    const snEl = document.getElementById('matricola-spark-uc');
+    const sn = snEl.value.trim() ? snEl.value.trim().replace(/[^a-zA-Z0-9_-]+/g, '').toUpperCase() : '';
+    let nomeFile = 'TaraturaPeso_' + dataStr;
+    if (sn) nomeFile += '_SN' + sn;
+    return { sn, snEl, nomeFile };
+  }
+
+  function hideEmptyNotes() {
+    const ta = document.getElementById('note');
+    ta.closest('.notes-section').classList.toggle('print-hide', !ta.value.trim());
+  }
+  window.addEventListener('beforeprint', hideEmptyNotes);
+
+  let toastTimer = null;
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  /* STAMPA */
+  document.getElementById('btn-print').addEventListener('click', function() {
+    const originalTitle = document.title;
+    document.title = getExportInfo().nomeFile;
+    const restoreTitle = function() {
+      document.title = originalTitle;
+      window.removeEventListener('afterprint', restoreTitle);
+    };
+    window.addEventListener('afterprint', restoreTitle);
+    setTimeout(restoreTitle, 3000);
+    window.print();
+  });
+
+  /* ------------------------------------------------------------------
+     SALVA PDF (stessa tecnica di manutenzione-form.html: regole di stampa
+     replicate sotto body.pdf-export e campi sostituiti da testo statico)
+     ------------------------------------------------------------------ */
+  function buildPdfExportStyles() {
+    if (document.getElementById('pdf-export-style')) return;
+    const out = [];
+    Array.from(document.styleSheets).forEach(sheet => {
+      let rules;
+      try { rules = sheet.cssRules; } catch (e) { return; }
+      Array.from(rules || []).forEach(rule => {
+        if (!(rule instanceof CSSMediaRule) || !/\bprint\b/.test(rule.media.mediaText)) return;
+        Array.from(rule.cssRules).forEach(inner => {
+          if (!(inner instanceof CSSStyleRule)) return;
+          const sel = inner.selectorText.split(',').map(part => {
+            part = part.trim();
+            if (/^body\b/.test(part)) return part.replace(/^body/, 'body.pdf-export');
+            if (/^html\b/.test(part)) return part.replace(/^html/, 'html body.pdf-export');
+            return 'body.pdf-export ' + part;
+          }).join(', ');
+          out.push(sel + ' { ' + inner.style.cssText + ' }');
+        });
+      });
+    });
+    const style = document.createElement('style');
+    style.id = 'pdf-export-style';
+    style.textContent = out.join('\n');
+    document.head.appendChild(style);
+  }
+
+  function swapFieldsForPdf(root) {
+    const swaps = [];
+    const COPY = ['width', 'maxWidth', 'borderTop', 'borderRight', 'borderBottom', 'borderLeft', 'borderRadius',
+                  'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+                  'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+                  'fontFamily', 'fontWeight', 'color', 'backgroundColor', 'textAlign'];
+    root.querySelectorAll('input:not([type=hidden]), textarea').forEach(field => {
+      if (field.getClientRects().length === 0) return;
+      const cs = getComputedStyle(field);
+      const box = document.createElement('div');
+      COPY.forEach(prop => { box.style[prop] = cs[prop]; });
+      box.style.maxWidth = '100%';
+      box.style.boxSizing = 'border-box';
+      const fontPx = Math.max(parseFloat(cs.fontSize) || 0, 11);
+      box.style.fontSize = fontPx + 'px';
+      box.style.minHeight = cs.height;
+      box.style.lineHeight = field.tagName === 'TEXTAREA' ? '1.3' : Math.max(parseFloat(cs.height) || 0, fontPx + 2) + 'px';
+      box.style.display = 'block';
+      box.style.whiteSpace = 'pre-wrap';
+      box.style.overflowWrap = 'anywhere';
+      let value = field.value;
+      if (field.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split('-');
+        value = d + '/' + m + '/' + y;
+      }
+      box.textContent = value || '\u00a0';
+      swaps.push({ field, box, display: field.style.display });
+      field.parentNode.insertBefore(box, field.nextSibling);
+    });
+    swaps.forEach(({ field }) => { field.style.display = 'none'; });
+    return swaps;
+  }
+
+  async function generatePdfBlob(filename) {
+    const el = document.querySelector('.app');
+    buildPdfExportStyles();
+    hideEmptyNotes();
+    document.body.classList.add('pdf-export');
+    const swaps = swapFieldsForPdf(el);
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const opt = {
+        margin: [6, 8, 6, 8],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        pagebreak: { mode: ['css'], avoid: ['.section', '.results', '.notes-section', '.signature-block'] }
+      };
+      return await html2pdf().set(opt).from(el).outputPdf('blob');
+    } finally {
+      document.body.classList.remove('pdf-export');
+      swaps.forEach(({ field, box, display }) => { box.remove(); field.style.display = display; });
+    }
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  let pdfBusy = false;
+  document.getElementById('btn-pdf').addEventListener('click', async function() {
+    if (pdfBusy) return;
+    const info = getExportInfo();
+    if (!info.sn) {
+      const ok = confirm('Matricola mancante: senza SN il PDF non può essere archiviato nella cronologia e verrà solo scaricato.\n\nPremi Annulla per inserire la matricola, OK per scaricarlo comunque.');
+      if (!ok) { setTimeout(() => info.snEl.focus(), 50); return; }
+    }
+    const filename = info.nomeFile + '.pdf';
+    const btn = this;
+    const busy = document.getElementById('pdf-busy');
+    pdfBusy = true;
+    btn.disabled = true;
+    busy.classList.add('open');
+    try {
+      if (typeof html2pdf !== 'function') throw new Error('libreria PDF non caricata');
+      const blob = await generatePdfBlob(filename);
+      let saved = false;
+      if (info.sn && typeof sparkSaveFile === 'function') {
+        try {
+          await sparkSaveFile({ sn: info.sn, filename, mimeType: 'application/pdf', blob, kind: 'taratura' });
+          saved = true;
+          if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+          if ('BroadcastChannel' in window) {
+            const bc = new BroadcastChannel('spark-maintenance');
+            bc.postMessage({ type: 'saved', sn: info.sn });
+            bc.close();
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('PDF creato ma non archiviato: ' + (err.message || err), true);
+        }
+      }
+      downloadBlob(blob, filename);
+      setStatus('salvata');
+      if (saved) {
+        showToast('PDF salvato nella cartella SN ' + info.sn + ' e scaricato.');
+        document.getElementById('save-note').textContent = 'Ultimo PDF: ' + filename;
+      } else if (!info.sn) {
+        showToast('PDF scaricato (non archiviato: matricola mancante).');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Errore nella generazione del PDF: ' + (err.message || err), true);
+    } finally {
+      busy.classList.remove('open');
+      btn.disabled = false;
+      pdfBusy = false;
+    }
+  });
+
+  /* FIRMA */
+  const firmaBtn = document.getElementById('firma-btn');
+  const firmaOverlay = document.getElementById('firma-modal-overlay');
+  const firmaCanvas = document.getElementById('firma-canvas');
+  const firmaCtx = firmaCanvas.getContext('2d');
+  const firmaPlaceholder = document.getElementById('firma-btn-placeholder');
+  const firmaPreview = document.getElementById('firma-preview');
+  const signatureData = document.getElementById('signature-data');
+  let drawing = false;
+  let hasDrawn = false;
+
+  function showSignature(dataUrl) {
+    firmaPreview.src = dataUrl;
+    firmaPreview.style.display = 'block';
+    firmaPlaceholder.style.display = 'none';
+    firmaBtn.classList.add('signed');
+  }
+  function resizeFirmaCanvas() {
+    const rect = firmaCanvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    firmaCanvas.width = rect.width * ratio;
+    firmaCanvas.height = rect.height * ratio;
+    firmaCtx.scale(ratio, ratio);
+    firmaCtx.lineWidth = 2.2;
+    firmaCtx.lineCap = 'round';
+    firmaCtx.lineJoin = 'round';
+    firmaCtx.strokeStyle = '#1c2b3a';
+  }
+  function firmaPos(evt) {
+    const rect = firmaCanvas.getBoundingClientRect();
+    const p = evt.touches ? evt.touches[0] : evt;
+    return { x: p.clientX - rect.left, y: p.clientY - rect.top };
+  }
+  function firmaStart(evt) {
+    evt.preventDefault();
+    drawing = true; hasDrawn = true;
+    const p = firmaPos(evt);
+    firmaCtx.beginPath();
+    firmaCtx.moveTo(p.x, p.y);
+  }
+  function firmaMove(evt) {
+    if (!drawing) return;
+    evt.preventDefault();
+    const p = firmaPos(evt);
+    firmaCtx.lineTo(p.x, p.y);
+    firmaCtx.stroke();
+  }
+  function firmaEnd() { drawing = false; }
+  firmaCanvas.addEventListener('mousedown', firmaStart);
+  firmaCanvas.addEventListener('mousemove', firmaMove);
+  window.addEventListener('mouseup', firmaEnd);
+  firmaCanvas.addEventListener('touchstart', firmaStart, { passive: false });
+  firmaCanvas.addEventListener('touchmove', firmaMove, { passive: false });
+  firmaCanvas.addEventListener('touchend', firmaEnd);
+
+  firmaBtn.addEventListener('click', function() {
+    firmaOverlay.classList.add('open');
+    setTimeout(function() {
+      resizeFirmaCanvas();
+      firmaCtx.clearRect(0, 0, firmaCanvas.width, firmaCanvas.height);
+      hasDrawn = false;
+    }, 10);
+  });
+  document.getElementById('firma-cancel').addEventListener('click', () => firmaOverlay.classList.remove('open'));
+  document.getElementById('firma-clear').addEventListener('click', function() {
+    firmaCtx.clearRect(0, 0, firmaCanvas.width, firmaCanvas.height);
+    hasDrawn = false;
+  });
+  document.getElementById('firma-confirm').addEventListener('click', function() {
+    if (hasDrawn) {
+      const dataUrl = firmaCanvas.toDataURL('image/png');
+      signatureData.value = dataUrl;
+      showSignature(dataUrl);
+      persist();
+    }
+    firmaOverlay.classList.remove('open');
+  });
+
+  // Apertura: taratura già salvata in PDF -> si riparte vuoti; bozza -> si ritrova
+  if (getStatus() === 'salvata') clearForm();
+  else restore();
+
+  /* ------------------------------------------------------------------
+     PRECOMPILAZIONE DAL PARCO (solo campi vuoti)
+     ------------------------------------------------------------------ */
+  function applyFleetUnit(unit) {
+    const values = { 'matricola-spark-uc': unit.sn, 'cliente': unit.cliente };
+    Object.keys(values).forEach(id => {
+      const el = document.getElementById(id);
+      if (el && values[id] && !el.value.trim()) el.value = values[id];
+    });
+  }
+
+  document.getElementById('matricola-spark-uc').addEventListener('change', function() {
+    const unit = typeof sparkFindUnit === 'function' ? sparkFindUnit(this.value) : null;
+    if (!unit) return;
+    applyFleetUnit(unit);
+    persist();
+    showToast('Dati di SN ' + unit.sn + ' (' + unit.cliente + ') precompilati.');
+  });
+
+  // Aperto da una cartella S/N: taratura-peso.html?sn=XXXX
+  (function prefillFromUrl() {
+    let urlSn = null;
+    try { urlSn = new URLSearchParams(location.search).get('sn'); } catch (e) {}
+    if (!urlSn) return;
+    try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+    const unit = typeof sparkFindUnit === 'function' ? sparkFindUnit(urlSn) : null;
+    const ucEl = document.getElementById('matricola-spark-uc');
+    const current = ucEl.value.trim();
+    const label = unit ? unit.sn : urlSn;
+    if (sparkSnKey(current) !== sparkSnKey(urlSn)) {
+      if (getStatus() === 'bozza') {
+        const ok = confirm('C\'è una taratura in corso' + (current ? ' (SN ' + current + ')' : '') +
+          ' non ancora salvata in PDF.\n\nOK = la cancello e inizio quella per SN ' + label +
+          '\nAnnulla = riprendo quella in corso');
+        if (!ok) return;
+      }
+      clearForm();
+    }
+    if (unit) applyFleetUnit(unit);
+    else if (!ucEl.value.trim()) ucEl.value = urlSn;
+    const wasDraft = getStatus() === 'bozza';
+    persist();
+    if (!wasDraft) {
+      setStatus(null);
+      document.getElementById('save-note').textContent = '';
+    }
+  })();
+
+  // Con il modulo vuoto le istruzioni partono aperte
+  if (['kg1', 'pg1', 'pt1', 'kg2', 'pg2', 'pt2'].every(id => !document.getElementById(id).value.trim())) {
+    document.getElementById('instructions').open = true;
+  }
+  calculate();
+
+  /* ------------------------------------------------------------------
+     USCITA ("Torna al sito" o tasto indietro), come nel form manutenzione
+     ------------------------------------------------------------------ */
+  let fromApp = false;
+  try { fromApp = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (err) {}
+  if (!(history.state && history.state.sparkFormTrap)) {
+    history.replaceState({ sparkFormBase: true }, '');
+    history.pushState({ sparkFormTrap: true }, '');
+  }
+  function leaveForm() {
+    const steps = (history.state && history.state.sparkFormTrap) ? 2 : 1;
+    if (fromApp && history.length > steps) history.go(-steps);
+    else location.replace('index.html');
+  }
+  const exitModal = document.getElementById('exit-modal');
+  function askBeforeLeaving() {
+    if (getStatus() !== 'bozza') { leaveForm(); return; }
+    exitModal.classList.add('open');
+  }
+  document.getElementById('exit-yes').addEventListener('click', function() {
+    exitModal.classList.remove('open');
+    clearForm();
+    leaveForm();
+  });
+  document.getElementById('exit-no').addEventListener('click', function() {
+    exitModal.classList.remove('open');
+    leaveForm();
+  });
+  document.querySelector('.back-to-site').addEventListener('click', function(e) {
+    e.preventDefault();
+    askBeforeLeaving();
+  });
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.sparkFormBase) askBeforeLeaving();
+  });
+})();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+  }
+</script>
+</body>
+</html>

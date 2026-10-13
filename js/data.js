@@ -260,7 +260,7 @@ const UTENZE = {
   PO_2: "POTENZIOMETRO POS PIEDE POSTERIORE SX",
   PO_4: "POTENZIOMETRO POS PIEDE ANTERIORE SX",
   /* Schede elettroniche (Fase 6): citate nella matrice Componenti↔Errori.
-     Nessun hotspot sulla mappa: non ne esiste uno nel progetto. */
+     Posizione nella vista mappa "Schede elettroniche" (da "7. Schede_Spark"). */
   E_2:  "SCHEDA DISPLAY",
   E_3:  "SCHEDA MOTORE DX",
   E_4:  "SCHEDA MOTORE SX",
@@ -269,6 +269,12 @@ const UTENZE = {
 };
 
 const SENSOR_DETAILS = {
+  /* Schede elettroniche: codice da "7. Schede_Spark" (Tecnico). */
+  E_2: { tipo: "Scheda elettronica", codiceScheda: "DIS0016201" },
+  E_3: { tipo: "Scheda elettronica", codiceScheda: "DIS0016204" },
+  E_4: { tipo: "Scheda elettronica", codiceScheda: "DIS0016204" },
+  E_5: { tipo: "Scheda elettronica", codiceScheda: "DIS0016202" },
+  E_8: { tipo: "Scheda elettronica", codiceScheda: "DIS0020986" },
   R_1: { cavo: "DIS0019098 - Reed 1", tipo: "Magnetico", intro: "Segnala che la sfera è posizionata correttamente all'interno della slitta superiore del rostro.", bullets: ["Consenso discesa: autorizza lo SPARK ad abbassarsi fino a raggiungere FC_1.", "Vincolo di sicurezza: se R_1 si disattiva in qualsiasi posizione del carico (a causa dell'allontanamento del magnete dalla slitta superiore), interrompe immediatamente qualsiasi operazione in corso."], dove: "Scheda rostro - DIS0016202" },
   R_2: { cavo: "DIS0019099 - Reed 2", tipo: "Magnetico", intro: "Segnala che i ganci 10G (sistema di aggancio lato rostro) sono correttamente chiusi e impegnati.", bullets: ["Display: quando attivo, compare il lucchetto verde \"10G\" sull'HMI.", "Logica stati: atteso nello stato L_W_SLED_POS_3 (attesa reed 2 attivo – ganci 10G) durante il ciclo di carico."], dove: "Scheda rostro - DIS0016202" },
   R_3: { cavo: "DIS0019098", tipo: "Magnetico", intro: "Segnala che entrambi i ganci dedicati al vincolo del barellino sono correttamente chiusi.", bullets: ["Display: quando entrambi i reed R_3 sono attivi, si attiva il lucchetto verde del barellino sull'HMI"], dove: "Scheda gateway - DIS0020986" },
@@ -468,6 +474,16 @@ const MAP_VIEWS = [
       { id: "PO_2", x: 73.8, y: 66.9 },
       { id: "M_4", x: 25.1, y: 74.2 },
       { id: "M_2", x: 77.5, y: 74.3 }
+    ]
+  },
+  {
+    id: "schede", label: "Schede elettroniche", image: "assets/utenze/schede.png",
+    hotspots: [
+      { id: "E_4", x: 48.3, y: 22.2 },
+      { id: "E_8", x: 59.6, y: 45.0 },
+      { id: "E_2", x: 12.4, y: 54.0 },
+      { id: "E_5", x: 75.4, y: 55.4 },
+      { id: "E_3", x: 48.6, y: 87.4 }
     ]
   }
 ];
@@ -1140,6 +1156,22 @@ const OPERATION_SEQUENCE = [
 
 const PROCEDURES = [
   {
+    id: "taratura-peso",
+    category: "calibrazioni",
+    title: "Calibrazione GAIN e OFFSET (taratura peso)",
+    source: "Procedura di calibrazione GAIN e OFFSET.docx",
+    intro: "Rilevare le pressioni PR_1 e PR_2 con due pesi di riferimento (KG1 e KG2) e calcolare GAIN e OFFSET con il modulo Taratura peso.",
+    link: { href: "taratura-peso.html", label: "Apri il modulo Taratura peso" },
+    steps: [
+      { title: "Posiziona il primo peso", detail: "Posizionare il primo peso sulla barella (peso consigliato: circa 50 kg) e annotarlo nel campo KG1." },
+      { title: "Avvia la funzione peso", detail: "Sul display, premere la funzione peso e tenere premute le coste sensibili fino al fermo automatico dello Spark." },
+      { title: "Leggi PR_1 e PR_2 (KG1)", detail: "Una volta che il fermo automatico è scattato, entrare nel menu parametri, leggere le pressioni rilevate (PR_1 e PR_2) e riportarle nella sezione KG1." },
+      { title: "Posiziona il secondo peso", detail: "Togliere il primo peso e posizionare il secondo peso sulla barella (almeno il doppio di KG1) e annotarlo nel campo KG2." },
+      { title: "Ripeti la funzione peso", detail: "Ripetere il passaggio 2: premere la funzione peso sul display e tenere premute le coste sensibili fino al fermo automatico." },
+      { title: "Leggi PR_1 e PR_2 (KG2)", detail: "Ripetere il passaggio 3: leggere PR_1 e PR_2 e riportarle questa volta nella sezione KG2." }
+    ]
+  },
+  {
     id: "altezza-carico",
     title: "Configurazione altezza di carico",
     source: "IS000039 R00",
@@ -1301,6 +1333,10 @@ const I18N = {
     cat_comunicazione: "Comunicazione / identificazione",
     cat_altrisensori: "Altri sensori",
     cat_schede: "Schede elettroniche",
+    grp_sensori: "Sensori",
+    grp_movimento: "Motori e attuatori",
+    grp_interfaccia: "Comandi e segnalazione",
+    grp_elettronica: "Elettronica e alimentazione",
     nav_sequence: "Logica di funzionamento",
     sim_mode_sequence: "Logica di funzionamento",
     sequence_intro: "La sequenza di carico e scarico descritta nella documentazione tecnica, passo per passo.",
@@ -1378,6 +1414,9 @@ const I18N = {
     checklist_intro: "Cronologia delle manutenzioni già effettuate, organizzata per numero di serie (SN).",
     maint_card_desc: "Cronologia delle manutenzioni per numero di serie e nuova checklist da compilare.",
     new_maint_btn: "Nuova manutenzione",
+    new_weight_cal_btn: "Taratura peso",
+    new_weight_cal_sn_btn: "Nuova taratura peso per questo SN",
+    comp_fact_codice_scheda: "Codice scheda",
     procedures_heading: "Procedure",
     proc_cat_calibrazioni: "Calibrazioni",
     proc_cat_regolazioni: "Regolazioni",

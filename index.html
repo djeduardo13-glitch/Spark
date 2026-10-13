@@ -220,23 +220,10 @@
 
             <div class="filter-chip-row" id="componentFilterRow">
               <button class="filter-chip active" data-cat="all" data-i18n="cat_all">Tutti</button>
-              <button class="filter-chip" data-cat="magnetici" data-i18n="cat_magnetici">Sensori magnetici</button>
-              <button class="filter-chip" data-cat="finecorsa" data-i18n="cat_finecorsa">Fine corsa</button>
-              <button class="filter-chip" data-cat="laser" data-i18n="cat_laser">Laser</button>
-              <button class="filter-chip" data-cat="potenziometri" data-i18n="cat_potenziometri">Potenziometri</button>
-              <button class="filter-chip" data-cat="angolari" data-i18n="cat_angolari">Sensori angolari</button>
-              <button class="filter-chip" data-cat="pressione" data-i18n="cat_pressione">Sensori di pressione</button>
-              <button class="filter-chip" data-cat="comandi" data-i18n="cat_comandi">Comandi / interfaccia</button>
-              <button class="filter-chip" data-cat="motori" data-i18n="cat_motori">Motori</button>
-              <button class="filter-chip" data-cat="attuatori" data-i18n="cat_attuatori">Attuatori</button>
-              <button class="filter-chip" data-cat="elettrovalvole" data-i18n="cat_elettrovalvole">Elettrovalvole</button>
-              <button class="filter-chip" data-cat="freni" data-i18n="cat_freni">Freni</button>
-              <button class="filter-chip" data-cat="illuminazione" data-i18n="cat_illuminazione">Illuminazione</button>
-              <button class="filter-chip" data-cat="alimentazione" data-i18n="cat_alimentazione">Alimentazione</button>
-              <button class="filter-chip" data-cat="segnalazione" data-i18n="cat_segnalazione">Segnalazione</button>
-              <button class="filter-chip" data-cat="comunicazione" data-i18n="cat_comunicazione">Comunicazione / identificazione</button>
-              <button class="filter-chip" data-cat="altrisensori" data-i18n="cat_altrisensori">Altri sensori</button>
-              <button class="filter-chip" data-cat="schede" data-i18n="cat_schede">Schede elettroniche</button>
+              <button class="filter-chip" data-cat="sensori" data-i18n="grp_sensori">Sensori</button>
+              <button class="filter-chip" data-cat="movimento" data-i18n="grp_movimento">Motori e attuatori</button>
+              <button class="filter-chip" data-cat="interfaccia" data-i18n="grp_interfaccia">Comandi e segnalazione</button>
+              <button class="filter-chip" data-cat="elettronica" data-i18n="grp_elettronica">Elettronica e alimentazione</button>
             </div>
 
             <div id="componentsContainer"></div>
@@ -341,10 +328,16 @@
             <p data-i18n="checklist_intro">Cronologia delle manutenzioni già effettuate, organizzata per numero di serie (SN).</p>
           </div>
 
-          <a class="new-maint-btn" href="manutenzione-form.html">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            <span data-i18n="new_maint_btn">Nuova manutenzione</span>
-          </a>
+          <div class="maint-actions">
+            <a class="new-maint-btn" href="manutenzione-form.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span data-i18n="new_maint_btn">Nuova manutenzione</span>
+            </a>
+            <a class="new-maint-btn secondary" href="taratura-peso.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0Z"/><path d="M19 7l-3 7a3 3 0 0 0 6 0Z"/></svg>
+              <span data-i18n="new_weight_cal_btn">Taratura peso</span>
+            </a>
+          </div>
 
           <h3 class="sub-heading" data-i18n="sn_history_heading">S/N</h3>
           <div id="checklistContainer"></div>
