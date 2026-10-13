@@ -719,6 +719,7 @@
     .notes-section label { font-size: 0.58rem; margin-bottom: 2px; }
     .notes-section textarea { min-height: 22px; font-size: 0.58rem; padding: 3px; }
     .notes-section.print-hide { display: none !important; }
+    .param-item.print-hide, .section.print-hide, .tab-wrapper.print-hide { display: none !important; }
 
     .signature-block { padding: 4px 8px; margin: 2px 0 0; break-inside: avoid; }
     .signature-block-title { font-size: 0.62rem; margin-bottom: 2px; }
@@ -2475,12 +2476,37 @@
     return { sn, snEl, nomeFile };
   }
 
-  // Nasconde i riquadri note vuoti (usato sia dalla stampa che dal PDF)
+  // Nasconde i riquadri note vuoti e i parametri non compilati
+  // (usato sia dalla stampa che dal PDF)
   function hideEmptyNotes() {
     document.querySelectorAll('.notes-section').forEach(function(sec) {
       const ta = sec.querySelector('textarea');
       const empty = !ta || !ta.value.trim();
       sec.classList.toggle('print-hide', empty);
+    });
+    hideEmptyParams();
+  }
+
+  // Parametri: in stampa/PDF compaiono solo le righe con almeno un valore
+  // (Prima o Dopo). Se nessun parametro è compilato si nasconde la sezione
+  // e, se anche le note sono vuote, l'intera pagina "Parametri".
+  function hideEmptyParams() {
+    document.querySelectorAll('.param-item').forEach(function(item) {
+      const filled = Array.from(item.querySelectorAll('.param-field input'))
+        .some(function(inp) { return inp.value.trim() !== ''; });
+      item.classList.toggle('print-hide', !filled);
+    });
+    document.querySelectorAll('.section').forEach(function(sec) {
+      const items = sec.querySelectorAll('.param-item');
+      if (!items.length) return;
+      const anyFilled = Array.from(items).some(function(i) { return !i.classList.contains('print-hide'); });
+      sec.classList.toggle('print-hide', !anyFilled);
+    });
+    document.querySelectorAll('.tab-wrapper').forEach(function(w) {
+      if (!w.querySelector('.param-item')) return;
+      const visible = Array.from(w.querySelectorAll('.section, .notes-section'))
+        .some(function(el) { return !el.classList.contains('print-hide'); });
+      w.classList.toggle('print-hide', !visible);
     });
   }
   window.addEventListener('beforeprint', hideEmptyNotes);
