@@ -1437,7 +1437,7 @@ function renderComponents(filterText) {
     const det = SENSOR_DETAILS[c.id] || {};
     const grp = COMPONENT_FILTER_GROUPS[componentGroupOf(c.categoria)];
     const catLabel = ((dict[CAT_LABEL_KEY[c.categoria]] || c.categoria) + " " + (grp ? (dict[grp.label] || "") : "")).toLowerCase();
-    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", det.modello || "", det.codice || "", catLabel].join(" ").toLowerCase();
+    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", det.modello || "", det.codice || "", det.dove || "", det.codiceScheda || "", catLabel].join(" ").toLowerCase();
     return haystack.includes(query);
   });
 
@@ -1512,24 +1512,22 @@ function openComponentDetail(id) {
   fields.innerHTML = "";
 
   // ---- Scheda rapida: modello, codice cavo, collegamento + funzione ----
-  // Codice cavo: "DIS0019382 - Laser 1 (SENDISLAS)" → "DIS0019382 - SENDISLAS"
-  //   (codice DIS + codice articolo da `codice` o tra parentesi);
-  //   senza codice articolo si mostra il dato così com'è.
-  // Collegato a: "Scheda rostro - DIS0016202" → "DIS0016202 - Scheda rostro"
+  // Codice interno: da `codice` (o, se manca, tra parentesi nel cavo).
+  // Codice cavo: solo il codice DIS ("DIS0019098 - Reed 1" → "DIS0019098");
+  //   senza codice DIS si mostra il dato così com'è.
+  // Collegato a: `dove` così com'è ("Scheda Rostro - DIS0018007").
   const cavoStr = (det.cavo || "").trim();
   const cavoDis = (cavoStr.match(/DIS\d+/) || [])[0] || "";
   const parenMatch = cavoStr.match(/\(([^)]+)\)/);
-  const articolo = det.codice || (parenMatch ? parenMatch[1].trim() : "");
-  let codiceCavo = cavoStr;
-  if (articolo) codiceCavo = cavoDis ? `${cavoDis} - ${articolo}` : articolo;
-  const doveStr = (det.dove || "").trim();
-  const doveMatch = doveStr.match(/^(.*?)\s*-\s*(DIS\d+)$/);
-  const collegato = doveMatch ? `${doveMatch[2]} - ${doveMatch[1]}` : doveStr;
+  const codiceInterno = det.codice || (parenMatch ? parenMatch[1].trim() : "");
+  const codiceCavo = cavoDis || (parenMatch ? "" : cavoStr);
+  const collegato = (det.dove || "").trim();
   const facts = [];
   if (det.codiceScheda) facts.push({ k: t("comp_fact_codice_scheda"), v: escapeHtml(det.codiceScheda), wide: true });
   if (det.modello) facts.push({ k: t("comp_fact_modello"), v: det.modello, wide: true });
-  if (codiceCavo) facts.push({ k: t("component_field_codice"), v: codiceCavo, wide: true });
-  if (collegato) facts.push({ k: t("comp_fact_collegato"), v: collegato, wide: true });
+  if (codiceInterno) facts.push({ k: t("comp_fact_codice_interno"), v: escapeHtml(codiceInterno), wide: true });
+  if (codiceCavo) facts.push({ k: t("component_field_codice"), v: escapeHtml(codiceCavo), wide: true });
+  if (collegato) facts.push({ k: t("comp_fact_collegato"), v: escapeHtml(collegato), wide: true });
 
   if (facts.length || det.intro) {
     const card = document.createElement("div");
@@ -1794,7 +1792,7 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
     const componentMatches = (typeof COMPONENTS === "undefined" ? [] : COMPONENTS).filter(c => {
       const det = SENSOR_DETAILS[c.id] || {};
       const catLabel = dict[CAT_LABEL_KEY[c.categoria]] || c.categoria;
-      return [c.id, UTENZE[c.id] || "", det.tipo || "", det.cavo || "", catLabel].join(" ").toLowerCase().includes(query);
+      return [c.id, UTENZE[c.id] || "", det.tipo || "", det.cavo || "", det.codice || "", det.dove || "", det.codiceScheda || "", catLabel].join(" ").toLowerCase().includes(query);
     }).slice(0, 8);
 
     if (errorMatches.length === 0 && paramMatches.length === 0 && componentMatches.length === 0) {
