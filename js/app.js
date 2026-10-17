@@ -908,40 +908,92 @@ function renderParamDesc(desc) {
   }).join("");
 }
 
+/* Testo tradotto con ripiego sull'italiano (fr/es sono vuoti). */
+function tr(key) {
+  return ((I18N[state.lang] || {})[key]) || I18N.it[key] || key;
+}
+
+/* Riga valori del parametro (visibile solo a riga aperta):
+   "Default 3500 · Min 500 · Max 4000 · rpm · Ris. 1". Le voci vuote si saltano. */
+function paramValuesHtml(pr) {
+  const has = v => v !== null && v !== undefined && String(v).trim() !== "" && String(v).trim() !== "-";
+  const parts = [];
+  if (has(pr.default)) parts.push(`${tr("param_default")} <strong class="pv-default">${escapeHtml(pr.default)}</strong>`);
+  if (has(pr.min)) parts.push(`${tr("param_min")} <strong>${escapeHtml(pr.min)}</strong>`);
+  if (has(pr.max)) parts.push(`${tr("param_max")} <strong>${escapeHtml(pr.max)}</strong>`);
+  if (has(pr.unit)) parts.push(`<span class="pv-unit">${escapeHtml(pr.unit)}</span>`);
+  if (has(pr.res)) parts.push(`${tr("param_res")} <strong>${escapeHtml(pr.res)}</strong>`);
+  return parts.length ? `<div class="param-values">${parts.join('<span class="pv-sep"> · </span>')}</div>` : "";
+}
+
+/* Raggruppa i parametri per pagina del menu HMI (PARAM_PAGES), nell'ordine
+   della pagina. Eventuali parametri non presenti in nessuna pagina finiscono
+   in "Altri parametri". */
+function paramGroups(items) {
+  const byName = new Map(items.map(pr => [pr.name, pr]));
+  const used = new Set();
+  const groups = [];
+  Object.keys(PARAM_PAGES || {}).forEach(page => {
+    const list = PARAM_PAGES[page].map(n => byName.get(n)).filter(Boolean);
+    list.forEach(pr => used.add(pr.name));
+    if (list.length) groups.push({ title: tr("param_page_title").replace("{n}", page), items: list });
+  });
+  const rest = items.filter(pr => !used.has(pr.name));
+  if (rest.length) groups.push({ title: tr("param_page_other"), items: rest });
+  return groups;
+}
+
 function renderParameters(filterText) {
   const list = document.getElementById("paramList");
   const query = (filterText || "").trim().toLowerCase();
-  const items = PARAMETERS.filter(pr => query === "" || pr.name.toLowerCase().includes(query));
+  const items = PARAMETERS.filter(pr =>
+    query === "" ||
+    pr.name.toLowerCase().includes(query) ||
+    (PARAM_SHORT_DESC[pr.name] || "").toLowerCase().includes(query)
+  );
 
   if (items.length === 0) {
-    list.innerHTML = `<div class="empty-state">${(I18N[state.lang] || I18N.it).empty_state}</div>`;
+    list.innerHTML = `<div class="empty-state">${tr("empty_state")}</div>`;
     return;
   }
 
   list.innerHTML = "";
-  const block = document.createElement("div");
-  block.className = "code-list";
-  list.appendChild(block);
-  items.forEach((pr, i) => {
-    const row = document.createElement("div");
-    row.className = "param-row";
-    row.innerHTML = `
-      <button class="param-question">
-        <span class="param-q-left">
-          <span class="param-name">${pr.name}</span>
-          <span class="param-badges">
-            <span class="param-badge">Default ${pr.default}</span>
-            <span class="param-badge ghost">Min ${pr.min}</span>
-            <span class="param-badge ghost">Max ${pr.max}</span>
-            <span class="param-badge ghost">${pr.unit}</span>
+  paramGroups(items).forEach(group => {
+    const title = document.createElement("h4");
+    title.className = "error-section-title";
+    title.textContent = group.title;
+    list.appendChild(title);
+
+    const block = document.createElement("div");
+    block.className = "code-list";
+    list.appendChild(block);
+
+    group.items.forEach(pr => {
+      const short = PARAM_SHORT_DESC[pr.name] || "";
+      const row = document.createElement("div");
+      row.className = "param-row";
+      row.innerHTML = `
+        <button class="param-question">
+          <span class="param-q-left">
+            <span class="param-name">${pr.name}</span>
+            ${short ? `<span class="row-sub">${escapeHtml(short)}</span>` : ""}
           </span>
-        </span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="param-answer">${renderParamDesc(pr.desc)}</div>
-    `;
-    block.appendChild(row);
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="param-answer">${paramValuesHtml(pr)}${renderParamDesc(pr.desc)}</div>
+      `;
+      const comps = PARAM_COMPONENTS[pr.name] || [];
+      if (comps.length) {
+        row.querySelector(".param-answer").appendChild(buildRelationBlock(
+          tr("relation_components_title"),
+          comps.map(id => ({ code: id, name: displayName(UTENZE[id] || id), onClick: () => goToComponent(id) })),
+          "", "list"
+        ));
+      }
+      block.appendChild(row);
+    });
   });
+  /* Un solo parametro aperto alla volta, anche tra pagine diverse. */
   bindAccordion(list, ".param-row", ".param-question");
 }
 
@@ -995,7 +1047,7 @@ function renderErrors(filterText) {
       row.innerHTML = `
         <button class="param-question">
           <span class="param-q-left">
-            <span class="error-headline"><span class="param-name error-code">${er.code}</span><span class="error-sep"> – </span><span class="error-desc">${er.text}</span></span>
+            <span class="error-headline"><span class="param-name error-code">${er.code}</span><span class="error-sep"> — </span><span class="error-desc">${er.text}</span></span>
           </span>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>
@@ -1004,7 +1056,8 @@ function renderErrors(filterText) {
       row.querySelector(".param-answer").appendChild(buildRelationBlock(
         dict.relation_components_title,
         getErrorComponents(er.code).map(id => ({
-          label: `${id} — ${UTENZE[id] || id}`,
+          code: id,
+          name: displayName(UTENZE[id] || id),
           onClick: () => goToComponent(id)
         })),
         dict.relation_no_components,
@@ -1037,7 +1090,8 @@ function getComponentParams(id) {
 }
 
 /* Blocco "titolo + elenco cliccabile" riusato in dettaglio errore e dettaglio
-   componente. items: [{label, onClick}]. mode: "chips" (compatto) | "list" (una per riga). */
+   componente. items: [{label, onClick}] oppure [{code, name, onClick}]
+   (in modalità "list" il codice è in evidenza: "E_3 — Scheda motore DX"). mode: "chips" (compatto) | "list" (una per riga). */
 /* Componente -> passaggi della sequenza: letto a runtime da OPERATION_SEQUENCE
    (solo l'array "componenti" di ogni passaggio, nessuna tabella duplicata). */
 function getComponentSequenceSteps(id) {
@@ -1068,7 +1122,12 @@ function buildRelationBlock(title, items, emptyText, mode) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = mode === "list" ? "relation-link" : "relation-chip";
-    btn.textContent = it.label;
+    const label = it.label || (it.code ? `${it.code} — ${it.name || ""}` : "");
+    if (mode === "list" && it.code) {
+      btn.innerHTML = `<span class="rel-text"><span class="row-code">${escapeHtml(it.code)}</span> — ${escapeHtml(it.name || "")}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`;
+    } else {
+      btn.textContent = label;
+    }
     btn.addEventListener("click", (e) => { e.stopPropagation(); it.onClick(); });
     wrap.appendChild(btn);
   });
@@ -1177,7 +1236,7 @@ function openSequenceDetail(stepId) {
   const componentIds = [...step.componenti, ...(note ? note.componenti : [])].filter((v, i, a) => a.indexOf(v) === i);
   fields.appendChild(buildRelationBlock(
     dict.sequence_field_componenti,
-    componentIds.map(id => ({ label: `${id} — ${UTENZE[id] || id}`, onClick: () => goToComponent(id) })),
+    componentIds.map(id => ({ label: `${id} — ${displayName(UTENZE[id] || id)}`, onClick: () => goToComponent(id) })),
     dict.sequence_no_componenti,
     "chips"
   ));
@@ -1322,7 +1381,7 @@ function openDiagStep(stepId) {
   const componentIds = [...step.componenti, ...(note ? note.componenti : [])].filter((v, i, a) => a.indexOf(v) === i);
   fields.appendChild(buildRelationBlock(
     dict.diag_components_title,
-    componentIds.map(id => ({ label: `${id} — ${UTENZE[id] || id}`, onClick: () => goToComponent(id) })),
+    componentIds.map(id => ({ code: id, name: displayName(UTENZE[id] || id), onClick: () => goToComponent(id) })),
     dict.diag_no_components,
     "list"
   ));
@@ -1354,7 +1413,7 @@ function openDiagStep(stepId) {
   } else {
     componentIds.forEach(id => {
       const sub = buildRelationBlock(
-        `${dict.diag_component_label} ${id} — ${UTENZE[id] || id}`,
+        `${dict.diag_component_label} ${id} — ${displayName(UTENZE[id] || id)}`,
         getComponentErrors(id).map(code => ({ label: code, onClick: () => goToError(code) })),
         dict.diag_no_errors,
         "chips"
@@ -1424,6 +1483,21 @@ function componentGroupOf(categoria) {
 
 state.componentCategory = "all";
 
+/* Nomi componenti (UTENZE sono in maiuscolo): mostrati con solo l'iniziale
+   maiuscola, lasciando intatte sigle e parole con cifre (DX, SX, ON/OFF,
+   LCD, RFID, 10G, 7"). Per tornare al maiuscolo: NAME_SENTENCE_CASE = false. */
+const NAME_SENTENCE_CASE = true;
+const NAME_KEEP_UPPER = ["DX", "SX", "ON/OFF", "LCD", "RFID", "IMU", "ECU", "CAN", "HMI", "SPARK"];
+function displayName(nome) {
+  if (!nome || !NAME_SENTENCE_CASE) return nome || "";
+  const out = String(nome).split(/(\s+)/).map(tok => {
+    const core = tok.replace(/^[(\[]+|[)\],.:;]+$/g, "");
+    if (NAME_KEEP_UPPER.includes(core) || /\d/.test(core)) return tok;
+    return tok.toLowerCase();
+  }).join("");
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
 function renderComponents(filterText) {
   const container = document.getElementById("componentsContainer");
   if (!container || typeof COMPONENTS === "undefined") return;
@@ -1446,22 +1520,45 @@ function renderComponents(filterText) {
     return;
   }
 
+  /* Elenco unico per gruppo (stesso stile di Errori e Parametri):
+     "R_1 — Reed magnetico sfera", sotto la categoria (+ badge configurazione). */
   container.innerHTML = "";
-  items.forEach(c => {
-    const nome = UTENZE[c.id] || c.id;
-    const catLabel = dict[CAT_LABEL_KEY[c.categoria]] || c.categoria;
-    const tile = document.createElement("button");
-    tile.className = "procedure-tile";
-    tile.innerHTML = `
-      <span class="procedure-tile-text">
-        <span class="procedure-title">${nome} <span class="component-id-tag">${c.id}</span></span>
-        <span class="procedure-intro">${catLabel}</span>
-      </span>
-      <svg class="procedure-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-    `;
-    tile.addEventListener("click", () => openComponentDetail(c.id));
-    container.appendChild(tile);
+  Object.keys(COMPONENT_FILTER_GROUPS).forEach(g => {
+    const group = items.filter(c => componentGroupOf(c.categoria) === g);
+    if (group.length === 0) return;
+
+    const title = document.createElement("h4");
+    title.className = "error-section-title";
+    title.textContent = tr(COMPONENT_FILTER_GROUPS[g].label);
+    container.appendChild(title);
+
+    const block = document.createElement("div");
+    block.className = "code-list";
+    container.appendChild(block);
+
+    group.forEach(c => {
+      const nome = displayName(UTENZE[c.id] || c.id);
+      const det = SENSOR_DETAILS[c.id] || {};
+      const catLabel = dict[CAT_LABEL_KEY[c.categoria]] || c.categoria;
+      const sub = det.badge ? `${catLabel} · ${det.badge}` : catLabel;
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "list-row";
+      row.dataset.componentId = c.id;
+      row.innerHTML = `
+        <span class="param-q-left">
+          <span class="row-title"><span class="row-code">${escapeHtml(c.id)}</span> — ${escapeHtml(nome)}</span>
+          <span class="row-sub">${escapeHtml(sub)}</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      `;
+      row.addEventListener("click", () => openComponentDetail(c.id));
+      block.appendChild(row);
+    });
   });
+  /* Componenti senza gruppo (categoria non mappata): in fondo, senza titolo. */
+  const orphans = items.filter(c => !componentGroupOf(c.categoria));
+  if (orphans.length) console.warn("Componenti senza gruppo filtro:", orphans.map(c => c.id));
 }
 
 /* Trova la prima occorrenza di un componente tra gli hotspot della mappa.
@@ -1499,7 +1596,7 @@ function openComponentDetail(id) {
 
   // Intestazione: sigla grande + nome, sotto i badge (tipo, configurazione)
   document.getElementById("componentDetailTitle").innerHTML =
-    `<span class="cd-id">${escapeHtml(id)}</span><span class="cd-name">${escapeHtml(nome)}</span>`;
+    `<span class="cd-id">${escapeHtml(id)}</span><span class="cd-name">${escapeHtml(displayName(nome))}</span>`;
   // Se il tipo è generico ("Analogico") lo si affianca al tipo di sensore
   const TIPO_PREFIX = { angolari: "Sensore angolare", pressione: "Sensore di pressione" };
   let sub = det.tipo ? det.tipo.replace(/\s+/g, " ").trim() : catLabel;
@@ -1823,7 +1920,7 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
         <button class="gsr-item" data-gsr-type="component" data-gsr-key="${c.id}">
           <span class="gsr-tag component">${dict.global_search_component_tag || "Componente"}</span>
           <span class="gsr-title">${c.id}</span>
-          <span class="gsr-snippet">${UTENZE[c.id] || ""}</span>
+          <span class="gsr-snippet">${escapeHtml(displayName(UTENZE[c.id] || ""))}</span>
         </button>`;
     });
     results.innerHTML = html;
@@ -1898,7 +1995,7 @@ function renderMapView() {
       document.querySelectorAll(".map-hotspot").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       const answer = document.getElementById("mapAnswer");
-      const meaning = UTENZE[h.id] || "";
+      const meaning = displayName(UTENZE[h.id] || "");
       const details = (typeof SENSOR_DETAILS !== "undefined") ? SENSOR_DETAILS[h.id] : null;
 
       let extraHtml = "";
