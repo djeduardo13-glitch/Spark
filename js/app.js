@@ -1063,6 +1063,7 @@ function renderErrors(filterText) {
         dict.relation_no_components,
         "list"
       ));
+      buildErrorDiagnosticBlocks(er.code).forEach(b => row.querySelector(".param-answer").appendChild(b));
       block.appendChild(row);
     });
   });
@@ -1097,6 +1098,110 @@ function getComponentParams(id) {
 function getComponentSequenceSteps(id) {
   if (typeof OPERATION_SEQUENCE === "undefined") return [];
   return OPERATION_SEQUENCE.filter(step => (step.componenti || []).includes(id));
+}
+
+/* ---------------------------------------------------------------------
+   RELAZIONI DIAGNOSTICHE VALIDATE (ERROR_DIAGNOSTICS, Fase 9.5B)
+   errore → fase/passaggi, errore → parametri da controllare / su cui
+   intervenire. Solo lettura dei dati validati: nessuna deduzione a runtime.
+   Mai "valore attuale": del parametro si mostra solo il default come
+   riferimento.
+   ------------------------------------------------------------------- */
+function getErrorDiagnostics(code) {
+  return (typeof ERROR_DIAGNOSTICS !== "undefined" && ERROR_DIAGNOSTICS[code]) || null;
+}
+
+// Errori la cui fase validata comprende il passaggio indicato
+function getStepValidatedErrors(stepId) {
+  if (typeof ERROR_DIAGNOSTICS === "undefined") return [];
+  return ERRORS.filter(er => {
+    const d = ERROR_DIAGNOSTICS[er.code];
+    return d && d.fase && d.fase.passaggi.includes(stepId);
+  });
+}
+
+function stepNumberOf(stepId) {
+  const st = OPERATION_SEQUENCE.find(s => s.id === stepId);
+  return st ? st.numero : stepId;
+}
+
+function errorPhaseSummary(fase) {
+  const dict = I18N[state.lang] || I18N.it;
+  const tipo = fase.tipo === "carico" ? dict.sequence_carico : dict.sequence_scarico;
+  const nums = fase.passaggi.map(stepNumberOf);
+  const tpl = fase.collegamento === "transizione" ? dict.err_phase_transition
+    : (nums.length > 1 ? dict.err_phase_range : dict.err_phase_single);
+  return tpl.replace("{tipo}", tipo).replace("{a}", nums[0]).replace("{b}", nums[nums.length - 1]);
+}
+
+function paramReferenceText(name) {
+  const dict = I18N[state.lang] || I18N.it;
+  const p = PARAMETERS.find(x => x.name === name);
+  if (!p || p.default === undefined || p.default === null || p.default === "") return dict.err_params_ref_none;
+  const unit = p.unit && p.unit !== "N.A." ? " " + p.unit : "";
+  return dict.err_params_ref.replace("{v}", p.default + unit);
+}
+
+// Apre un passaggio nella Diagnostica (stessa UI della Fase 9)
+function goToDiagStep(stepId) {
+  switchSimMode("diagnostic");
+  openDiagStep(stepId);
+}
+
+function addRelationHint(block, text) {
+  const hint = document.createElement("p");
+  hint.className = "diag-errors-hint";
+  hint.textContent = text;
+  block.insertBefore(hint, block.children[1] || null);
+}
+
+// Blocchi aggiuntivi nella riga aperta di un errore (solo se validati)
+function buildErrorDiagnosticBlocks(code) {
+  const dict = I18N[state.lang] || I18N.it;
+  const d = getErrorDiagnostics(code);
+  const out = [];
+  if (!d) return out;
+  if (d.fase) {
+    const b = buildRelationBlock(
+      dict.err_phase_title,
+      d.fase.passaggi.map(id => {
+        const st = OPERATION_SEQUENCE.find(s => s.id === id);
+        const desc = st ? st.descrizione : "";
+        return {
+          code: `${dict.sequence_step_label} ${st ? st.numero : id}`,
+          name: desc.length > 90 ? desc.slice(0, 87).trimEnd() + "…" : desc,
+          onClick: () => goToDiagStep(id)
+        };
+      }),
+      "",
+      "list"
+    );
+    addRelationHint(b, `${errorPhaseSummary(d.fase)}. ${dict.err_validated_hint}`);
+    b.classList.add("err-diag-block");
+    out.push(b);
+  }
+  if (d.parametriControllo && d.parametriControllo.length) {
+    const b = buildRelationBlock(
+      dict.err_params_check_title,
+      d.parametriControllo.map(name => ({ code: name, name: paramReferenceText(name), onClick: () => goToParameter(name) })),
+      "",
+      "list"
+    );
+    b.classList.add("err-diag-block");
+    out.push(b);
+  }
+  if (d.parametriIntervento && d.parametriIntervento.length) {
+    const b = buildRelationBlock(
+      dict.err_params_act_title,
+      d.parametriIntervento.map(name => ({ label: name, onClick: () => goToParameter(name) })),
+      "",
+      "chips"
+    );
+    addRelationHint(b, dict.err_params_act_hint);
+    b.classList.add("err-diag-block");
+    out.push(b);
+  }
+  return out;
 }
 
 function buildRelationBlock(title, items, emptyText, mode) {
@@ -1393,6 +1498,27 @@ function openDiagStep(stepId) {
     dict.diag_no_params,
     "chips"
   ));
+
+  // ERRORE → PASSAGGIO (relazione validata, ERROR_DIAGNOSTICS). Blocco
+  // separato e mostrato solo se esistono errori validati per il passaggio.
+  const validated = getStepValidatedErrors(stepId);
+  if (validated.length) {
+    const vb = buildRelationBlock(
+      dict.diag_validated_errors_title,
+      validated.map(er => {
+        const f = ERROR_DIAGNOSTICS[er.code].fase;
+        const nums = f.passaggi.map(stepNumberOf);
+        const pre = f.collegamento === "transizione"
+          ? `(${dict.diag_transition_note.replace("{a}", nums[0]).replace("{b}", nums[nums.length - 1])}) ` : "";
+        return { code: er.code, name: pre + er.text, onClick: () => goToError(er.code) };
+      }),
+      "",
+      "list"
+    );
+    addRelationHint(vb, dict.diag_validated_errors_hint);
+    vb.classList.add("diag-validated");
+    fields.appendChild(vb);
+  }
 
   // COMPONENTE → ERRORI ASSOCIATI (separati per componente, mai "errori del passaggio")
   const errBlock = document.createElement("div");

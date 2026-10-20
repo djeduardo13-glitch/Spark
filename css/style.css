@@ -2132,6 +2132,12 @@ button {
 .relation-chip:hover,
 .relation-link:hover { background: var(--tint); }
 .relation-link .rel-text { color: var(--ink); font-weight: 600; }
+/* Relazioni diagnostiche validate (Fase 9.5B): descrizioni in peso normale,
+   codice / numero di passaggio in evidenza */
+.err-diag-block .relation-link .rel-text,
+.diag-validated .relation-link .rel-text { font-weight: 400; line-height: 1.45; }
+.err-diag-block .relation-link .row-code,
+.diag-validated .relation-link .row-code { font-weight: 700; }
 .code-list .relation-link:hover { background: var(--paper); }
 
 /* Diagnostica guidata */

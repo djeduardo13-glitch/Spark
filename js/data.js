@@ -982,7 +982,7 @@ const ERROR_COMPONENTS = {
   L002: ["R_1", "R_2"],
   L003: ["R_2", "FC_1", "FC_2", "R_1"],
   L004: ["L_1"],
-  L005: ["L_1", "L_2"],
+  L005: ["L_1", "L_2", "R_1"],
   L006: ["L_1", "L_2"],
   L007: ["PR_1"],
   L008: ["R_1"],
@@ -998,12 +998,12 @@ const ERROR_COMPONENTS = {
   L018: ["R_1"],
   L019: ["A_1"],
   L020: ["PR_1"],
-  L200: ["A_2"],
+  L200: ["A_2", "A_1", "AT_2"],
   W002: ["E_8"],
   E010: ["E_3"],
   E011: ["E_4"],
   E012: ["E_5"],
-  E020: ["E_2"],
+  E020: ["E_2", "G_1"],
   E021: ["M_3", "PO_3"],
   E023: ["M_1", "PO_1"],
   E024: ["M_4", "PO_4"],
@@ -1028,8 +1028,8 @@ const ERROR_COMPONENTS = {
   E045: ["M_5"],
   E046: ["M_4"],
   E047: ["M_4"],
-  E048: ["M_1"],
-  E049: ["M_1"],
+  E048: ["M_2"],
+  E049: ["M_2"],
   E050: ["M_6"],
   E051: ["M_6"],
   E052: ["F_3"],
@@ -1044,7 +1044,7 @@ const ERROR_COMPONENTS = {
   E061: ["EV_1"],
   E062: ["EV_2"],
   E063: ["EV_2"],
-  E064: [],
+  E064: ["B_1"],
   E065: ["B_1"],
   E066: ["LD_2"],
   E067: ["LD_1"],
@@ -1060,7 +1060,7 @@ const ERROR_COMPONENTS = {
   E109: ["M_4"],
   E110: ["M_2"],
   E111: ["M_5"],
-  E112: ["M_4"],
+  E112: ["M_3"],
   E113: ["M_1"],
   E114: ["AT_1"],
   E115: ["AT_2"],
@@ -1085,6 +1085,48 @@ const ERROR_COMPONENTS = {
   E134: [],
   E135: [],
   E136: ["AT_1"]
+};
+
+/* ---------------------------------------------------------------------
+   ERROR_DIAGNOSTICS — relazioni diagnostiche VALIDATE dal tecnico
+   (Fase 9.5A.1, fonte: Spark_registro_validato_9.5A.1.xlsx).
+   Solo errori con una fase del ciclo e/o parametri collegati; i componenti
+   restano in ERROR_COMPONENTS.
+   - fase.passaggi: ID di OPERATION_SEQUENCE
+   - fase.collegamento: "passaggio" | "intervallo" | "transizione"
+     (transizione = l'errore avviene tra i due passaggi indicati)
+   - parametriControllo: parametri da controllare (nomi di PARAMETERS)
+   - parametriIntervento: parametri su cui intervenire, la cui descrizione
+     spiega come impostarli
+   ------------------------------------------------------------------- */
+const ERROR_DIAGNOSTICS_SOURCE = "Validazione tecnica 9.5A.1";
+const ERROR_DIAGNOSTICS = {
+  L001: { fase: { tipo: "scarico", passaggi: ["scarico-01", "scarico-02"], collegamento: "intervallo" } },
+  L002: { fase: { tipo: "scarico", passaggi: ["scarico-07", "scarico-08"], collegamento: "transizione" } },
+  L003: { fase: { tipo: "carico", passaggi: ["carico-00"], collegamento: "passaggio" } },
+  L004: { fase: { tipo: "carico", passaggi: ["carico-09", "carico-10", "carico-11", "carico-12", "carico-13"], collegamento: "intervallo" } },
+  L005: { fase: { tipo: "carico", passaggi: ["carico-09", "carico-10", "carico-11", "carico-12", "carico-13"], collegamento: "intervallo" } },
+  L006: { fase: { tipo: "scarico", passaggi: ["scarico-01", "scarico-02"], collegamento: "intervallo" } },
+  L007: { fase: { tipo: "scarico", passaggi: ["scarico-01", "scarico-02"], collegamento: "intervallo" } },
+  L008: { fase: { tipo: "scarico", passaggi: ["scarico-04"], collegamento: "passaggio" } },
+  L009: { fase: { tipo: "scarico", passaggi: ["scarico-04", "scarico-05"], collegamento: "intervallo" } },
+  L010: { fase: { tipo: "scarico", passaggi: ["scarico-04"], collegamento: "passaggio" } },
+  L011: { fase: { tipo: "scarico", passaggi: ["scarico-05"], collegamento: "passaggio" }, parametriControllo: ["HIGH LOAD LEVEL ANGLE LEG"], parametriIntervento: ["HIGH LOAD LEVEL ANGLE LEG"] },
+  L012: { fase: { tipo: "scarico", passaggi: ["scarico-05"], collegamento: "passaggio" } },
+  L013: { fase: { tipo: "carico", passaggi: ["carico-04"], collegamento: "passaggio" } },
+  L014: { fase: { tipo: "carico", passaggi: ["carico-05", "carico-06", "carico-07"], collegamento: "intervallo" } },
+  L015: { fase: { tipo: "carico", passaggi: ["carico-06"], collegamento: "passaggio" } },
+  L016: { fase: { tipo: "carico", passaggi: ["carico-06"], collegamento: "passaggio" } },
+  L017: { fase: { tipo: "carico", passaggi: ["carico-05", "carico-06", "carico-07"], collegamento: "intervallo" } },
+  L018: { fase: { tipo: "carico", passaggi: ["carico-09"], collegamento: "passaggio" } },
+  L019: { fase: { tipo: "scarico", passaggi: ["scarico-08"], collegamento: "passaggio" } },
+  L020: { fase: { tipo: "scarico", passaggi: ["scarico-05"], collegamento: "passaggio" } },
+  L200: { fase: { tipo: "scarico", passaggi: ["scarico-08", "scarico-09"], collegamento: "transizione" }, parametriControllo: ["UNLINK ANGLE DIFF MAX"] },
+  E106: { parametriControllo: ["ACT VER WORK POS", "ACT VER IDLE POS"] },
+  E107: { parametriControllo: ["ACT HOR WORK POS", "ACT HOR IDLE POS"] },
+  E128: { parametriControllo: ["PAIRING EDEN SN"], parametriIntervento: ["PAIRING EDEN SN"] },
+  E129: { parametriControllo: ["PAIRING EDEN SN"] },
+  E136: { parametriControllo: ["ACT VER WORK POS", "ACT VER IDLE POS"] },
 };
 
 /* ---------------------------------------------------------------------
@@ -1376,6 +1418,19 @@ const I18N = {
     diag_params_title: "Parametri collegati al passaggio",
     diag_no_params: "Nessun parametro specifico associato a questo passaggio.",
     diag_errors_title: "Errori associati ai componenti coinvolti",
+    diag_validated_errors_title: "Errori che possono comparire in questo passaggio",
+    diag_validated_errors_hint: "Relazione validata dal tecnico (errore → passaggio). È diversa dagli errori associati ai componenti, più sotto.",
+    diag_transition_note: "tra il passaggio {a} e il {b}",
+    err_phase_title: "Fase del ciclo",
+    err_phase_single: "{tipo}: passaggio {a}",
+    err_phase_range: "{tipo}: passaggi da {a} a {b}",
+    err_phase_transition: "{tipo}: tra il passaggio {a} e il {b}",
+    err_validated_hint: "Relazione validata dal tecnico.",
+    err_params_check_title: "Parametri da controllare",
+    err_params_ref: "default di riferimento {v}",
+    err_params_ref_none: "default non disponibile",
+    err_params_act_title: "Parametri su cui intervenire",
+    err_params_act_hint: "La descrizione del parametro spiega come impostarlo.",
     diag_errors_hint: "Gli errori sono collegati ai componenti, non al passaggio: qui sono elencati componente per componente.",
     diag_component_label: "Componente",
     diag_no_errors: "Nessun errore associato a questo componente.",
