@@ -2389,3 +2389,15 @@ button.new-maint-btn.secondary { border: 1.5px solid var(--brand); }
   font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
   text-decoration: underline; cursor: pointer;
 }
+
+/* Diagnostica → Parto da un errore (riorganizzazione Errori/Logica) */
+.diag-search { margin: 4px 0 10px; }
+#diagErrorResults { margin-bottom: 18px; }
+#diagErrorResults .relation-block.diag-error-hits { margin-top: 0; padding-top: 0; border-top: none; }
+.diag-error-hits > .relation-label { display: none; }
+.diag-error-hits .relation-link .rel-text { font-weight: 400; line-height: 1.45; }
+.diag-error-hits .relation-link .row-code { font-weight: 700; }
+#diagStartView .sub-heading { margin-top: 18px; }
+/* Lista Errori: righe che aprono la scheda (niente apertura a fisarmonica) */
+#errorList .param-question { cursor: pointer; }
+#errorList .chev-right { transform: none !important; }

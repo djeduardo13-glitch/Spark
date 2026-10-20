@@ -147,10 +147,6 @@
             <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg></span>
             <span data-i18n="sim_mode_errors">Errori</span>
           </button>
-          <button class="sim-mode-pill" data-sim-mode="sequence">
-            <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
-            <span data-i18n="sim_mode_sequence">Logica di funzionamento</span>
-          </button>
           <button class="sim-mode-pill" data-sim-mode="diagnostic">
             <span class="sim-mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
             <span data-i18n="sim_mode_diagnostic">Diagnostica</span>
@@ -206,7 +202,7 @@
 
         <!-- Modalità: Errori -->
         <div id="simErrorsMode" style="display:none;">
-          <p class="map-intro" data-i18n="errors_intro">Codici di errore/allarme del sistema, tradotti in italiano. Cerca per codice o per parola.</p>
+          <p class="map-intro" data-i18n="errors_intro">Codici di errore/allarme del sistema, tradotti in italiano. Tocca un errore per aprire la sua scheda nella Diagnostica.</p>
           <div class="param-list" id="errorList"></div>
         </div>
 
@@ -285,8 +281,30 @@
 
           <!-- 1. Scelta Carico / Scarico -->
           <div id="diagStartView">
-            <p class="map-intro" data-i18n="diag_intro">Scegli la sequenza in cui si verifica il problema, poi il passaggio: vedrai cosa dovrebbe succedere, quali componenti intervengono e quali parametri sono collegati.</p>
+            <p class="map-intro" data-i18n="diag_intro">Parti dal codice errore segnalato oppure dal passaggio del ciclo in cui si verifica il problema.</p>
+
+            <h3 class="sub-heading" data-i18n="diag_from_error">Parto da un errore</h3>
+            <div class="search-box diag-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="text" id="diagErrorSearch" data-i18n-placeholder="diag_error_search_placeholder" placeholder="Codice o parola (es. L200)" autocomplete="off">
+            </div>
+            <div id="diagErrorResults"></div>
+
+            <h3 class="sub-heading" data-i18n="diag_from_step">Parto da un passaggio</h3>
             <div id="diagTypeTiles"></div>
+          </div>
+
+          <!-- Scheda errore -->
+          <div id="diagErrorView" style="display:none;">
+            <button class="back-to-list-btn" id="diagErrorBackBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+              <span data-i18n="diag_back">Indietro</span>
+            </button>
+            <div class="view-header">
+              <h2 id="diagErrorTitle"></h2>
+              <p id="diagErrorSub"></p>
+            </div>
+            <div id="diagErrorFields"></div>
           </div>
 
           <!-- 2. Elenco passaggi -->

@@ -80,11 +80,9 @@ function applyRoute(route) {
       else if (d.type === "fwtable") openFwTable();
       else if (d.type === "diaglist") openDiagList(d.id);
       else if (d.type === "diagstep") openDiagStep(d.id);
-      else if (d.type === "sequence") {
-        const step = OPERATION_SEQUENCE.find(s => s.id === d.id);
-        if (step) syncSequenceType(step.tipo);
-        openSequenceDetail(d.id);
-      }
+      else if (d.type === "diagerror") openDiagError(d.id);
+      // Logica di funzionamento unita alla Diagnostica: vecchie voci di cronologia
+      else if (d.type === "sequence") openDiagStep(d.id);
     }
   } finally {
     nav.applying = false;
@@ -852,6 +850,8 @@ function updateSimulatorAvailability() {
 Object.assign(state, { simMode: "panel", mapViewIndex: 0 });
 
 function switchSimMode(mode) {
+  // La Logica di funzionamento è stata unita alla Diagnostica
+  if (mode === "sequence") mode = "diagnostic";
   state.simMode = mode;
   scheduleHistorySync();
   // La Mappa è una sotto-sezione di Componenti
@@ -1041,35 +1041,22 @@ function renderErrors(filterText) {
     list.appendChild(block);
 
     group.forEach(er => {
+      // Errori = ricerca: la riga apre la scheda dell'errore nella Diagnostica
       const row = document.createElement("div");
       row.className = "param-row";
       row.dataset.errorCode = er.code;
       row.innerHTML = `
-        <button class="param-question">
+        <button class="param-question" type="button">
           <span class="param-q-left">
             <span class="error-headline"><span class="param-name error-code">${er.code}</span><span class="error-sep"> — </span><span class="error-desc">${er.text}</span></span>
           </span>
-          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          <svg class="chev chev-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
         </button>
-        <div class="param-answer"></div>
       `;
-      row.querySelector(".param-answer").appendChild(buildRelationBlock(
-        dict.relation_components_title,
-        getErrorComponents(er.code).map(id => ({
-          code: id,
-          name: displayName(UTENZE[id] || id),
-          onClick: () => goToComponent(id)
-        })),
-        dict.relation_no_components,
-        "list"
-      ));
-      buildErrorDiagnosticBlocks(er.code).forEach(b => row.querySelector(".param-answer").appendChild(b));
+      row.querySelector(".param-question").addEventListener("click", () => goToError(er.code));
       block.appendChild(row);
     });
   });
-  /* bindAccordion agisce su tutte le righe della lista (anche tra sezioni
-     diverse): aprendo un errore si chiude quello aperto prima. */
-  bindAccordion(list, ".param-row", ".param-question");
 }
 
 
@@ -1242,6 +1229,12 @@ function buildRelationBlock(title, items, emptyText, mode) {
 
 /* Apre un errore nella schermata Errori (un solo dettaglio aperto). */
 function goToError(code) {
+  // Errori = ricerca; la scheda dell'errore è nella Diagnostica
+  switchSimMode("diagnostic");
+  openDiagError(code);
+}
+
+function goToErrorRowLegacy(code) {
   const search = document.getElementById("errorSearch");
   if (search) search.value = "";
   switchSimMode("errors");
@@ -1312,6 +1305,11 @@ function syncSequenceType(tipo) {
 }
 
 function goToSequenceStep(stepId) {
+  // Logica di funzionamento unita alla Diagnostica: un solo posto per ogni passaggio
+  return goToDiagStep(stepId);
+}
+
+function goToSequenceStepLegacy(stepId) {
   const step = OPERATION_SEQUENCE.find(s => s.id === stepId);
   if (!step) return;
   switchSimMode("sequence");
@@ -1398,6 +1396,7 @@ function diagTypeLabel(tipo) {
 
 function diagShowView(which) {
   document.getElementById("diagStartView").style.display = which === "start" ? "block" : "none";
+  document.getElementById("diagErrorView").style.display = which === "error" ? "block" : "none";
   document.getElementById("diagListView").style.display = which === "list" ? "block" : "none";
   document.getElementById("diagStepView").style.display = which === "step" ? "block" : "none";
 }
@@ -1566,8 +1565,70 @@ function closeDiagStep() {
 function closeDiagnostic() {
   state.diagType = null;
   diagShowView("start");
-  if (state.detail && (state.detail.type === "diaglist" || state.detail.type === "diagstep")) state.detail = null;
+  if (state.detail && ["diaglist", "diagstep", "diagerror"].includes(state.detail.type)) state.detail = null;
 }
+
+/* ---------------------------------------------------------------------
+   DIAGNOSTICA → PARTO DA UN ERRORE
+   Ricerca per codice o parola e scheda dell'errore: componenti
+   (ERROR_COMPONENTS) + relazioni validate (ERROR_DIAGNOSTICS).
+   È l'unica scheda dell'errore nell'app: ci portano la lista Errori,
+   la ricerca globale, la scheda componente e i passaggi.
+   ------------------------------------------------------------------- */
+function renderDiagErrorResults() {
+  const dict = I18N[state.lang] || I18N.it;
+  const box = document.getElementById("diagErrorResults");
+  const q = document.getElementById("diagErrorSearch").value.trim().toLowerCase();
+  box.innerHTML = "";
+  if (!q) return;
+  const hits = ERRORS.filter(er => er.code.toLowerCase().includes(q) || er.text.toLowerCase().includes(q)).slice(0, 12);
+  if (!hits.length) {
+    const none = document.createElement("p");
+    none.className = "relation-none";
+    none.textContent = dict.diag_error_no_results;
+    box.appendChild(none);
+    return;
+  }
+  const list = buildRelationBlock("", hits.map(er => ({ code: er.code, name: er.text, onClick: () => openDiagError(er.code) })), "", "list");
+  list.classList.add("diag-error-hits");
+  box.appendChild(list);
+}
+
+function openDiagError(code) {
+  const er = ERRORS.find(e => e.code === code);
+  if (!er) return;
+  const dict = I18N[state.lang] || I18N.it;
+  document.getElementById("diagErrorTitle").textContent = er.code;
+  document.getElementById("diagErrorSub").textContent = er.catLabel || "";
+  const fields = document.getElementById("diagErrorFields");
+  fields.innerHTML = `<div class="component-field"><span class="component-field-value">${er.text}</span></div>`;
+  fields.appendChild(buildRelationBlock(
+    dict.relation_components_title,
+    getErrorComponents(er.code).map(id => ({ code: id, name: displayName(UTENZE[id] || id), onClick: () => goToComponent(id) })),
+    dict.relation_no_components,
+    "list"
+  ));
+  buildErrorDiagnosticBlocks(er.code).forEach(b => fields.appendChild(b));
+  diagShowView("error");
+  diagScrollTop();
+  state.detail = { type: "diagerror", id: code };
+  scheduleHistorySync();
+}
+
+function closeDiagError() {
+  diagShowView(state.diagType ? "list" : "start");
+  if (state.detail && state.detail.type === "diagerror") {
+    state.detail = state.diagType ? { type: "diaglist", id: state.diagType } : null;
+  }
+  scheduleHistorySync();
+}
+
+document.getElementById("diagErrorSearch").addEventListener("input", renderDiagErrorResults);
+// "Indietro": torna da dove si è arrivati (Errori, componente, passaggio…)
+document.getElementById("diagErrorBackBtn").addEventListener("click", () => {
+  if (history.state && history.state.prev) history.back();
+  else closeDiagError();
+});
 
 document.getElementById("diagListBackBtn").addEventListener("click", () => navBack(closeDiagList));
 document.getElementById("diagStepBackBtn").addEventListener("click", () => navBack(closeDiagStep));
