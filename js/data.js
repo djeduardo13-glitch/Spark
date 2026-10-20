@@ -1276,6 +1276,105 @@ const PROCEDURES = [
         img: "assets/manutenzione/altezza-carico/step10.jpg"
       }
     ]
+  },
+  {
+    id: "calibrazione-zero",
+    category: "calibrazioni",
+    title: "Calibrazione dello zero",
+    source: "Foglio_istruzioni_0_macchina.docx (Calibrazione dello zero, Rev.00). Nel documento manca il passo 15: qui i passi 16–19 diventano 15–18.",
+    intro: "Come fare lo zero di gambe e ruote dello Spark dalla schermata di calibrazione e salvare i nuovi valori.",
+    steps: [
+      {
+        title: "Regola l'altezza",
+        detail: "Per effettuare lo zero dello Spark premere contemporaneamente i sensori uomo e regolare l'altezza tramite la levetta SU/GIÙ.",
+        img: "assets/manutenzione/calibrazione-zero/step1.jpg"
+      },
+      {
+        title: "Abbassa il piano",
+        detail: "Abbassare completamente il piano dello Spark.",
+        img: "assets/manutenzione/calibrazione-zero/step2.jpg"
+      },
+      {
+        title: "Apri le impostazioni",
+        detail: "Premere sul display l'icona delle impostazioni.",
+        img: "assets/manutenzione/calibrazione-zero/step3.jpg"
+      },
+      {
+        title: "Accedi con il PIN",
+        detail: "Inserire il PIN di accesso (151010) e premere l'icona di conferma.",
+        img: "assets/manutenzione/calibrazione-zero/step4.jpg"
+      },
+      {
+        title: "Vai alla schermata home",
+        detail: "Nella schermata dei parametri premere sull'icona casa.",
+        img: "assets/manutenzione/calibrazione-zero/step5.jpg"
+      },
+      {
+        title: "Apri la calibrazione",
+        detail: "Nella schermata home premere sull'icona di misura (compasso).",
+        img: "assets/manutenzione/calibrazione-zero/step6.jpg"
+      },
+      {
+        title: "Schermata di calibrazione",
+        detail: "Si apre la schermata di calibrazione, dove è possibile fare lo zero di ogni singola parte dello Spark: le quattro ruote, la zona testa e quella delle gambe.",
+        img: "assets/manutenzione/calibrazione-zero/step7.jpg"
+      },
+      {
+        title: "Zero gambe lato testa",
+        detail: "Per fare lo zero delle gambe lato testa selezionare l'icona del busto e tenere premuto l'icona della freccia rivolta verso il basso. Un segnale acustico indicherà che è stato raggiunto lo zero. A questo punto rilasciare l'icona della freccia e deselezionare l'icona del busto.",
+        img: "assets/manutenzione/calibrazione-zero/step8.jpg"
+      },
+      {
+        title: "Zero gambe lato piedi",
+        detail: "Per fare lo zero delle gambe lato piedi selezionare l'icona delle gambe e tenere premuto l'icona della freccia rivolta verso il basso. Un segnale acustico indicherà che è stato raggiunto lo zero. A questo punto rilasciare l'icona della freccia e deselezionare l'icona delle gambe.",
+        img: "assets/manutenzione/calibrazione-zero/step9.jpg"
+      },
+      {
+        title: "Zero ruota destra lato piedi",
+        detail: "Per fare lo zero della ruota destra lato piedi selezionare l'icona della ruota e tenere premuto l'icona della freccia rivolta verso il basso. Un segnale acustico indicherà che è stato raggiunto lo zero. A questo punto rilasciare l'icona della freccia e deselezionare l'icona della ruota.",
+        img: "assets/manutenzione/calibrazione-zero/step10.jpg"
+      },
+      {
+        title: "Zero ruota sinistra lato piedi",
+        detail: "Per fare lo zero della ruota sinistra lato piedi selezionare l'icona della ruota e tenere premuto l'icona della freccia rivolta verso il basso. Un segnale acustico indicherà che è stato raggiunto lo zero. A questo punto rilasciare l'icona della freccia e deselezionare l'icona della ruota.",
+        img: "assets/manutenzione/calibrazione-zero/step11.jpg"
+      },
+      {
+        title: "Zero ruota sinistra lato testa",
+        detail: "Per fare lo zero della ruota sinistra lato testa selezionare l'icona della ruota e tenere premuto l'icona della freccia rivolta verso il basso. Un segnale acustico indicherà che è stato raggiunto lo zero. A questo punto rilasciare l'icona della freccia e deselezionare l'icona della ruota.",
+        img: "assets/manutenzione/calibrazione-zero/step12.jpg"
+      },
+      {
+        title: "Zero ruota destra lato testa",
+        detail: "Per fare lo zero della ruota destra lato testa selezionare l'icona della ruota e tenere premuto l'icona della freccia rivolta verso il basso. Un segnale acustico indicherà che è stato raggiunto lo zero. A questo punto rilasciare l'icona della freccia e deselezionare l'icona della ruota.",
+        img: "assets/manutenzione/calibrazione-zero/step13.jpg"
+      },
+      {
+        title: "Salva i nuovi valori",
+        detail: "Una volta fatto lo zero di ogni singolo componente dello Spark, per salvare i nuovi parametri deselezionare ogni icona e tenere premuto sull'icona di misura (compasso).",
+        img: "assets/manutenzione/calibrazione-zero/step14.jpg"
+      },
+      {
+        title: "Torna alla schermata principale",
+        detail: "Per tornare alla schermata principale premere sull'icona home.",
+        img: "assets/manutenzione/calibrazione-zero/step15.jpg"
+      },
+      {
+        title: "Apri la schermata ambulanza",
+        detail: "Premere sull'icona dell'ambulanza.",
+        img: "assets/manutenzione/calibrazione-zero/step16.jpg"
+      },
+      {
+        title: "Torna ai parametri",
+        detail: "Premere sull'icona dell'ingranaggio.",
+        img: "assets/manutenzione/calibrazione-zero/step17.jpg"
+      },
+      {
+        title: "Esci dal menu Parametri",
+        detail: "Infine premere sull'icona della freccia.",
+        img: "assets/manutenzione/calibrazione-zero/step18.jpg"
+      }
+    ]
   }
 ];
 
