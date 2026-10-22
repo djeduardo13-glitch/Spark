@@ -129,7 +129,7 @@ const MENU_LEGEND = [
   { id: "wp-fc2", category: "work-panel", label: "FC_2", unit: "On/off", min: null, max: null, meaning: "Micro finecorsa verticale.", fw: null },
   { id: "wp-l1", category: "work-panel", label: "L_1", unit: "On/off", min: null, max: null, meaning: "Fotocellula presenza piano.", fw: null },
   { id: "wp-l2", category: "work-panel", label: "L_2", unit: "On/off", min: null, max: null, meaning: "Fotocellula catarifrangente slitta.", fw: null },
-  { id: "wp-cs1", category: "work-panel", label: "CS_1", unit: "On/off", min: null, max: null, meaning: "Costa sensibile DX e SX.", fw: null },
+  { id: "wp-cs1", category: "work-panel", label: "CS_1", unit: "On/off", min: null, max: null, meaning: "Coste sensibili CS_1 e CS_2 (in serie: un solo ingresso).", fw: null },
   { id: "wp-c2", category: "work-panel", label: "C_2", unit: "On/off", min: null, max: null, meaning: "Thumbwheel.", fw: null },
   { id: "wp-c3", category: "work-panel", label: "C_3", unit: "On/off", min: null, max: null, meaning: "Pulsante carico.", fw: null },
   { id: "wp-c4", category: "work-panel", label: "C_4", unit: "On/off", min: null, max: null, meaning: "Pulsante scarico.", fw: null },
@@ -230,7 +230,8 @@ const UTENZE = {
   C_2:  "THUMBWHEEL",
   C_3:  "PULSANTE - CARICO",
   C_4:  "PULSANTE - SCARICO",
-  CS_1: "COSTA SENSIBILE DX e SX",
+  CS_1: "COSTA SENSIBILE 1",
+  CS_2: "COSTA SENSIBILE 2",
   EV_1: "ELETTROVALVOLA LATO DX (GAMBA PIEDI)",
   EV_2: "ELETTROVALVOLA LATO SX (GAMBA TESTA)",
   M_5:  "MOTORE BRUSHLESS GAMBE POSTERIORI (POS. ANTERIORE)",
@@ -275,12 +276,31 @@ const SENSOR_DETAILS = {
   E_4: { tipo: "Scheda elettronica", codiceScheda: "DIS0016079" },
   E_5: { tipo: "Scheda elettronica", codiceScheda: "DIS0018007" },
   E_8: { tipo: "Scheda elettronica", codiceScheda: "DIS0020986" },
-  R_1: { cavo: "DIS0019098 - Reed 1", tipo: "Magnetico", intro: "Segnala che la sfera è posizionata correttamente all'interno della slitta superiore del rostro.", bullets: ["Consenso discesa: autorizza lo SPARK ad abbassarsi fino a raggiungere FC_1.", "Vincolo di sicurezza: se R_1 si disattiva in qualsiasi posizione del carico (a causa dell'allontanamento del magnete dalla slitta superiore), interrompe immediatamente qualsiasi operazione in corso."], dove: "Scheda Rostro - DIS0018007" },
-  R_2: { cavo: "DIS0019099 - Reed 2", tipo: "Magnetico", intro: "Segnala che i ganci 10G (sistema di aggancio lato rostro) sono correttamente chiusi e impegnati.", bullets: ["Display: quando attivo, compare il lucchetto verde \"10G\" sull'HMI.", "Logica stati: atteso nello stato L_W_SLED_POS_3 (attesa reed 2 attivo – ganci 10G) durante il ciclo di carico."], dove: "Scheda Rostro - DIS0018007" },
-  R_3: { cavo: "DIS0019098", tipo: "Magnetico", intro: "Segnala che entrambi i ganci dedicati al vincolo del barellino sono correttamente chiusi.", bullets: ["Display: quando entrambi i reed R_3 sono attivi, si attiva il lucchetto verde del barellino sull'HMI"], dove: "Scheda Gateway - DIS0020986" },
-  FC_1: { cavo: "DIS0019100 - Fine corsa 1", tipo: "Meccanico", intro: "Segnala che lo SPARK si è abbassato fino a raggiungere la posizione orizzontale desiderata per iniziare la fase di carico.", bullets: ["Logica stati: è il target di discesa durante L_W_LINK_TOUCH_H (attesa pressione switch orizzontale). Una volta premuto, la macchina procede alla discesa verticale verso FC_2."], dove: "Scheda Rostro - DIS0018007" },
-  FC_2: { cavo: "DIS0019101- Fine corsa 2", tipo: "Meccanico", intro: "Segnala che lo SPARK ha raggiunto il fine corsa meccanico verticale.", bullets: ["Consenso discesa verso R_1: una volta attivato FC_2, la macchina ha il consenso per abbassarsi ulteriormente fino a sentire R_1.", "Logica stati: è il target di discesa durante L_W_LINK_TOUCH_V (scende automaticamente fino alla pressione switch verticale)."], dove: "Scheda Rostro - DIS0018007" },
-  L_1: { cavo: "DIS0019382", tipo: "Laser ON - OFF", intro: "Fotocellula di presenza piano: rileva la presenza della slitta intermedia nella zona del rostro.", bullets: ["Quando rileva la slitta, disattiva il servomotore AT_1 (sblocco slitta – perni verticali).", "Logica stati: durante L_W_SLED_POS_1 la macchina attende che L_1 venga disattivato (slitta non più rilevata) per poi procedere a disattivare i perni verticali. Durante U_W_POS_1 attende che L_1 sia disattivato per passare alla discesa gambe lato testa."], dove: "Scheda Rostro - DIS0018007", modello: "FT 25-RHD-PNS-M4M", codice: "SENDISLAS", badge: "PNP · N.O.",
+  R_1: { cavo: "DIS0019026 - Rostro Spark", modello: "ELOBAU 133 210", codice: "SENMAG133210", cablato: "DIS0019098 - Reed sfera", dove: "Scheda Rostro - DIS0018007", tipo: "Magnetico", intro: "Segnala che la sfera è posizionata correttamente all'interno della slitta superiore del rostro.", bullets: ["Consenso discesa: autorizza lo SPARK ad abbassarsi fino a raggiungere FC_1.", "Vincolo di sicurezza: se R_1 si disattiva in qualsiasi posizione del carico (a causa dell'allontanamento del magnete dalla slitta superiore), interrompe immediatamente qualsiasi operazione in corso."],
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X09 · Reed sfera", pin: [["1", "BN", "X01/24", "", ""], ["2", "WH", "X01/12", "", ""]] }
+    ] },
+  R_2: { cavo: "DIS0019026 - Rostro Spark", modello: "ELOBAU 133 210 (2 reed in serie)", codice: "SENMAG133210", cablato: "DIS0019099 - Reed slitta", dove: "Scheda Rostro - DIS0018007", tipo: "Magnetico", intro: "Segnala che i ganci 10G (sistema di aggancio lato rostro) sono correttamente chiusi e impegnati.", bullets: ["Display: quando attivo, compare il lucchetto verde \"10G\" sull'HMI.", "Logica stati: atteso nello stato L_W_SLED_POS_3 (attesa reed 2 attivo – ganci 10G) durante il ciclo di carico."],
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X10 · Reed slitta", pin: [["1", "BN", "X01/23", "", ""], ["2", "WH", "X10/3", "", ""], ["3", "WH", "X10/2", "", ""], ["4", "WH", "X01/11", "", ""]] }
+    ] },
+  R_3: { cavo: "DIS0021421 - Gateway Spark", modello: "ELOBAU 133 210", codice: "SENMAG133210", cablato: "DIS0019098 - Reed (uno per gancio)", dove: "Scheda Gateway - DIS0020986", tipo: "Magnetico", intro: "Segnala che entrambi i ganci dedicati al vincolo del barellino sono correttamente chiusi.", bullets: ["Display: quando entrambi i reed R_3 sono attivi, si attiva il lucchetto verde del barellino sull'HMI"],
+    collegamenti: [
+      { cavo: "DIS0021421 - Gateway Spark", connettore: "X03 · Reed barellino 1", pin: [["1", "BN", "X01/36", "", ""], ["2", "WH", "X01/4", "", ""]] },
+      { cavo: "DIS0021421 - Gateway Spark", connettore: "X04 · Reed barellino 2", pin: [["1", "BN", "X01/24", "", ""], ["2", "WH", "X01/5", "", ""]] }
+    ] },
+  FC_1: { cavo: "DIS0019026 - Rostro Spark", modello: "PANASONIC ABV1610403", codice: "MICINT3A250V", cablato: "DIS0019100 - Finecorsa orizzontale", dove: "Scheda Rostro - DIS0018007", tipo: "Meccanico", intro: "Segnala che lo SPARK si è abbassato fino a raggiungere la posizione orizzontale desiderata per iniziare la fase di carico.", bullets: ["Logica stati: è il target di discesa durante L_W_LINK_TOUCH_H (attesa pressione switch orizzontale). Una volta premuto, la macchina procede alla discesa verticale verso FC_2."],
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X11 · Finecorsa orizzontale", pin: [["1", "WH", "X01/19", "", ""], ["2", "BK", "X01/7", "", ""]] }
+    ] },
+  FC_2: { cavo: "DIS0019026 - Rostro Spark", modello: "PANASONIC ABV1610403", codice: "MICINT3A250V", cablato: "DIS0019101 - Finecorsa verticale", dove: "Scheda Rostro - DIS0018007", tipo: "Meccanico", intro: "Segnala che lo SPARK ha raggiunto il fine corsa meccanico verticale.", bullets: ["Consenso discesa verso R_1: una volta attivato FC_2, la macchina ha il consenso per abbassarsi ulteriormente fino a sentire R_1.", "Logica stati: è il target di discesa durante L_W_LINK_TOUCH_V (scende automaticamente fino alla pressione switch verticale)."],
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X12 · Finecorsa verticale", pin: [["1", "WH", "X01/29", "", ""], ["2", "BK", "X01/17", "", ""]] }
+    ] },
+  L_1: { cavo: "DIS0019026 - Rostro Spark", cablato: "DIS0019382 - Prolunga laser L_1", dove: "Scheda Rostro - DIS0018007", tipo: "Laser ON - OFF", intro: "Fotocellula di presenza piano: rileva la presenza della slitta intermedia nella zona del rostro.", bullets: ["Quando rileva la slitta, disattiva il servomotore AT_1 (sblocco slitta – perni verticali).", "Logica stati: durante L_W_SLED_POS_1 la macchina attende che L_1 venga disattivato (slitta non più rilevata) per poi procedere a disattivare i perni verticali. Durante U_W_POS_1 attende che L_1 sia disattivato per passare alla discesa gambe lato testa."], modello: "FT 25-RHD-PNS-M4M", codice: "SENDISLAS", badge: "PNP · N.O.",
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X06 · Laser 1", pin: [["1", "BN", "X01/27", "+UB", ""], ["3", "BU", "X01/4", "0 V", ""], ["4", "BK", "X01/15", "Q (uscita)", ""]] }
+    ],
     configurazione: [
       { passo: "J", titolo: "Uscita N.O. / N.C.", valore: "N.O.", led: [{ colore: "verde", stato: "lampeggia" }, { colore: "giallo", stato: "acceso" }] },
       { passo: "L", titolo: "Auto-Detect / NPN / PNP", valore: "PNP", led: [{ colore: "giallo", stato: "lampeggia" }] }
@@ -291,7 +311,10 @@ const SENSOR_DETAILS = {
       "scarico-07": { cosa: "Rileva l'estrazione della slitta A → perni verticali a riposo", dettaglio: "Stato <code>U_W_POS_1</code>: attende L_1 disattivo, poi discesa gambe lato testa." }
     },
     allegati: [{ title: "Scheda tecnica SensoPart FT 25-RHD-PNS-M4M (SENDISLAS)", url: "assets/docs/componenti/L_1_SENDISLAS_FT25-RHD-PNS-M4M.pdf" }] },
-  L_2: { cavo: "DIS0019026", tipo: "Laser sensore striscia", intro: "Fotocellula catarifrangente per rilevamento della striscia riflettente sulla slitta.", bullets: ["In fase di CARICO: quando viene impegnato dalla striscia, comanda il sollevamento delle gambe lato piedi.", "In fase di SCARICO: quando il segnale della striscia non è più rilevato, comanda l'abbassamento delle gambe lato piedi.", "Logica stati: durante L_W_SLED_POS_2 la macchina attende che L_2 venga attivato per procedere al sollevamento gambe lato piedi (L_W_F_LEG_UP). Durante U_W_POS_2 attende che L_2 venga attivato prima di attivare la discesa gambe lato piedi."], dove: "Scheda Rostro - DIS0018007", modello: "FR 25-R-PNS-M4M", codice: "ESENS0003", badge: "N.C.",
+  L_2: { cavo: "DIS0019026 - Rostro Spark", cablato: "Diretto (connettore M8)", dove: "Scheda Rostro - DIS0018007", tipo: "Laser sensore striscia", intro: "Fotocellula catarifrangente per rilevamento della striscia riflettente sulla slitta.", bullets: ["In fase di CARICO: quando viene impegnato dalla striscia, comanda il sollevamento delle gambe lato piedi.", "In fase di SCARICO: quando il segnale della striscia non è più rilevato, comanda l'abbassamento delle gambe lato piedi.", "Logica stati: durante L_W_SLED_POS_2 la macchina attende che L_2 venga attivato per procedere al sollevamento gambe lato piedi (L_W_F_LEG_UP). Durante U_W_POS_2 attende che L_2 venga attivato prima di attivare la discesa gambe lato piedi."], modello: "FR 25-R-PNS-M4M", codice: "ESENS0003", badge: "N.C.",
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X07 · Laser 2", pin: [["1", "BN", "X01/28", "+UB", ""], ["3", "BU", "X01/5", "0 V", ""], ["4", "BK", "X01/16", "Q (uscita)", ""]] }
+    ],
     configurazione: [
       { passo: "G", titolo: "Uscita N.O. / N.C.", valore: "N.C.", led: [{ colore: "verde", stato: "lampeggia" }, { colore: "giallo", stato: "acceso" }] }
     ],
@@ -303,16 +326,316 @@ const SENSOR_DETAILS = {
       { title: "Istruzione di taratura L_2", url: "assets/docs/componenti/L_2_TARATURA.pdf" },
       { title: "Scheda tecnica SensoPart FR 25-R-PNS-M4M (ESENS0003)", url: "assets/docs/componenti/L_2_ESENS0003_FR25.pdf" }
     ] },
-  L_3: { cavo: "DIS0019383", codice: "SENDISLAS30200", modello: "FT 25-RA-170-PNSUL-M4M", allegati: [{ title: "Scheda tecnica SensoPart FT 25-RA-170-PNSUL-M4M (SENDISLAS30200)", url: "assets/docs/componenti/SENDISLAS30200_FT25-RA-170-PNSUL-M4M.pdf" }],  tipo: "Laser distanza ", intro: "Sensore di distanza per il controllo in continuo dell'allineamento verticale tra la barella e la slitta.", bullets: ["Allineamento: verifica in continuo l'inclinazione della barella rispetto alla slitta e comanda le gambe lato piedi per mantenere l'allineamento.", "Logica stati: attivo durante L_W_ADJ_LVL_LEG_F: la macchina si porta al valore laser impostato come parametro muovendo le gambe lato piedi; una volta allineata registra l'angolo HMI e lo mantiene attivando i perni verticali del rostro."], dove: "Scheda Rostro - DIS0018007" },
-  L_4: { cavo: "DIS0020469", codice: "SENDISLAS30200", modello: "FT 25-RA-170-PNSUL-M4M", allegati: [{ title: "Scheda tecnica SensoPart FT 25-RA-170-PNSUL-M4M (SENDISLAS30200)", url: "assets/docs/componenti/SENDISLAS30200_FT25-RA-170-PNSUL-M4M.pdf" }],  tipo: "Laser distanza ", intro: "Sensore di distanza per il controllo in continuo dell'allineamento orizzontale della barella.", bullets: ["Funzione: verifica che il carico avvenga in modo dritto, controllando l'allineamento orizzontale barella/rostro durante la fase di avvicinamento"], dove: "Scheda Display - DIS0019196" },
-  PO_1: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede Motori DX e SX - DIS0016079" },
-  PO_2: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato SX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede Motori DX e SX - DIS0016079" },
-  PO_3: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede Motori DX e SX - DIS0016079" },
-  PO_4: { cavo: "DIS0019110", tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato SX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."], dove: "Schede Motori DX e SX - DIS0016079" },
-  A_1: { cavo: null, tipo: "Analogico", intro: "Misurano l'angolo delle gambe rispetto al riferimento orizzontale.", bullets: ["Riferimento per i potenziometri: i sensori angolari A_1 e A_2 sono il riferimento principale per l'allineamento piedi/gambe (utilizzati dai potenziometri).", "Logica stati: usati in HEAD_DOWN e FEET_DOWN per determinare quando la gamba raggiunge il punto minimo (angolo = 0); in HORIZONTAL e AUTO_HORIZONTAL per livellare le gambe allo stesso angolo (±1°); in L_W_H_LEG_UP e L_W_RECOVERY_H_LEG per verificare che le gambe lato testa abbiano raggiunto angolo = 0; durante U_W_LEG_DISCH_PRS per verificare che l'angolo sia maggiore dell'angolo di carico."], dove: "Schede Motori DX e SX - DIS0016079" },
-  A_2: { cavo: null, tipo: "Analogico", intro: "Misurano l'angolo delle gambe rispetto al riferimento orizzontale.", bullets: ["Riferimento per i potenziometri: i sensori angolari A_1 e A_2 sono il riferimento principale per l'allineamento piedi/gambe (utilizzati dai potenziometri).", "Logica stati: usati in HEAD_DOWN e FEET_DOWN per determinare quando la gamba raggiunge il punto minimo (angolo = 0); in HORIZONTAL e AUTO_HORIZONTAL per livellare le gambe allo stesso angolo (±1°); in L_W_H_LEG_UP e L_W_RECOVERY_H_LEG per verificare che le gambe lato testa abbiano raggiunto angolo = 0; durante U_W_LEG_DISCH_PRS per verificare che l'angolo sia maggiore dell'angolo di carico."], dove: "Schede Motori DX e SX - DIS0016079" },
-  PR_1: { cavo: null, tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."], dove: "Schede Motori DX e SX - DIS0016079" },
-  PR_2: { cavo: null, tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."], dove: "Schede Motori DX e SX - DIS0016079" },
+  L_3: { cavo: "DIS0019026 - Rostro Spark", cablato: "DIS0019383 - Prolunga laser L_3", dove: "Scheda Rostro - DIS0018007", codice: "SENDISLAS30200", modello: "FT 25-RA-170-PNSUL-M4M", allegati: [{ title: "Scheda tecnica SensoPart FT 25-RA-170-PNSUL-M4M (SENDISLAS30200)", url: "assets/docs/componenti/SENDISLAS30200_FT25-RA-170-PNSUL-M4M.pdf" }],  tipo: "Laser distanza ", intro: "Sensore di distanza per il controllo in continuo dell'allineamento verticale tra la barella e la slitta.", bullets: ["Allineamento: verifica in continuo l'inclinazione della barella rispetto alla slitta e comanda le gambe lato piedi per mantenere l'allineamento.", "Logica stati: attivo durante L_W_ADJ_LVL_LEG_F: la macchina si porta al valore laser impostato come parametro muovendo le gambe lato piedi; una volta allineata registra l'angolo HMI e lo mantiene attivando i perni verticali del rostro."],
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X08 · Laser 3 allineamento verticale", pin: [["1", "BN", "X01/25", "", ""], ["2", "WH", "X01/31", "", ""], ["3", "BU", "X01/30", "", ""]] }
+    ] },
+  L_4: { cavo: "DIS0019025 - Display Spark", cablato: "DIS0020469 - Cablaggio laser + DIS0020468 - Prolunga laser", dove: "Scheda Display - DIS0019196", codice: "SENDISLAS30200", modello: "FT 25-RA-170-PNSUL-M4M", allegati: [{ title: "Scheda tecnica SensoPart FT 25-RA-170-PNSUL-M4M (SENDISLAS30200)", url: "assets/docs/componenti/SENDISLAS30200_FT25-RA-170-PNSUL-M4M.pdf" }],  tipo: "Laser distanza ", intro: "Sensore di distanza per il controllo in continuo dell'allineamento orizzontale della barella.", bullets: ["Funzione: verifica che il carico avvenga in modo dritto, controllando l'allineamento orizzontale barella/rostro durante la fase di avvicinamento"],
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X09 · Laser 4 allineamento orizzontale", pin: [["1", "BN", "X01/10", "", ""], ["2", "WH", "X01/22", "", ""], ["3", "BU", "X01/21", "", ""]] }
+    ] },
+  PO_1: { cavo: "DIS0019029 - Segnali motori Spark", modello: "LEANE SLS095", codice: "POTLIN109", cablato: "DIS0019110 - Potenziometro ruota", dove: "Scheda Motore DX - DIS0016079", allegati: [{ title: "Scheda tecnica potenziometro LEANE SLS095 (POTLIN109)", url: "assets/docs/componenti/POTLIN109.pdf" }, { title: "Potenziometro cablato DIS0019110", url: "assets/docs/componenti/DIS0019110_R01.pdf" }, { title: "Potenziometro cablato regolato DIS0027095", url: "assets/docs/componenti/DIS0027095-R00.pdf" }], tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X04 · Potenziometro ruota piedi", pin: [["1", "RD", "X01/2", "", "in comune con l'Hall del motore"], ["2", "YE", "X01/31", "", ""], ["3", "BK", "X01/32", "", ""]] }
+    ] },
+  PO_2: { cavo: "DIS0019029 - Segnali motori Spark", modello: "LEANE SLS095", codice: "POTLIN109", cablato: "DIS0019110 - Potenziometro ruota", dove: "Scheda Motore SX - DIS0016079", allegati: [{ title: "Scheda tecnica potenziometro LEANE SLS095 (POTLIN109)", url: "assets/docs/componenti/POTLIN109.pdf" }, { title: "Potenziometro cablato DIS0019110", url: "assets/docs/componenti/DIS0019110_R01.pdf" }, { title: "Potenziometro cablato regolato DIS0027095", url: "assets/docs/componenti/DIS0027095-R00.pdf" }], tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato SX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori SX (M_2, M_4) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X04 · Potenziometro ruota piedi", pin: [["1", "RD", "X01/2", "", "in comune con l'Hall del motore"], ["2", "YE", "X01/31", "", ""], ["3", "BK", "X01/32", "", ""]] }
+    ] },
+  PO_3: { cavo: "DIS0019029 - Segnali motori Spark", modello: "LEANE SLS095", codice: "POTLIN109", cablato: "DIS0019110 - Potenziometro ruota", dove: "Scheda Motore DX - DIS0016079", allegati: [{ title: "Scheda tecnica potenziometro LEANE SLS095 (POTLIN109)", url: "assets/docs/componenti/POTLIN109.pdf" }, { title: "Potenziometro cablato DIS0019110", url: "assets/docs/componenti/DIS0019110_R01.pdf" }, { title: "Potenziometro cablato regolato DIS0027095", url: "assets/docs/componenti/DIS0027095-R00.pdf" }], tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato DX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori DX (M_1, M_3) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X07 · Potenziometro ruota testa", pin: [["1", "RD", "X01/11", "", "in comune con l'Hall del motore"], ["2", "YE", "X01/16", "", ""], ["3", "BK", "X01/17", "", ""]] }
+    ] },
+  PO_4: { cavo: "DIS0019029 - Segnali motori Spark", modello: "LEANE SLS095", codice: "POTLIN109", cablato: "DIS0019110 - Potenziometro ruota", dove: "Scheda Motore SX - DIS0016079", allegati: [{ title: "Scheda tecnica potenziometro LEANE SLS095 (POTLIN109)", url: "assets/docs/componenti/POTLIN109.pdf" }, { title: "Potenziometro cablato DIS0019110", url: "assets/docs/componenti/DIS0019110_R01.pdf" }, { title: "Potenziometro cablato regolato DIS0027095", url: "assets/docs/componenti/DIS0027095-R00.pdf" }], tipo: "Potenziometro lineare", intro: "Misurano la posizione angolare del piede rispetto alla gamba sul lato SX.", bullets: ["Riferimento: i potenziometri prendono riferimento dal sensore angolare (A_1 e A_2) presente nelle gambe per garantire l'allineamento piedi/gambe.", "Utilizzo: la posizione letta dai potenziometri è usata dal controllo motori SX (M_2, M_4) per il posizionamento preciso dei piedi durante tutte le fasi di carico/scarico e orizzontalizzazione."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X07 · Potenziometro ruota testa", pin: [["1", "RD", "X01/11", "", "in comune con l'Hall del motore"], ["2", "YE", "X01/16", "", ""], ["3", "BK", "X01/17", "", ""]] }
+    ] },
+  A_1: { cavo: "DIS0019029 - Segnali motori Spark", modello: "NOVOTECHNIK RFD-4201-609-211-401", cablato: "DIS0022576 - Sensore angolare", dove: "Scheda Motore DX - DIS0016079", tipo: "Analogico", intro: "Misurano l'angolo delle gambe rispetto al riferimento orizzontale.", bullets: ["Riferimento per i potenziometri: i sensori angolari A_1 e A_2 sono il riferimento principale per l'allineamento piedi/gambe (utilizzati dai potenziometri).", "Logica stati: usati in HEAD_DOWN e FEET_DOWN per determinare quando la gamba raggiunge il punto minimo (angolo = 0); in HORIZONTAL e AUTO_HORIZONTAL per livellare le gambe allo stesso angolo (±1°); in L_W_H_LEG_UP e L_W_RECOVERY_H_LEG per verificare che le gambe lato testa abbiano raggiunto angolo = 0; durante U_W_LEG_DISCH_PRS per verificare che l'angolo sia maggiore dell'angolo di carico."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X09 · Sensore gamba", pin: [["1", "RD", "X01/25", "", ""], ["2", "WH", "X01/27", "", ""], ["3", "BK", "X01/26", "", ""]] }
+    ] },
+  A_2: { cavo: "DIS0019029 - Segnali motori Spark", modello: "NOVOTECHNIK RFD-4201-609-211-401", cablato: "DIS0022576 - Sensore angolare", dove: "Scheda Motore SX - DIS0016079", tipo: "Analogico", intro: "Misurano l'angolo delle gambe rispetto al riferimento orizzontale.", bullets: ["Riferimento per i potenziometri: i sensori angolari A_1 e A_2 sono il riferimento principale per l'allineamento piedi/gambe (utilizzati dai potenziometri).", "Logica stati: usati in HEAD_DOWN e FEET_DOWN per determinare quando la gamba raggiunge il punto minimo (angolo = 0); in HORIZONTAL e AUTO_HORIZONTAL per livellare le gambe allo stesso angolo (±1°); in L_W_H_LEG_UP e L_W_RECOVERY_H_LEG per verificare che le gambe lato testa abbiano raggiunto angolo = 0; durante U_W_LEG_DISCH_PRS per verificare che l'angolo sia maggiore dell'angolo di carico."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X09 · Sensore gamba", pin: [["1", "RD", "X01/25", "", ""], ["2", "WH", "X01/27", "", ""], ["3", "BK", "X01/26", "", ""]] }
+    ] },
+  PR_1: { cavo: "DIS0019029 - Segnali motori Spark", modello: "PT1200 2-150 bar", codice: "SENPRES1200", cablato: "Diretto (connettore M12)", dove: "Scheda Motore DX - DIS0016079", tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X10 · Sensore pressione", pin: [["1", "BN", "X01/28", "", ""], ["2", "WH", "X01/29", "", "in comune"], ["3", "BU", "X01/29", "", "in comune"], ["4", "BK", "X01/30", "", ""]] }
+    ] },
+  PR_2: { cavo: "DIS0019029 - Segnali motori Spark", modello: "PT1200 2-150 bar", codice: "SENPRES1200", cablato: "Diretto (connettore M12)", dove: "Scheda Motore SX - DIS0016079", tipo: "Analogico", intro: "Misurano la pressione idraulica nel sistema delle gambe.", bullets: ["Logica stati: durante U_W_LEG_DISCH_PRS la macchina attende che la pressione superi 10 bar (e che l'angolo superi la soglia prevista) per confermare il contatto con il piano e procedere alla registrazione dell'angolo di inclinazione della slitta.", "Controllo in U_W_DIS_LINK: verifica che la pressione sia maggiore di un valore X prima di procedere allo sgancio della slitta.", "Avvio controllo pressione: si attiva all'inizio di U_W_LEG_DWN_F."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X10 · Sensore pressione", pin: [["1", "BN", "X01/28", "", ""], ["2", "WH", "X01/29", "", "in comune"], ["3", "BU", "X01/29", "", "in comune"], ["4", "BK", "X01/30", "", ""]] }
+    ] },
+  /* --- Collegamenti elettrici dallo schema SE_Spark_Layout_R01 (22/10/2026) --- */
+  C_1: { cavo: "DIS0019025 - Display Spark",
+    codice: "DIS0016201",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Display dell'HMI: mostra lo stato dello SPARK e permette di usare i menu." },
+  C_2: { cavo: "DIS0019025 - Display Spark",
+    modello: "ELOBAU 175DT0B0OR10",
+    codice: "EPULS175",
+    cablato: "DIS0019092 - Thumbwheel",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Rotella per regolare la salita e la discesa della barella.",
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X08 · Thumbwheel", pin: [["1", "RD", "X01/24", "", "in comune con la costa sensibile"], ["2", "BN", "X01/19", "", ""], ["3", "WH", "X01/35", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica ELOBAU Thumbwheel 175D (EPULS175)", url: "assets/docs/componenti/EPULS175.pdf" }] },
+  C_3: { cavo: "DIS0019025 - Display Spark",
+    modello: "ELOBAU 145NTG10SW19",
+    codice: "EPULS145",
+    cablato: "DIS0019087 - Pulsante Spark",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Pulsante per gestire il ciclo di carico della barella: va tenuto premuto per tutta l'operazione.",
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X06 · Pulsante carico", pin: [["1", "RD", "X01/2", "", ""], ["2", "BN", "X01/4", "", ""], ["3", "OG", "X01/3", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica pulsante ELOBAU 145 (EPULS145)", url: "assets/docs/componenti/EPULS145.pdf" }, { title: "Pulsante cablato DIS0019087", url: "assets/docs/componenti/DIS0019087_R01.pdf" }] },
+  C_4: { cavo: "DIS0019025 - Display Spark",
+    modello: "ELOBAU 145NTG10SW19",
+    codice: "EPULS145",
+    cablato: "DIS0019087 - Pulsante Spark",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Pulsante per gestire il ciclo di scarico della barella: va tenuto premuto per tutta l'operazione.",
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X07 · Pulsante scarico", pin: [["1", "RD", "X01/6", "", ""], ["2", "BN", "X01/8", "", ""], ["3", "OG", "X01/7", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica pulsante ELOBAU 145 (EPULS145)", url: "assets/docs/componenti/EPULS145.pdf" }, { title: "Pulsante cablato DIS0019087", url: "assets/docs/componenti/DIS0019087_R01.pdf" }] },
+  C_5: { cavo: "DIS0019025 - Display Spark",
+    modello: "AMS VICAM-AMS-MICRO-CAM-F",
+    codice: "CAMD20150",
+    cablato: "DIS0019091 - Telecamera + DIS0019086 - Prolunga telecamera",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Telecamera del rostro.",
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X05 · Telecamera", pin: [["1", "RD", "X01/14", "", ""], ["2", "BK", "X01/13", "", ""], ["3", "YE", "X01/25", "", ""], ["4", "WH", "X01/26", "", ""]] }
+    ] },
+  CS_1: { cavo: "DIS0019025 - Display Spark",
+    tipo: "On/off",
+    cablato: "DIS0020027 - Costa sensibile",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Costa sensibile 1, collegata in serie con la costa sensibile 2 (CS_2).",
+    bullets: ["Le due coste sensibili sono collegate in serie: alla scheda arriva un solo ingresso, che sull'HMI compare come CS_1.", "Durante il carico e lo scarico devono restare attive entrambe: se se ne rilascia una, il ciclo si interrompe."],
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X11 · Costa sensibile 1", pin: [["1", "WH", "X10/2", "", "serie con CS_2"], ["2", "BK", "X01/34", "", ""]] }
+    ] },
+  CS_2: { cavo: "DIS0019025 - Display Spark",
+    tipo: "On/off",
+    cablato: "DIS0020027 - Costa sensibile",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Costa sensibile 2, collegata in serie con la costa sensibile 1 (CS_1).",
+    bullets: ["Le due coste sensibili sono collegate in serie: alla scheda arriva un solo ingresso, che sull'HMI compare come CS_1.", "Durante il carico e lo scarico devono restare attive entrambe: se se ne rilascia una, il ciclo si interrompe."],
+    collegamenti: [
+      { cavo: "DIS0019025 - Display Spark", connettore: "X10 · Costa sensibile 2", pin: [["1", "RD", "X01/24", "", "in comune con il thumbwheel"], ["2", "WH", "X11/1", "", "serie con CS_1"]] }
+    ] },
+  G_1: { cavo: "Montato sulla scheda",
+    tipo: "Giroscopio",
+    dove: "Scheda Display - DIS0019196",
+    intro: "Giroscopio montato direttamente sulla scheda Display: misura l'inclinazione dello SPARK." },
+  AT_1: { cavo: "DIS0019026 - Rostro Spark",
+    modello: "FUTABA HPS-CB700",
+    codice: "EMSERCB700",
+    cablato: "DIS0019093 - Attuatore perni verticali",
+    dove: "Scheda Rostro - DIS0018007",
+    intro: "Servomotore che sblocca i perni verticali della slitta.",
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X03 · Attuatore perni verticali", pin: [["1", "BK", "X01/8", "", ""], ["2", "RD", "X01/32", "", ""], ["3", "GY", "X01/20", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica servo FUTABA HPS-CB700 (EMSERCB700)", url: "assets/docs/componenti/EMSERCB700.pdf" }, { title: "Attuatore con leva modificata (verticale) DIS0027430", url: "assets/docs/componenti/DIS0027430-R00.pdf" }, { title: "Attuatore perni verticali cablato DIS0019093", url: "assets/docs/componenti/DIS0019093_R01.pdf" }] },
+  AT_2: { cavo: "DIS0019026 - Rostro Spark",
+    modello: "FUTABA HPS-CB700",
+    codice: "EMSERCB700",
+    cablato: "DIS0019095 - Attuatore perno orizzontale",
+    dove: "Scheda Rostro - DIS0018007",
+    intro: "Servomotore che sblocca il perno orizzontale (sfera).",
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X04 · Attuatore perno orizzontale", pin: [["1", "BK", "X01/9", "", ""], ["2", "RD", "X01/33", "", ""], ["3", "GY", "X01/21", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica servo FUTABA HPS-CB700 (EMSERCB700)", url: "assets/docs/componenti/EMSERCB700.pdf" }, { title: "Attuatore con leva (orizzontale) DIS0020142", url: "assets/docs/componenti/DIS0020142-R01.pdf" }, { title: "Attuatore perno orizzontale cablato DIS0019095", url: "assets/docs/componenti/DIS0019095_R01.pdf" }] },
+  LD_3: { cavo: "DIS0019026 - Rostro Spark",
+    modello: "Scheda LED STEM DIS0017020",
+    codice: "DIS0017020",
+    cablato: "DIS0019096 - Scheda LED cablata",
+    dove: "Scheda Rostro - DIS0018007",
+    intro: "Scheda LED di illuminazione frontale (rostro).",
+    collegamenti: [
+      { cavo: "DIS0019026 - Rostro Spark", connettore: "X05 · Luce", pin: [["1", "RD", "X01/26", "", ""], ["2", "BK", "X01/3", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda LED cablata DIS0019096", url: "assets/docs/componenti/DIS0019096_R00.pdf" }] },
+  RF_1: { dove: "Scheda Gateway - DIS0020986",
+    intro: "Lettore RFID collegato alla scheda Gateway." },
+  M_1: { cavo: "DIS0019028 - Fasi motori Spark / DIS0019029 - Segnali motori Spark",
+    tipo: "Motore brushless",
+    modello: "MOTORPOWER TC40.0,32.01",
+    codice: "EMBR4005VDC",
+    cablato: "DIS0019103 - Motore ruote cablato",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Motore brushless che muove il piede lato piedi, DX.",
+    collegamenti: [
+      { cavo: "DIS0019028 - Fasi motori Spark", connettore: "X02 · Motore ruota piedi", pin: [["1", "GY", "X01 fasi/2", "U", ""], ["2", "BK", "X01 fasi/3", "V", ""], ["3", "BN", "X01 fasi/1", "W", ""]] },
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X02 · Hall ruota piedi", pin: [["1", "YE", "X01/13", "HU", ""], ["2", "GN", "X01/14", "HV", ""], ["3", "BN", "X01/15", "HW", ""], ["4", "WH", "X01/1", "GND", ""], ["5", "RD", "X01/2", "VCC", "in comune con il potenziometro"]] }
+    ],
+    allegati: [{ title: "Scheda tecnica motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC.pdf" }, { title: "Disegno motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC-.pdf" }, { title: "Motore ruote cablato DIS0019103", url: "assets/docs/componenti/DIS0019103_R00.pdf" }] },
+  M_2: { cavo: "DIS0019028 - Fasi motori Spark / DIS0019029 - Segnali motori Spark",
+    tipo: "Motore brushless",
+    modello: "MOTORPOWER TC40.0,32.01",
+    codice: "EMBR4005VDC",
+    cablato: "DIS0019103 - Motore ruote cablato",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Motore brushless che muove il piede lato piedi, SX.",
+    collegamenti: [
+      { cavo: "DIS0019028 - Fasi motori Spark", connettore: "X02 · Motore ruota piedi", pin: [["1", "GY", "X01 fasi/2", "U", ""], ["2", "BK", "X01 fasi/3", "V", ""], ["3", "BN", "X01 fasi/1", "W", ""]] },
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X02 · Hall ruota piedi", pin: [["1", "YE", "X01/13", "HU", ""], ["2", "GN", "X01/14", "HV", ""], ["3", "BN", "X01/15", "HW", ""], ["4", "WH", "X01/1", "GND", ""], ["5", "RD", "X01/2", "VCC", "in comune con il potenziometro"]] }
+    ],
+    allegati: [{ title: "Scheda tecnica motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC.pdf" }, { title: "Disegno motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC-.pdf" }, { title: "Motore ruote cablato DIS0019103", url: "assets/docs/componenti/DIS0019103_R00.pdf" }] },
+  M_3: { cavo: "DIS0019028 - Fasi motori Spark / DIS0019029 - Segnali motori Spark",
+    tipo: "Motore brushless",
+    modello: "MOTORPOWER TC40.0,32.01",
+    codice: "EMBR4005VDC",
+    cablato: "DIS0019103 - Motore ruote cablato",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Motore brushless che muove il piede lato testa, DX.",
+    collegamenti: [
+      { cavo: "DIS0019028 - Fasi motori Spark", connettore: "X03 · Motore ruota testa", pin: [["1", "GY", "X01 fasi/5", "U", ""], ["2", "BK", "X01 fasi/6", "V", ""], ["3", "BN", "X01 fasi/4", "W", ""]] },
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X05 · Hall ruota testa", pin: [["1", "YE", "X01/10", "HU", ""], ["2", "GN", "X01/9", "HV", ""], ["3", "BN", "X01/8", "HW", ""], ["4", "WH", "X01/21", "GND", ""], ["5", "RD", "X01/11", "VCC", "in comune con il potenziometro"]] }
+    ],
+    allegati: [{ title: "Scheda tecnica motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC.pdf" }, { title: "Disegno motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC-.pdf" }, { title: "Motore ruote cablato DIS0019103", url: "assets/docs/componenti/DIS0019103_R00.pdf" }] },
+  M_4: { cavo: "DIS0019028 - Fasi motori Spark / DIS0019029 - Segnali motori Spark",
+    tipo: "Motore brushless",
+    modello: "MOTORPOWER TC40.0,32.01",
+    codice: "EMBR4005VDC",
+    cablato: "DIS0019103 - Motore ruote cablato",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Motore brushless che muove il piede lato testa, SX.",
+    collegamenti: [
+      { cavo: "DIS0019028 - Fasi motori Spark", connettore: "X03 · Motore ruota testa", pin: [["1", "GY", "X01 fasi/5", "U", ""], ["2", "BK", "X01 fasi/6", "V", ""], ["3", "BN", "X01 fasi/4", "W", ""]] },
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X05 · Hall ruota testa", pin: [["1", "YE", "X01/10", "HU", ""], ["2", "GN", "X01/9", "HV", ""], ["3", "BN", "X01/8", "HW", ""], ["4", "WH", "X01/21", "GND", ""], ["5", "RD", "X01/11", "VCC", "in comune con il potenziometro"]] }
+    ],
+    allegati: [{ title: "Scheda tecnica motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC.pdf" }, { title: "Disegno motore EMBR4005VDC", url: "assets/docs/componenti/EMBR4005VDC-.pdf" }, { title: "Motore ruote cablato DIS0019103", url: "assets/docs/componenti/DIS0019103_R00.pdf" }] },
+  M_5: { cavo: "DIS0019028 - Fasi motori Spark / DIS0019029 - Segnali motori Spark",
+    tipo: "Motore brushless",
+    modello: "SOFTING 57BLF04U-001",
+    codice: "EMBR5724V",
+    cablato: "DIS0019104 - Motore gamba Spark cablato",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Motore brushless della pompa del gruppo attuatore idraulico: muove la gamba lato piedi.",
+    collegamenti: [
+      { cavo: "DIS0019028 - Fasi motori Spark", connettore: "X04 · Motore gamba", pin: [["1", "YE", "X01 fasi/7", "U", ""], ["2", "YE", "X01 fasi/8", "U", ""], ["3", "GN", "X01 fasi/11", "V", ""], ["4", "GN", "X01 fasi/12", "V", ""], ["5", "BU", "X01 fasi/9", "W", ""], ["6", "BU", "X01 fasi/10", "W", ""]] },
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X08 · Hall gamba", pin: [["1", "YE", "X01/5", "HU", ""], ["2", "GN", "X01/4", "HV", ""], ["3", "BU", "X01/3", "HW", ""], ["4", "BK", "X01/7", "GND", ""], ["5", "RD", "X01/6", "VCC", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica motore 57BLF04", url: "assets/docs/componenti/57BLF04U.pdf" }, { title: "Disegno motore 57BLF04U", url: "assets/docs/componenti/57BLF04U-.pdf" }, { title: "Gruppo attuatore idraulico DIS0018414 (disegno e distinta)", url: "assets/docs/componenti/DIS0018414-R01.pdf" }] },
+  M_6: { cavo: "DIS0019028 - Fasi motori Spark / DIS0019029 - Segnali motori Spark",
+    tipo: "Motore brushless",
+    modello: "SOFTING 57BLF04U-001",
+    codice: "EMBR5724V",
+    cablato: "DIS0019104 - Motore gamba Spark cablato",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Motore brushless della pompa del gruppo attuatore idraulico: muove la gamba lato testa.",
+    collegamenti: [
+      { cavo: "DIS0019028 - Fasi motori Spark", connettore: "X04 · Motore gamba", pin: [["1", "YE", "X01 fasi/7", "U", ""], ["2", "YE", "X01 fasi/8", "U", ""], ["3", "GN", "X01 fasi/11", "V", ""], ["4", "GN", "X01 fasi/12", "V", ""], ["5", "BU", "X01 fasi/9", "W", ""], ["6", "BU", "X01 fasi/10", "W", ""]] },
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X08 · Hall gamba", pin: [["1", "YE", "X01/5", "HU", ""], ["2", "GN", "X01/4", "HV", ""], ["3", "BU", "X01/3", "HW", ""], ["4", "BK", "X01/7", "GND", ""], ["5", "RD", "X01/6", "VCC", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica motore 57BLF04", url: "assets/docs/componenti/57BLF04U.pdf" }, { title: "Disegno motore 57BLF04U", url: "assets/docs/componenti/57BLF04U-.pdf" }, { title: "Gruppo attuatore idraulico DIS0018414 (disegno e distinta)", url: "assets/docs/componenti/DIS0018414-R01.pdf" }] },
+  F_1: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "BWX-01-10S-24V-6",
+    codice: "FRELM036",
+    cablato: "DIS0019105 - Freno",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Freno del motore del piede posteriore DX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X03 · Freno ruota piedi", pin: [["1", "BK", "X01/34", "", ""], ["2", "BK", "X01/36", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica freno FRELM036", url: "assets/docs/componenti/FRELM036-100270-100271.pdf" }] },
+  F_2: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "BWX-01-10S-24V-6",
+    codice: "FRELM036",
+    cablato: "DIS0019105 - Freno",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Freno del motore del piede posteriore SX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X03 · Freno ruota piedi", pin: [["1", "BK", "X01/34", "", ""], ["2", "BK", "X01/36", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica freno FRELM036", url: "assets/docs/componenti/FRELM036-100270-100271.pdf" }] },
+  F_3: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "BWX-01-10S-24V-6",
+    codice: "FRELM036",
+    cablato: "DIS0019105 - Freno",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Freno del motore del piede anteriore DX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X06 · Freno ruota testa", pin: [["1", "BK", "X01/33", "", ""], ["2", "BK", "X01/35", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica freno FRELM036", url: "assets/docs/componenti/FRELM036-100270-100271.pdf" }] },
+  F_4: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "BWX-01-10S-24V-6",
+    codice: "FRELM036",
+    cablato: "DIS0019105 - Freno",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Freno del motore del piede anteriore SX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X06 · Freno ruota testa", pin: [["1", "BK", "X01/33", "", ""], ["2", "BK", "X01/35", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica freno FRELM036", url: "assets/docs/componenti/FRELM036-100270-100271.pdf" }] },
+  EV_1: { cavo: "DIS0019029 - Segnali motori Spark",
+    tipo: "Proporzionale N.C.",
+    modello: "TECNORD EB-P2A-C5 + bobina 24 VDC",
+    codice: "ELETVALEBP2AC5 + COIL24VD",
+    cablato: "Diretto (connettore Deutsch DT06-2S sulla bobina)",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Elettrovalvola proporzionale N.C. che comanda la discesa della gamba lato piedi: eccitata fa passare l'olio con portata proporzionale alla corrente, diseccitata blocca la discesa.",
+    bullets: ["Nel gruppo attuatore idraulico c'è anche una seconda valvola, Tecnord HB-S2A-B5, montata senza bobina (distanziale al suo posto): non è un'utenza elettrica.", "Emergenza: la valvola EB-P2A-C5 ha un comando manuale a tirante, collegato alla leva di sblocco emergenza del gruppo idraulico."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X11 · Elettrovalvola", pin: [["1", "VT", "X01/12", "", ""], ["2", "VT", "X01/22", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica Tecnord EB-P2A (ELETVALEBP2AC5)", url: "assets/docs/componenti/ELETVALEBP2AC5.pdf" }, { title: "Scheda tecnica Tecnord HB-S2A (ELETVALHBS2AB5), senza bobina", url: "assets/docs/componenti/ELETVALHBS2AB5.pdf" }, { title: "Gruppo attuatore idraulico DIS0018414 (disegno e distinta)", url: "assets/docs/componenti/DIS0018414-R01.pdf" }] },
+  EV_2: { cavo: "DIS0019029 - Segnali motori Spark",
+    tipo: "Proporzionale N.C.",
+    modello: "TECNORD EB-P2A-C5 + bobina 24 VDC",
+    codice: "ELETVALEBP2AC5 + COIL24VD",
+    cablato: "Diretto (connettore Deutsch DT06-2S sulla bobina)",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Elettrovalvola proporzionale N.C. che comanda la discesa della gamba lato testa: eccitata fa passare l'olio con portata proporzionale alla corrente, diseccitata blocca la discesa.",
+    bullets: ["Nel gruppo attuatore idraulico c'è anche una seconda valvola, Tecnord HB-S2A-B5, montata senza bobina (distanziale al suo posto): non è un'utenza elettrica.", "Emergenza: la valvola EB-P2A-C5 ha un comando manuale a tirante, collegato alla leva di sblocco emergenza del gruppo idraulico."],
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X11 · Elettrovalvola", pin: [["1", "VT", "X01/12", "", ""], ["2", "VT", "X01/22", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda tecnica Tecnord EB-P2A (ELETVALEBP2AC5)", url: "assets/docs/componenti/ELETVALEBP2AC5.pdf" }, { title: "Scheda tecnica Tecnord HB-S2A (ELETVALHBS2AB5), senza bobina", url: "assets/docs/componenti/ELETVALHBS2AB5.pdf" }, { title: "Gruppo attuatore idraulico DIS0018414 (disegno e distinta)", url: "assets/docs/componenti/DIS0018414-R01.pdf" }] },
+  LD_1: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "Scheda LED STEM DIS0017020",
+    codice: "DIS0017020",
+    cablato: "DIS0019096 - Scheda LED cablata",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Scheda LED di illuminazione laterale DX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X12 · Luce", pin: [["1", "RD", "X01/24", "", ""], ["2", "BK", "X01/23", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda LED cablata DIS0019096", url: "assets/docs/componenti/DIS0019096_R00.pdf" }] },
+  LD_2: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "Scheda LED STEM DIS0017020",
+    codice: "DIS0017020",
+    cablato: "DIS0019096 - Scheda LED cablata",
+    dove: "Scheda Motore SX - DIS0016079",
+    intro: "Scheda LED di illuminazione laterale SX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X12 · Luce", pin: [["1", "RD", "X01/24", "", ""], ["2", "BK", "X01/23", "", ""]] }
+    ],
+    allegati: [{ title: "Scheda LED cablata DIS0019096", url: "assets/docs/componenti/DIS0019096_R00.pdf" }] },
+  B_1: { cavo: "DIS0019029 - Segnali motori Spark",
+    modello: "CUI Devices CS-3624",
+    codice: "EBUZ0001",
+    cablato: "DIS0022342 - Buzzer Spark",
+    dove: "Scheda Motore DX - DIS0016079",
+    intro: "Segnalatore acustico (buzzer). È collegato solo alla scheda motore DX.",
+    collegamenti: [
+      { cavo: "DIS0019029 - Segnali motori Spark", connettore: "X13 · Aux", pin: [["1", "RD", "X01/19", "", ""], ["2", "BK", "X01/20", "", ""]] }
+    ] },
+  BT_1: { cavo: "DIS0020952 - Interfaccia caricabatteria Spark",
+    cablato: "Lamelle contatti batteria DIS0014794 / DIS0014851",
+    dove: "Scheda fusibili + SM bus verso Scheda Display",
+    intro: "Batteria dello SPARK: alimenta le schede tramite la scheda fusibili e comunica il suo stato al display tramite SM bus.",
+    collegamenti: [
+      { cavo: "DIS0020952 - Interfaccia caricabatteria Spark", connettore: "X04 · Lamelle a contatti batteria", pin: [["X04.1", "RD", "Scheda fusibili X05/7…12", "+ batteria", ""], ["X04.4", "BK", "Scheda fusibili X05/1…6", "− batteria", ""], ["X04.2", "WH", "SM bus → Display X04/1", "SM bus", ""], ["X04.3", "GN", "SM bus → Display X04/2", "SM bus", ""]] }
+    ] },
 };
 
 /* ---------------------------------------------------------------------
@@ -377,6 +700,7 @@ const COMPONENTS = [
   { id: "C_5", categoria: "altrisensori" },
   { id: "G_1", categoria: "altrisensori" },
   { id: "CS_1", categoria: "altrisensori" },
+  { id: "CS_2", categoria: "altrisensori" },
   /* --- Fase 6: schede elettroniche --- */
   { id: "E_2", categoria: "schede" },
   { id: "E_3", categoria: "schede" },
@@ -421,7 +745,7 @@ const MAP_VIEWS = [
       { id: "C_2", x: 17.4, y: 35.1 },
       { id: "PR_2", x: 53.6, y: 40.0 },
       { id: "LD_3", x: 86.8, y: 51.5 },
-      { id: "CS_1", x: 9.0, y: 51.8 },
+      { id: "CS_2", x: 9.0, y: 51.8 },
       { id: "C_1", x: 17.5, y: 51.8 },
       { id: "C_4", x: 13.4, y: 67.5 },
       { id: "C_3", x: 22.0, y: 67.5 },
@@ -1161,8 +1485,8 @@ const ERROR_DIAGNOSTICS = {
    ------------------------------------------------------------------- */
 const OPERATION_SEQUENCE_NOTES = {
   carico: {
-    testo: "Verificare che le slitte A e B siano in posizione di carico, completamente estratte e vincolate. Durante tutta l'operazione devono essere mantenuti attivi il pulsante IN (C_3) ed entrambe le coste sensibili (CS_1); il rilascio di uno qualsiasi di questi ingressi interrompe qualsiasi azione.",
-    componenti: ["C_3", "CS_1"]
+    testo: "Verificare che le slitte A e B siano in posizione di carico, completamente estratte e vincolate. Durante tutta l'operazione devono essere mantenuti attivi il pulsante IN (C_3) ed entrambe le coste sensibili (CS_1 e CS_2); il rilascio di uno qualsiasi di questi ingressi interrompe qualsiasi azione.",
+    componenti: ["C_3", "CS_1", "CS_2"]
   }
 };
 
@@ -1185,7 +1509,7 @@ const OPERATION_SEQUENCE = [
   { id: "carico-15", tipo: "carico", numero: 15, descrizione: "L'avanzamento continua fino all'aggancio dei ganci 10G. I sensori magnetici R_2 (Dx e Sx) verificano il corretto aggancio della barella.", componenti: ["R_2"], parametri: [] },
 
   { id: "scarico-01", tipo: "scarico", numero: 1, descrizione: "L'azionamento della leva rossa in prossimità della maniglia destra provoca lo sgancio della barella dai ganci 10G. I sensori magnetici R_2 (Dx e Sx) rilevano la condizione di sgancio.", componenti: ["R_2"], parametri: [] },
-  { id: "scarico-02", tipo: "scarico", numero: 2, descrizione: "Durante tutta l'operazione devono essere mantenuti attivi il pulsante OUT (C_4) ed entrambe le coste sensibili (CS_1); il rilascio di uno qualsiasi di questi ingressi interrompe il ciclo.", componenti: ["C_4", "CS_1"], parametri: [] },
+  { id: "scarico-02", tipo: "scarico", numero: 2, descrizione: "Durante tutta l'operazione devono essere mantenuti attivi il pulsante OUT (C_4) ed entrambe le coste sensibili (CS_1 e CS_2); il rilascio di uno qualsiasi di questi ingressi interrompe il ciclo.", componenti: ["C_4", "CS_1", "CS_2"], parametri: [] },
   { id: "scarico-03", tipo: "scarico", numero: 3, descrizione: "La barella può arretrare fino a quando il movimento viene arrestato dal vincolo B4.", componenti: [], parametri: [] },
   { id: "scarico-04", tipo: "scarico", numero: 4, descrizione: "Il sensore laser L_2 rileva l'uscita dal piano di carico tramite la striscia riflettente. Questa condizione abilita l'abbassamento delle gambe lato piedi tramite motore M_5 fino al contatto con il suolo.", componenti: ["L_2", "M_5"], parametri: ["MAX SPEED MT FEET DOWN"] },
   { id: "scarico-05", tipo: "scarico", numero: 5, descrizione: "Quando le ruote delle gambe lato piedi raggiungono il suolo, la pressione del circuito oleodinamico aumenta. Il sensore di pressione PR_1 rileva il superamento della soglia impostata e arresta automaticamente la discesa delle gambe.", componenti: ["PR_1"], parametri: ["LASER UNLOAD DELTA", "UNLOAD INCLINATION OFFSET"] },
@@ -1549,7 +1873,16 @@ const I18N = {
     relation_sequence_title: "Utilizzo nella logica",
     relation_no_sequence: "Nessun passaggio della sequenza associato a questo componente.",
     component_no_details: "Non è ancora disponibile una scheda tecnica dettagliata per questo componente.",
-    component_field_codice: "Codice cavo",
+    component_field_codice: "Collegato al cavo",
+    comp_fact_cablato: "Cablato / prolunga",
+    comp_fact_connettore: "Connettore",
+    comp_tab_pin: "Pin",
+    comp_pin_title: "Pin del connettore",
+    comp_pin_h_pin: "Pin",
+    comp_pin_h_filo: "Filo",
+    comp_pin_h_scheda: "Pin scheda",
+    comp_pin_h_segnale: "Segnale",
+    comp_pin_note: "Pin scheda = pin del connettore X01 del cavo, inserito nella scheda. Fonte: schema elettrico SE_Spark_Layout_R01.",
     comp_fact_codice_interno: "Codice interno",
     component_field_tipo: "Tipo",
     component_field_funzione: "Funzione",

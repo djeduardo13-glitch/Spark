@@ -1698,7 +1698,7 @@ function renderComponents(filterText) {
     const det = SENSOR_DETAILS[c.id] || {};
     const grp = COMPONENT_FILTER_GROUPS[componentGroupOf(c.categoria)];
     const catLabel = ((dict[CAT_LABEL_KEY[c.categoria]] || c.categoria) + " " + (grp ? (dict[grp.label] || "") : "")).toLowerCase();
-    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", det.modello || "", det.codice || "", det.dove || "", det.codiceScheda || "", catLabel].join(" ").toLowerCase();
+    const haystack = [c.id, nome, det.tipo || "", det.cavo || "", det.cablato || "", det.modello || "", det.codice || "", det.dove || "", det.codiceScheda || "", catLabel].join(" ").toLowerCase();
     return haystack.includes(query);
   });
 
@@ -1771,6 +1771,17 @@ function goToComponentOnMap(id) {
   }
 }
 
+/* Colori dei fili (sigle IEC 60757 usate nello schema elettrico). */
+const WIRE_COLORS = {
+  BK: "#1f1f1f", BN: "#8a5a2b", BU: "#1f6fd1", WH: "#ffffff", GY: "#9aa0a6", RD: "#d93025",
+  YE: "#f2c200", GN: "#2e9d4a", OG: "#f28c1b", PK: "#f48fb1", VT: "#8e44ad"
+};
+function wireSwatch(code) {
+  const parts = String(code || "").split("/").map(c => WIRE_COLORS[c]).filter(Boolean);
+  const bg = parts.length > 1 ? `linear-gradient(90deg, ${parts[0]} 50%, ${parts[1]} 50%)` : (parts[0] || "transparent");
+  return `<span class="cd-wire"><span class="cd-wire-dot" style="background:${bg}"></span>${escapeHtml(code || "")}</span>`;
+}
+
 function openComponentDetail(id) {
   const comp = COMPONENTS.find(c => c.id === id);
   if (!comp) return;
@@ -1795,22 +1806,30 @@ function openComponentDetail(id) {
   const fields = document.getElementById("componentDetailFields");
   fields.innerHTML = "";
 
-  // ---- Scheda rapida: modello, codice cavo, collegamento + funzione ----
-  // Codice interno: da `codice` (o, se manca, tra parentesi nel cavo).
-  // Codice cavo: solo il codice DIS ("DIS0019098 - Reed 1" → "DIS0019098");
-  //   senza codice DIS si mostra il dato così com'è.
+  // ---- Scheda rapida: modello, codice, cablato, cavo, scheda + funzione ----
+  // Collegato al cavo: cablaggio principale a cui si collega il componente
+  //   (da `collegamenti`, con il connettore Xnn sotto); senza `collegamenti`
+  //   si mostra `cavo` così com'è.
+  // Cablato / prolunga: cablato o prolunga propria del componente (`cablato`).
   // Collegato a: `dove` così com'è ("Scheda Rostro - DIS0018007").
   const cavoStr = (det.cavo || "").trim();
-  const cavoDis = (cavoStr.match(/DIS\d+/) || [])[0] || "";
   const parenMatch = cavoStr.match(/\(([^)]+)\)/);
   const codiceInterno = det.codice || (parenMatch ? parenMatch[1].trim() : "");
-  const codiceCavo = cavoDis || (parenMatch ? "" : cavoStr);
   const collegato = (det.dove || "").trim();
+  const colls = det.collegamenti || [];
+  let cavoHtml = "";
+  if (colls.length) {
+    cavoHtml = colls.map(c =>
+      `<span class="cd-cable"><span class="cd-cable-name">${escapeHtml(c.cavo)}</span><span class="cd-cable-conn">${escapeHtml(c.connettore)}</span></span>`).join("");
+  } else if (cavoStr) {
+    cavoHtml = escapeHtml(cavoStr);
+  }
   const facts = [];
   if (det.codiceScheda) facts.push({ k: t("comp_fact_codice_scheda"), v: escapeHtml(det.codiceScheda), wide: true });
   if (det.modello) facts.push({ k: t("comp_fact_modello"), v: det.modello, wide: true });
   if (codiceInterno) facts.push({ k: t("comp_fact_codice_interno"), v: escapeHtml(codiceInterno), wide: true });
-  if (codiceCavo) facts.push({ k: t("component_field_codice"), v: escapeHtml(codiceCavo), wide: true });
+  if (det.cablato) facts.push({ k: t("comp_fact_cablato"), v: escapeHtml(det.cablato), wide: true });
+  if (cavoHtml) facts.push({ k: t("component_field_codice"), v: cavoHtml, wide: true });
   if (collegato) facts.push({ k: t("comp_fact_collegato"), v: escapeHtml(collegato), wide: true });
 
   if (facts.length || det.intro) {
@@ -1922,6 +1941,31 @@ function openComponentDetail(id) {
     });
     p.appendChild(card);
     tabs.push({ key: "err", label: t("comp_tab_errors"), count: errCodes.length, panel: p });
+  }
+
+  // Pin: un riquadro per ogni connettore (pin, filo, pin scheda, segnale)
+  if (colls.some(c => c.pin && c.pin.length)) {
+    const p = document.createElement("div");
+    let h = `<span class="cd-sec">${t("comp_pin_title")}</span>`;
+    colls.forEach(c => {
+      if (!c.pin || !c.pin.length) return;
+      const hasSig = c.pin.some(r => r[3]);
+      h += `<div class="cd-card cd-pins">
+        <div class="cd-pins-head"><span class="cd-pins-conn">${escapeHtml(c.connettore)}</span><span class="cd-pins-cable">${escapeHtml(c.cavo)}</span></div>
+        <table class="cd-pin-table"><thead><tr>
+          <th>${t("comp_pin_h_pin")}</th><th>${t("comp_pin_h_filo")}</th><th>${t("comp_pin_h_scheda")}</th>${hasSig ? `<th>${t("comp_pin_h_segnale")}</th>` : ""}
+        </tr></thead><tbody>` +
+        c.pin.map(r => `<tr>
+          <td class="cd-pin-n">${escapeHtml(r[0])}</td>
+          <td>${wireSwatch(r[1])}</td>
+          <td><span class="cd-pin-to">${escapeHtml(r[2])}</span>${r[4] ? `<span class="cd-pin-note">${escapeHtml(r[4])}</span>` : ""}</td>
+          ${hasSig ? `<td class="cd-pin-sig">${escapeHtml(r[3] || "")}</td>` : ""}
+        </tr>`).join("") +
+        `</tbody></table></div>`;
+    });
+    h += `<p class="cd-pin-foot">${t("comp_pin_note")}</p>`;
+    p.innerHTML = h;
+    tabs.push({ key: "pin", label: t("comp_tab_pin"), panel: p });
   }
 
   // Doc: schede tecniche allegate (assets/docs/componenti)
@@ -2076,7 +2120,7 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
     const componentMatches = (typeof COMPONENTS === "undefined" ? [] : COMPONENTS).filter(c => {
       const det = SENSOR_DETAILS[c.id] || {};
       const catLabel = dict[CAT_LABEL_KEY[c.categoria]] || c.categoria;
-      return [c.id, UTENZE[c.id] || "", det.tipo || "", det.cavo || "", det.codice || "", det.dove || "", det.codiceScheda || "", catLabel].join(" ").toLowerCase().includes(query);
+      return [c.id, UTENZE[c.id] || "", det.tipo || "", det.cavo || "", det.cablato || "", det.codice || "", det.dove || "", det.codiceScheda || "", catLabel].join(" ").toLowerCase().includes(query);
     }).slice(0, 8);
 
     if (errorMatches.length === 0 && paramMatches.length === 0 && componentMatches.length === 0) {

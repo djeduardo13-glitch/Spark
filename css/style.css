@@ -2266,6 +2266,28 @@ button {
 .cd-panel { display: none; padding-top: 12px; }
 .cd-panel.on { display: block; }
 .cd-panel > .relation-block { border-top: none; margin-top: 4px; padding-top: 0; }
+/* Collegamenti elettrici (scheda rapida + scheda Pin) */
+.cd-cable { display: block; }
+.cd-cable + .cd-cable { margin-top: 6px; }
+.cd-cable-name { display: block; }
+.cd-cable-conn { display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 999px; background: var(--tint); color: var(--brand); font-size: 12px; font-weight: 700; }
+.cd-pins { margin-bottom: 10px; }
+.cd-pins-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--tint); }
+.cd-pins-conn { font-size: 14px; font-weight: 700; color: var(--brand); }
+.cd-pins-cable { font-size: 12px; color: var(--ink-soft); }
+.cd-pin-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.cd-pin-table th:nth-child(1) { width: 15%; }
+.cd-pin-table th:nth-child(2) { width: 24%; }
+.cd-pin-table th:nth-child(4) { width: 24%; }
+.cd-pin-table th { text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); padding: 8px 14px 6px; }
+.cd-pin-table td { padding: 7px 14px; border-top: 1px solid var(--line); vertical-align: top; color: var(--ink); }
+.cd-pin-n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cd-pin-to { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cd-pin-note { display: block; font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
+.cd-pin-sig { color: var(--ink-soft); font-weight: 600; }
+.cd-wire { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.cd-wire-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(20, 33, 46, 0.35); flex: none; }
+.cd-pin-foot { font-size: 11.5px; color: var(--ink-soft); margin: 2px 2px 0; line-height: 1.4; }
 .cd-sec { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); margin: 4px 2px 8px; }
 .cd-sec.inner { margin: 12px 14px 0; }
 
