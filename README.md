@@ -19,6 +19,22 @@ Funziona anche offline grazie al service worker.
 | `manifest.json` | Configurazione PWA |
 | `sw.js` | Service worker (cache offline) |
 
+## Aggiungere contenuti
+
+Quasi tutti i contenuti si modificano solo in `js/data.js`, aggiungendo oggetti agli array esistenti
+(non serve toccare `app.js` o `style.css`).
+
+### Errori per versione FW
+
+| Array | Versione FW | Note |
+|---|---|---|
+| `ERRORS` | FW 8.2.x.x | Elenco di riferimento: componenti (`ERROR_COMPONENTS`) e diagnostica (`ERROR_DIAGNOSTICS`) sono collegati a questi codici. |
+| `ERRORS_79` | FW 7.9 | Mostrato solo quando in alto è selezionato FW 7.9. |
+
+Ogni voce di `ERRORS_79` ha il campo `ref` con il codice equivalente in `ERRORS`:
+componenti collegati e diagnostica vengono letti da lì, quindi restano identici tra le due versioni.
+Quando aggiungi un errore FW 7.9, verifica che il codice indicato in `ref` esista in `ERRORS`.
+
 ## Aggiornare l'app
 
 Quando modifichi file HTML, JS o CSS, incrementa `CACHE_NAME` in `sw.js`
