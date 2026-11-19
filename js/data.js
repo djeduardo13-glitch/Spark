@@ -1253,6 +1253,44 @@ const ERRORS = [
 ];
 
 /* ---------------------------------------------------------------------
+   ERRORI FW 7.9
+   Fonte: «2. Messagi erorre.xlsx» (foglio MESSAGES) — elenco errori della
+   versione FW 7.9. Mostrati SOLO quando in alto è selezionato FW 7.9; con
+   FW 8.2.x.x si usa ERRORS (sopra).
+   code = codice come appare sul FW 7.9 · text = colonna ITALIANO del file
+   en   = messaggio originale (colonna DESCRIPTION), usato anche nella ricerca
+   ref  = codice equivalente in ERRORS (FW 8.2): componenti collegati e
+          diagnostica (ERROR_COMPONENTS / ERROR_DIAGNOSTICS) si leggono da lì,
+          quindi restano identici tra le due versioni.
+   E116 non ha la traduzione nel file: si usa quella di E116 FW 8.2.
+   ------------------------------------------------------------------- */
+const ERRORS_79 = [
+  { code: "E001", ref: "L001", cat: "L", catLabel: "Ciclo carico/scarico", text: "Errore nel controllo del sensore Reed 1 durante la fase di avvio dello scarico: stato del sensore non valido", en: "START UNLOAD REED 1 CHECK FAIL: during unload start phase the Read sensor status is invalid" },
+  { code: "E200", ref: "L200", cat: "L", catLabel: "Ciclo carico/scarico", text: "Le ruote laterali della testa sono troppo lontane dal pavimento: la ritenzione della slitta è disattivata per evitare un salto troppo grande", en: "HEAD SIDE WHEELS TOO FAR FRM THE FLOR: the slead retention is disabled to avoid too big jump." },
+  { code: "E010", ref: "E010", cat: "E", catLabel: "Errore di sistema", text: "La centralina (ECU) del motore destro non invia alcun messaggio sul bus CAN", en: "ECU MOTOR RIGHT ABSENT: The Ecu don't send any messages on CAN" },
+  { code: "E011", ref: "E011", cat: "E", catLabel: "Errore di sistema", text: "La centralina (ECU) del motore sinistro non invia alcun messaggio sul bus CAN", en: "ECU MOTOR LEFT ABSENT: The Ecu don't send any messages on CAN" },
+  { code: "E012", ref: "E012", cat: "E", catLabel: "Errore di sistema", text: "La centralina (ECU) del rostro non invia alcun messaggio sul bus CAN", en: "ECU ROSTRO ABSENT: The Ecu don't send any messages on CAN" },
+  { code: "E20", ref: "E020", cat: "E", catLabel: "Errore di sistema", text: "Errore: inizializzazione dell'IMU fallita", en: "FAULT IMU INITILIZATION FAILED" },
+  { code: "E100", ref: "E100", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente Motore Gamba Testa sinistra", en: "OVERCURRENT MOTOR HEAD LEG LEFT" },
+  { code: "E101", ref: "E101", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente Motore Ruota Testa sinistra", en: "OVERCURRENT MOTOR HEAD WHEEL LEFT" },
+  { code: "E102", ref: "E102", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente Motore Ruota Piede sinistra", en: "OVERCURRENT MOTOR FOOT WHEEL LEFT" },
+  { code: "E103", ref: "E103", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente Motore Gamba Piedi destra", en: "OVERCURRENT MOTOR FEET LEG RIGHT" },
+  { code: "E104", ref: "E104", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente Motore Ruota Testa destra", en: "OVERCURRENT MOTOR HEAD WHEEL RIGHT" },
+  { code: "E105", ref: "E105", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente motore ruota Piede destra", en: "OVERCURRENT MOTOR FOOT WHEEL RIGHT" },
+  { code: "E106", ref: "E106", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente attuatore verticale", en: "OVERCURRENT VERTICAL ACTUATOR" },
+  { code: "E107", ref: "E107", cat: "E", catLabel: "Errore di sistema", text: "Sovracorrente attuatore orizzontale", en: "OVERCURRENT HORIZONTAL ACTUATOR" },
+  { code: "E108", ref: "E108", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento motore gamba testa sinistra", en: "OVERTEMPERATURE MOTOR HEAD LEG LEFT" },
+  { code: "E109", ref: "E109", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento motore ruota testa sinistra", en: "OVERTEMPERATURE MOTOR HEAD WHEEL LEFT" },
+  { code: "E110", ref: "E110", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento motore ruota piede sinistra", en: "OVERTEMPERATURE MOTOR FOOT WHEEL LEFT" },
+  { code: "E111", ref: "E111", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento motore gamba piedi destra", en: "OVERTEMPERATURE MOTOR FEET LEG RIGHT" },
+  { code: "E112", ref: "E112", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento motore ruota testa destra", en: "OVERTEMPERATURE MOTOR HEAD WHEEL RIGHT" },
+  { code: "E113", ref: "E113", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento motore ruota piede destra", en: "OVERTEMPERATURE MOTOR FOOT WHEEL RIGHT" },
+  { code: "E114", ref: "E114", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento attuatore verticale", en: "OVERTEMPERATURE VERTICAL ACTUATOR" },
+  { code: "E115", ref: "E115", cat: "E", catLabel: "Errore di sistema", text: "Surriscaldamento attuatore orizzontale", en: "OVERTEMPERATURE HORIZONTAL ACTUATOR" },
+  { code: "E116", ref: "E116", cat: "E", catLabel: "Errore di sistema", text: "Incoerenza nella posizione delle ruote.", en: "WHEELS FAULT POS" },
+];
+
+/* ---------------------------------------------------------------------
    RELAZIONI COMPONENTI ↔ PARAMETRI ↔ ERRORI
    Fonte: Spark_matrice_componenti_parametri_errori.xlsx (schede Parametri ed
    Errori, colonna «Componenti coinvolti»), compilata manualmente dall'utente.
@@ -1793,6 +1831,7 @@ const I18N = {
     param_max: "Max",
     param_res: "Ris.",
     errors_intro: "Codici di errore/allarme del sistema, tradotti in italiano. Tocca un errore per aprire la sua scheda nella Diagnostica.",
+    errors_fw_note: "Elenco errori {fw} · {n} codici (cambia versione dal selettore in alto)",
     components_intro: "Scheda tecnica di ogni componente/sensore: cosa fa, dove si trova, come si verifica.",
     components_empty: "Sezione in preparazione: i contenuti verranno aggiunti qui componente per componente.",
     component_search_placeholder: "Cerca per nome, ID, codice o tipo…",

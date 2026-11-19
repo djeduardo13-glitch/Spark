@@ -194,9 +194,32 @@ function renderFwSwitch() {
       renderMaintenance();
       renderDocuments();
       renderDevice();
+      refreshErrorViewsForFw();
     });
     el.appendChild(btn);
   });
+}
+
+/* Dopo il cambio FW ridisegna ciò che mostra errori (lista Errori, ricerca
+   e scheda errore della Diagnostica, scheda componente, passaggio) senza
+   aggiungere voci alla cronologia. */
+function refreshErrorViewsForFw() {
+  nav.applying = true;
+  try {
+    if (state.simMode === "errors") renderErrors();
+    const diagSearch = document.getElementById("diagErrorSearch");
+    if (diagSearch && diagSearch.value) renderDiagErrorResults();
+    const d = state.detail;
+    if (d && d.type === "diagerror") {
+      if (findError(d.id)) openDiagError(d.id); else closeDiagError();
+    } else if (d && d.type === "component") openComponentDetail(d.id);
+    else if (d && d.type === "diagstep") openDiagStep(d.id);
+  } finally {
+    nav.applying = false;
+  }
+  if (history.state && history.state.route) {
+    history.replaceState(Object.assign({}, history.state, { route: currentRoute() }), "");
+  }
 }
 
 function matchesFw(entryFw) {
@@ -1008,15 +1031,47 @@ const CAT_COLOR = { L: "cat-l", W: "cat-w", E: "cat-e" };
    Eventuali categorie future non elencate qui vengono accodate in fondo. */
 const ERROR_SECTION_ORDER = ["E", "L", "W"];
 
+/* Errori per versione FW: con FW 7.9 si usa ERRORS_79 (data.js), con
+   8.2.x.x ERRORS. Ogni voce 7.9 ha "ref" = codice equivalente 8.2, da cui
+   si leggono componenti e diagnostica: tutto il resto resta identico. */
+const ERRORS_BY_FW = { "7.9": typeof ERRORS_79 !== "undefined" ? ERRORS_79 : null };
+
+function activeErrors() {
+  return ERRORS_BY_FW[state.fw] || ERRORS;
+}
+
+// Codice 8.2 su cui sono costruite le relazioni (ERROR_COMPONENTS/DIAGNOSTICS)
+function errRef(er) {
+  return (er && er.ref) || (er && er.code);
+}
+
+/* Converte un codice (anche dell'altra versione, es. da cronologia o cambio
+   FW) nel codice della versione attiva. null se non esiste in questa versione. */
+function resolveErrorCode(code) {
+  const list = activeErrors();
+  if (list.some(e => e.code === code)) return code;
+  const all = [ERRORS].concat(Object.values(ERRORS_BY_FW).filter(Boolean));
+  let ref = code;
+  all.forEach(l => { const hit = l.find(e => e.code === code); if (hit) ref = errRef(hit); });
+  const hit = list.find(e => errRef(e) === ref);
+  return hit ? hit.code : null;
+}
+
+function findError(code) {
+  const c = resolveErrorCode(code);
+  return c ? activeErrors().find(e => e.code === c) : null;
+}
+
+function errorMatchesQuery(er, q) {
+  return er.code.toLowerCase().includes(q) || er.text.toLowerCase().includes(q) ||
+    (!!er.en && er.en.toLowerCase().includes(q));
+}
+
 function renderErrors(filterText) {
   const list = document.getElementById("errorList");
   const dict = I18N[state.lang] || I18N.it;
   const query = (filterText || "").trim().toLowerCase();
-  const items = ERRORS.filter(er =>
-    query === "" ||
-    er.code.toLowerCase().includes(query) ||
-    er.text.toLowerCase().includes(query)
-  );
+  const items = activeErrors().filter(er => query === "" || errorMatchesQuery(er, query));
 
   if (items.length === 0) {
     list.innerHTML = `<div class="empty-state">${dict.empty_state}</div>`;
@@ -1027,6 +1082,14 @@ function renderErrors(filterText) {
   const sections = [...ERROR_SECTION_ORDER, ...extraCats];
 
   list.innerHTML = "";
+  // Versione FW a cui si riferisce l'elenco (selettore in alto)
+  const fwInfo = FW_VERSIONS.find(f => f.id === state.fw);
+  const note = document.createElement("p");
+  note.className = "diag-errors-hint errors-fw-note";
+  note.textContent = (dict.errors_fw_note || I18N.it.errors_fw_note)
+    .replace("{fw}", fwInfo ? fwInfo.label : state.fw)
+    .replace("{n}", activeErrors().length);
+  list.appendChild(note);
   sections.forEach(cat => {
     const group = items.filter(er => er.cat === cat);
     if (group.length === 0) return;
@@ -1066,11 +1129,12 @@ function renderErrors(filterText) {
    Tutto il resto è calcolato qui a runtime, senza copiare dati.
    ------------------------------------------------------------------- */
 function getErrorComponents(code) {
-  return ERROR_COMPONENTS[code] || [];
+  const er = findError(code);
+  return ERROR_COMPONENTS[er ? errRef(er) : code] || [];
 }
 
 function getComponentErrors(id) {
-  return ERRORS.filter(er => (ERROR_COMPONENTS[er.code] || []).includes(id)).map(er => er.code);
+  return activeErrors().filter(er => (ERROR_COMPONENTS[errRef(er)] || []).includes(id)).map(er => er.code);
 }
 
 function getComponentParams(id) {
@@ -1095,14 +1159,15 @@ function getComponentSequenceSteps(id) {
    riferimento.
    ------------------------------------------------------------------- */
 function getErrorDiagnostics(code) {
-  return (typeof ERROR_DIAGNOSTICS !== "undefined" && ERROR_DIAGNOSTICS[code]) || null;
+  const er = findError(code);
+  return (typeof ERROR_DIAGNOSTICS !== "undefined" && ERROR_DIAGNOSTICS[er ? errRef(er) : code]) || null;
 }
 
 // Errori la cui fase validata comprende il passaggio indicato
 function getStepValidatedErrors(stepId) {
   if (typeof ERROR_DIAGNOSTICS === "undefined") return [];
-  return ERRORS.filter(er => {
-    const d = ERROR_DIAGNOSTICS[er.code];
+  return activeErrors().filter(er => {
+    const d = ERROR_DIAGNOSTICS[errRef(er)];
     return d && d.fase && d.fase.passaggi.includes(stepId);
   });
 }
@@ -1505,7 +1570,7 @@ function openDiagStep(stepId) {
     const vb = buildRelationBlock(
       dict.diag_validated_errors_title,
       validated.map(er => {
-        const f = ERROR_DIAGNOSTICS[er.code].fase;
+        const f = ERROR_DIAGNOSTICS[errRef(er)].fase;
         const nums = f.passaggi.map(stepNumberOf);
         const pre = f.collegamento === "transizione"
           ? `(${dict.diag_transition_note.replace("{a}", nums[0]).replace("{b}", nums[nums.length - 1])}) ` : "";
@@ -1581,7 +1646,7 @@ function renderDiagErrorResults() {
   const q = document.getElementById("diagErrorSearch").value.trim().toLowerCase();
   box.innerHTML = "";
   if (!q) return;
-  const hits = ERRORS.filter(er => er.code.toLowerCase().includes(q) || er.text.toLowerCase().includes(q)).slice(0, 12);
+  const hits = activeErrors().filter(er => errorMatchesQuery(er, q)).slice(0, 12);
   if (!hits.length) {
     const none = document.createElement("p");
     none.className = "relation-none";
@@ -1595,8 +1660,9 @@ function renderDiagErrorResults() {
 }
 
 function openDiagError(code) {
-  const er = ERRORS.find(e => e.code === code);
+  const er = findError(code);
   if (!er) return;
+  code = er.code;
   const dict = I18N[state.lang] || I18N.it;
   document.getElementById("diagErrorTitle").textContent = er.code;
   document.getElementById("diagErrorSub").textContent = er.catLabel || "";
@@ -1931,7 +1997,7 @@ function openComponentDetail(id) {
     const card = document.createElement("div");
     card.className = "cd-card";
     errCodes.forEach(code => {
-      const er = ERRORS.find(e => e.code === code) || {};
+      const er = findError(code) || {};
       const row = document.createElement("button");
       row.type = "button";
       row.className = "cd-err";
@@ -2109,9 +2175,7 @@ document.getElementById("componentFilterRow").addEventListener("click", (e) => {
     if (query === "") { closeResults(); return; }
 
     const dict = I18N[state.lang] || I18N.it;
-    const errorMatches = ERRORS.filter(er =>
-      er.code.toLowerCase().includes(query) || er.text.toLowerCase().includes(query)
-    ).slice(0, 8);
+    const errorMatches = activeErrors().filter(er => errorMatchesQuery(er, query)).slice(0, 8);
     const paramMatches = PARAMETERS.filter(pr =>
       pr.name.toLowerCase().includes(query)
     ).slice(0, 8);
