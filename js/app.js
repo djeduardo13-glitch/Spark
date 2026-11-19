@@ -72,9 +72,12 @@ function applyRoute(route) {
     closeSequenceDetail();
     closeFwTable();
     closeDiagnostic();
+    if (typeof closeIssueViews === "function") closeIssueViews();
     const d = route.detail;
     if (d) {
       if (d.type === "procedure") openProcedureDetail(d.id);
+      else if (d.type === "issue") openIssueDetail(d.id);
+      else if (d.type === "issueform") openIssueForm(d.id);
       else if (d.type === "sn") openSnFolder(d.id);
       else if (d.type === "component") openComponentDetail(d.id);
       else if (d.type === "fwtable") openFwTable();
@@ -141,6 +144,7 @@ function goToView(viewId) {
   if (viewId === "checklist" && typeof closeProcedureDetail === "function") closeProcedureDetail();
   if (viewId === "checklist" && typeof closeSnFolder === "function") closeSnFolder();
   if (viewId === "documents" && typeof closeFwTable === "function") closeFwTable();
+  if (viewId === "issues" && typeof closeIssueViews === "function") closeIssueViews();
   if (viewId !== "simulator" && typeof closeComponentDetail === "function") closeComponentDetail();
   if (viewId !== "simulator" && typeof closeSequenceDetail === "function") closeSequenceDetail();
   if (viewId !== "simulator" && typeof closeDiagnostic === "function") closeDiagnostic();
@@ -2086,6 +2090,7 @@ function openComponentDetail(id) {
   } else {
     mapLinkWrap.style.display = "none";
   }
+  if (typeof issuesRenderComponentBlock === "function") issuesRenderComponentBlock(id);
 
   document.getElementById("componentsListView").style.display = "none";
   document.getElementById("componentDetailView").style.display = "block";
@@ -2328,6 +2333,7 @@ function renderMapView() {
         ${openCompBtnHtml}
       `;
       answer.style.display = "block";
+      if (typeof issuesDecorateMapAnswer === "function") issuesDecorateMapAnswer(answer, h.id);
       if (isComponent) {
         document.getElementById("openComponentBtn").addEventListener("click", () => {
           switchSimMode("components");
@@ -2337,6 +2343,7 @@ function renderMapView() {
     });
     hotspotsEl.appendChild(btn);
   });
+  if (typeof issuesMarkMapHotspots === "function") issuesMarkMapHotspots();
 }
 
 /* -- Pan (drag) e zoom (rotellina / pinch) -- */
@@ -2663,6 +2670,7 @@ function init() {
   renderSequence();
   renderDevice();
   renderMapView();
+  if (typeof issuesInit === "function") issuesInit();
 
   // Ricarica della pagina o ritorno dal form: ripristina la pagina in cui si era
   if (history.state && history.state.route) {

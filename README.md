@@ -13,6 +13,7 @@ Funziona anche offline grazie al service worker.
 | `js/data.js` | Dati: componenti, errori, parametri, sequenze operative |
 | `js/app.js` | Logica dell'interfaccia |
 | `js/storage.js`, `js/fleet.js` | Salvataggio locale e parco macchine |
+| `js/issues.js` | Segnalazioni: problemi del prodotto, soluzioni, export PDF/Excel e backup |
 | `js/vendor/` | Librerie esterne (html2pdf) |
 | `css/style.css` | Stili |
 | `assets/` | Logo, icone app e documenti PDF dei componenti |
