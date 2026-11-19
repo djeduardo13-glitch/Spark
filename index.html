@@ -56,6 +56,12 @@
         </span>
         <span data-i18n="nav_documents">Documenti</span>
       </button>
+      <button class="nav-item" data-view="issues">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
+        </span>
+        <span data-i18n="nav_issues">Segnalazioni</span>
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -114,6 +120,11 @@
             <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
             <h3 data-i18n="nav_documents">Documenti</h3>
             <p>Manuali e documenti per la versione firmware selezionata.</p>
+          </button>
+          <button class="module-card" data-goto="issues">
+            <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></span>
+            <h3 data-i18n="nav_issues">Segnalazioni</h3>
+            <p>Problemi del prodotto per componente, macchine coinvolte e soluzioni provate. Export PDF/Excel.</p>
           </button>
         </div>
       </section>
@@ -241,6 +252,7 @@
                 <span data-i18n="see_on_map">Vedi sulla mappa</span>
               </button>
             </div>
+            <div id="componentIssuesBlock"></div>
             <div id="componentDetailFields"></div>
           </div>
 
@@ -413,6 +425,91 @@
         </div>
       </section>
 
+      <!-- SEGNALAZIONI (js/issues.js) -->
+      <section class="view" id="view-issues">
+        <!-- Elenco -->
+        <div id="issuesListView">
+          <div class="view-header">
+            <h2 data-i18n="nav_issues">Segnalazioni</h2>
+            <p>Problemi del prodotto collegati a componenti, errori e macchine, con le soluzioni provate. I dati restano su questo dispositivo: usa «Backup» per salvarli.</p>
+          </div>
+          <div class="iss-actions">
+            <button type="button" class="new-maint-btn" id="issueNewBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Nuova segnalazione</span>
+            </button>
+          </div>
+          <div class="iss-summary" id="issuesSummary"></div>
+
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="text" id="issueSearch" placeholder="Cerca per titolo, componente, errore, S/N…" autocomplete="off">
+          </div>
+          <div class="iss-filter-bar">
+            <div class="filter-chip-row" id="issueStatusRow">
+              <button class="filter-chip active" data-issue-status="open">Aperte</button>
+              <button class="filter-chip" data-issue-status="closed">Chiuse</button>
+              <button class="filter-chip" data-issue-status="all">Tutte</button>
+            </div>
+            <div class="iss-selects">
+              <select id="issueFilterSeverity" class="iss-input">
+                <option value="">Tutte le gravità</option>
+                <option value="bloccante">Bloccante</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+                <option value="bassa">Bassa</option>
+              </select>
+              <select id="issueFilterComponent" class="iss-input"></select>
+            </div>
+          </div>
+          <div class="iss-list-head">
+            <span id="issuesCount"></span>
+            <div class="filter-chip-row" id="issueGroupRow">
+              <button class="filter-chip active" data-issue-group="list">Elenco</button>
+              <button class="filter-chip" data-issue-group="component">Per componente</button>
+            </div>
+          </div>
+          <div id="issuesContainer"></div>
+
+          <h3 class="sub-heading">Esporta e backup</h3>
+          <p class="iss-muted">Report ed Excel contengono le segnalazioni filtrate qui sopra. Il backup contiene tutto.</p>
+          <div class="iss-export">
+            <button type="button" class="new-maint-btn secondary" id="issueExportPdf">Report PDF</button>
+            <button type="button" class="new-maint-btn secondary" id="issueExportCsv">Excel (CSV)</button>
+            <button type="button" class="new-maint-btn secondary" id="issueExportJson">Backup (.json)</button>
+            <label class="new-maint-btn secondary">
+              <input type="file" id="issueImportInput" accept=".json,application/json" hidden>
+              Importa backup
+            </label>
+          </div>
+        </div>
+
+        <!-- Scheda segnalazione -->
+        <div id="issueDetailView" style="display:none;">
+          <button class="back-to-list-btn" id="issueDetailBackBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+            <span>Torna alle segnalazioni</span>
+          </button>
+          <div class="view-header">
+            <h2 id="issueDetailTitle"></h2>
+            <p id="issueDetailSub"></p>
+          </div>
+          <div id="issueDetailFields"></div>
+        </div>
+
+        <!-- Nuova / modifica -->
+        <div id="issueFormView" style="display:none;">
+          <button class="back-to-list-btn" id="issueFormBackBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+            <span>Annulla</span>
+          </button>
+          <div class="view-header">
+            <h2 id="issueFormTitle">Nuova segnalazione</h2>
+          </div>
+          <div id="issueFormFields"></div>
+        </div>
+      </section>
+
     </div>
   </div>
 </div>
@@ -420,6 +517,7 @@
 <script src="js/data.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/fleet.js"></script>
+<script src="js/issues.js"></script>
 <script src="js/app.js"></script>
 <script>
   if ("serviceWorker" in navigator) {
